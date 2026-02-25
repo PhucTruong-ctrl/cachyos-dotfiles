@@ -1,0 +1,81 @@
+#!/bin/bash
+# install.sh — Restore CachyOS system from dotfiles
+# Usage: bash install.sh [--dry-run]
+set -euo pipefail
+
+DRY_RUN=false
+[[ "${1:-}" == "--dry-run" ]] && DRY_RUN=true
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+log() { echo -e "\033[1;32m==>\033[0m \033[1m$1\033[0m"; }
+warn() { echo -e "\033[1;33m==> WARNING:\033[0m $1"; }
+run() {
+    if $DRY_RUN; then
+        echo "[DRY RUN] $*"
+    else
+        "$@"
+    fi
+}
+
+log "CachyOS Dotfiles Installer"
+echo "Script dir: $SCRIPT_DIR"
+$DRY_RUN && echo "*** DRY RUN MODE — no changes will be made ***"
+echo ""
+
+# --- 1. Install packages ---
+log "Installing packages..."
+run bash "$SCRIPT_DIR/scripts/install-packages.sh"
+
+# --- 2. Copy system configs ---
+log "Installing system configs..."
+run sudo cp "$SCRIPT_DIR/etc/tlp.conf" /etc/tlp.conf
+run sudo cp "$SCRIPT_DIR/etc/intel-undervolt.conf" /etc/intel-undervolt.conf
+run sudo cp "$SCRIPT_DIR/etc/sysctl.d/99-performance.conf" /etc/sysctl.d/99-performance.conf
+run sudo cp "$SCRIPT_DIR/etc/udev/rules.d/99-via-keyboard.rules" /etc/udev/rules.d/99-via-keyboard.rules
+run sudo cp "$SCRIPT_DIR/etc/default/limine" /etc/default/limine
+
+# --- 3. Install systemd services ---
+log "Installing systemd services..."
+run sudo cp "$SCRIPT_DIR/etc/systemd/system/tailscale-autoheal.service" /etc/systemd/system/
+run sudo cp "$SCRIPT_DIR/etc/systemd/system/tailscale-autoheal.timer" /etc/systemd/system/
+run sudo cp "$SCRIPT_DIR/etc/systemd/system/nvidia-clock-cap.service" /etc/systemd/system/
+run sudo systemctl daemon-reload
+
+# --- 4. Enable services ---
+log "Enabling services..."
+run sudo systemctl enable --now tlp
+run sudo systemctl enable --now thermald
+run sudo systemctl enable intel-undervolt
+run sudo systemctl start intel-undervolt
+run sudo systemctl enable --now tailscale-autoheal.timer
+run sudo systemctl enable nvidia-clock-cap.service
+
+# --- 5. Copy user configs ---
+log "Installing user configs..."
+run mkdir -p ~/.config/fish ~/.config/fcitx5
+run cp "$SCRIPT_DIR/config/fish/config.fish" ~/.config/fish/config.fish
+run cp "$SCRIPT_DIR/config/starship.toml" ~/.config/starship.toml
+run cp "$SCRIPT_DIR/config/fcitx5/profile" ~/.config/fcitx5/profile
+
+# --- 6. User groups ---
+log "Setting up user groups..."
+run sudo groupadd -f plugdev
+run sudo usermod -aG plugdev,input,docker "$USER"
+
+# --- 7. Apply sysctl and regenerate boot ---
+log "Applying sysctl and regenerating boot entries..."
+run sudo sysctl --system
+run sudo limine-mkinitcpio
+
+# --- 8. Refresh fonts ---
+log "Refreshing font cache..."
+run fc-cache -fv
+
+log "Done! Reboot recommended to apply boot parameters."
+echo ""
+echo "Post-install checklist:"
+echo "  - Reboot to apply kernel boot params (nmi_watchdog=0, intel_pstate=passive)"
+echo "  - Run 'gh auth login' if GitHub CLI not authenticated"
+echo "  - Run 'fcitx5 -r -d' to reload input method"
+echo "  - Run 'sudo intel-undervolt read' to verify undervolt"
