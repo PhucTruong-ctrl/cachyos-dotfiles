@@ -53,10 +53,15 @@ run sudo systemctl enable nvidia-clock-cap.service
 
 # --- 5. Copy user configs ---
 log "Installing user configs..."
-run mkdir -p ~/.config/fish ~/.config/fcitx5
+run mkdir -p ~/.config/fish ~/.config/fcitx5 ~/.config/fcitx5/conf ~/.config/ghostty ~/.config/tmux
 run cp "$SCRIPT_DIR/config/fish/config.fish" ~/.config/fish/config.fish
 run cp "$SCRIPT_DIR/config/starship.toml" ~/.config/starship.toml
+run cp "$SCRIPT_DIR/config/tmux/tmux.conf" ~/.config/tmux/tmux.conf
 run cp "$SCRIPT_DIR/config/fcitx5/profile" ~/.config/fcitx5/profile
+run cp "$SCRIPT_DIR/config/fcitx5/config" ~/.config/fcitx5/config
+run cp "$SCRIPT_DIR/config/fcitx5/conf/bamboo.conf" ~/.config/fcitx5/conf/bamboo.conf
+run cp "$SCRIPT_DIR/config/ghostty/config" ~/.config/ghostty/config
+run cp "$SCRIPT_DIR/config/git/config" ~/.gitconfig
 
 # --- 6. User groups ---
 log "Setting up user groups..."
@@ -77,5 +82,9 @@ echo ""
 echo "Post-install checklist:"
 echo "  - Reboot to apply kernel boot params (nmi_watchdog=0, intel_pstate=passive)"
 echo "  - Run 'gh auth login' if GitHub CLI not authenticated"
+echo "  - Run 'tailscale up' to connect to Tailscale network"
 echo "  - Run 'fcitx5 -r -d' to reload input method"
 echo "  - Run 'sudo intel-undervolt read' to verify undervolt"
+echo "  - Open Spotify, then run 'spicetify backup apply' to activate Spicetify"
+echo "  - Install adblockify & hidePodcasts from Spicetify Marketplace inside Spotify"
+echo "  - Run 'betterdiscordctl install' to inject BetterDiscord"
