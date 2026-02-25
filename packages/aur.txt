@@ -8,3 +8,5 @@ prismlauncher-offline-bin
 the-honkers-railway-launcher-bin
 r2modman-bin
 spicetify-cli
+spotify
+gale-bin

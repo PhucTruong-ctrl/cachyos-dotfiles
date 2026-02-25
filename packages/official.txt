@@ -5,7 +5,10 @@ wl-clipboard
 discord
 libreoffice-fresh
 jdk17-openjdk
+noto-fonts
 noto-fonts-cjk
+noto-fonts-emoji
+ttf-liberation
 ttf-fira-code
 ttf-jetbrains-mono
 ttf-jetbrains-mono-nerd
@@ -14,3 +17,6 @@ noisetorch
 direnv
 starship
 tmux
+vlc
+gamescope
+gemini-cli

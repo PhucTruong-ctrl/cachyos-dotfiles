@@ -28,6 +28,11 @@ alias gl "git log --oneline --graph"
 alias ll "ls -la"
 alias la "ls -a"
 
+# Export GITHUB_TOKEN for MCP github server
+if type -q gh
+    set -gx GITHUB_TOKEN (gh auth token 2>/dev/null)
+end
+
 # direnv hook
 if type -q direnv
     direnv hook fish | source
