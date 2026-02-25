@@ -22,6 +22,9 @@ gtk-titlebar = false
 cursor-style = bar
 cursor-style-blink = true
 
+# ── Shell ─────────────────────────────────────────────
+command = /bin/zsh
+
 # ── Behavior ──────────────────────────────────────────
 mouse-hide-while-typing = true
 confirm-close-surface = false
