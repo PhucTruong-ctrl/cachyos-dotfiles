@@ -1,0 +1,16 @@
+lutris
+heroic-games-launcher
+p7zip
+wl-clipboard
+discord
+libreoffice-fresh
+jdk17-openjdk
+noto-fonts-cjk
+ttf-fira-code
+ttf-jetbrains-mono
+ttf-jetbrains-mono-nerd
+otf-firamono-nerd
+noisetorch
+direnv
+starship
+tmux

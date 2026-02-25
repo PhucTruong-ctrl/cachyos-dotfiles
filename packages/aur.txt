@@ -1,0 +1,10 @@
+google-chrome
+visual-studio-code-insiders-bin
+betterdiscordctl
+mongodb-compass
+appimagelauncher
+caprine-bin
+prismlauncher-offline
+honkers-railway-launcher
+r2modman-bin
+spicetify-cli
