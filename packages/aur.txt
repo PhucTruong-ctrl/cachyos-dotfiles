@@ -3,8 +3,8 @@ visual-studio-code-insiders-bin
 betterdiscordctl
 mongodb-compass
 appimagelauncher
-caprine-bin
-prismlauncher-offline
-honkers-railway-launcher
+# caprine-bin — SKIPPED: conflicts with nodejs (requires nodejs-lts-iron)
+prismlauncher-offline-bin
+the-honkers-railway-launcher-bin
 r2modman-bin
 spicetify-cli
