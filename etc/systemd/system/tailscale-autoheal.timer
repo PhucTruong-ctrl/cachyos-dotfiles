@@ -1,0 +1,11 @@
+[Unit]
+Description=Periodic tailscale health check
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=2min
+RandomizedDelaySec=20s
+Unit=tailscale-autoheal.service
+
+[Install]
+WantedBy=timers.target
