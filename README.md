@@ -20,7 +20,7 @@ System configuration and dotfiles for CachyOS, migrated from NixOS. Everything n
 | **Kernel** | linux-cachyos 6.x |
 | **Desktop** | KDE Plasma on Wayland |
 | **Bootloader** | Limine (not GRUB, not systemd-boot) |
-| **Shell** | fish + starship prompt |
+| **Shell** | zsh + Oh My Zsh + starship prompt |
 | **Terminal** | Ghostty (Catppuccin Mocha theme) |
 | **Input Method** | fcitx5 + bamboo (Vietnamese, VNI method) |
 | **Browser** | Google Chrome |
@@ -35,11 +35,12 @@ cachyos-dotfiles/
 │   │   ├── conf/bamboo.conf        #   Bamboo VNI settings
 │   │   ├── config                  #   Hotkeys (Ctrl+Shift toggle)
 │   │   └── profile                 #   IM profile
-│   ├── fish/config.fish            # Fish shell (aliases, direnv, starship)
+│   ├── fish/config.fish            # Fish shell (backup, aliases, direnv, starship)
 │   ├── ghostty/config              # Ghostty terminal (Catppuccin Mocha, JetBrains Mono)
 │   ├── git/config                  # Git global config
 │   ├── starship.toml               # Starship prompt theme
-│   └── tmux/tmux.conf              # Tmux (mouse, clipboard, escape-time)
+│   ├── tmux/tmux.conf              # Tmux (mouse, clipboard, escape-time)
+│   └── zsh/.zshrc                  # Zsh (Oh My Zsh, starship, zoxide, eza, bat, fzf)
 ├── etc/                            # System configs (/etc/)
 │   ├── default/limine              # Boot params (nmi_watchdog=0, intel_pstate=passive)
 │   ├── intel-undervolt.conf        # CPU/GPU/Cache undervolt (-50mV)
@@ -52,7 +53,7 @@ cachyos-dotfiles/
 │   └── udev/rules.d/
 │       └── 99-via-keyboard.rules   # VIA keyboard access (BIOI SAMICE)
 ├── packages/                       # Package lists
-│   ├── official.txt                # Pacman packages (22)
+│   ├── official.txt                # Pacman packages (27)
 │   └── aur.txt                     # AUR packages (12)
 ├── scripts/
 │   └── install-packages.sh         # Automated package installer
@@ -106,12 +107,12 @@ Set in `/etc/default/limine`, applied via `sudo limine-mkinitcpio`:
 
 ## Packages
 
-### Official (pacman) — 22 packages
+### Official (pacman) — 27 packages
 Gaming: `lutris`, `heroic-games-launcher`, `gamescope`, `p7zip`, `jdk17-openjdk`
 Media: `vlc`, `discord`, `noisetorch`
 Productivity: `libreoffice-fresh`
 Fonts: `noto-fonts`, `noto-fonts-cjk`, `noto-fonts-emoji`, `ttf-liberation`, `ttf-fira-code`, `ttf-jetbrains-mono`, `ttf-jetbrains-mono-nerd`, `otf-firamono-nerd`
-Shell/Tools: `direnv`, `starship`, `tmux`, `wl-clipboard`, `gemini-cli`
+Shell/Tools: `direnv`, `starship`, `tmux`, `wl-clipboard`, `gemini-cli`, `zoxide`, `eza`, `bat`, `fzf`, `fd`
 
 ### AUR — 12 packages
 Apps: `google-chrome`, `visual-studio-code-insiders-bin`, `mongodb-compass`, `betterdiscordctl`, `appimagelauncher`
@@ -215,7 +216,8 @@ After running `install.sh`, complete these manual steps:
 
 | Config | Repo Path | Live Path |
 |--------|-----------|-----------|
-| Fish shell | `config/fish/config.fish` | `~/.config/fish/config.fish` |
+| Zsh | `config/zsh/.zshrc` | `~/.zshrc` |
+| Fish shell (backup) | `config/fish/config.fish` | `~/.config/fish/config.fish` |
 | Starship | `config/starship.toml` | `~/.config/starship.toml` |
 | Tmux | `config/tmux/tmux.conf` | `~/.config/tmux/tmux.conf` |
 | Ghostty | `config/ghostty/config` | `~/.config/ghostty/config` |

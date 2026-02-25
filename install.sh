@@ -51,9 +51,18 @@ run sudo systemctl start intel-undervolt
 run sudo systemctl enable --now tailscale-autoheal.timer
 run sudo systemctl enable nvidia-clock-cap.service
 
-# --- 5. Copy user configs ---
+# --- 5. Install Oh My Zsh ---
+log "Installing Oh My Zsh..."
+if [ ! -d "$HOME/.oh-my-zsh" ]; then
+    run sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+else
+    echo "Oh My Zsh already installed, skipping."
+fi
+
+# --- 6. Copy user configs ---
 log "Installing user configs..."
 run mkdir -p ~/.config/fish ~/.config/fcitx5 ~/.config/fcitx5/conf ~/.config/ghostty ~/.config/tmux
+run cp "$SCRIPT_DIR/config/zsh/.zshrc" ~/.zshrc
 run cp "$SCRIPT_DIR/config/fish/config.fish" ~/.config/fish/config.fish
 run cp "$SCRIPT_DIR/config/starship.toml" ~/.config/starship.toml
 run cp "$SCRIPT_DIR/config/tmux/tmux.conf" ~/.config/tmux/tmux.conf
@@ -63,17 +72,25 @@ run cp "$SCRIPT_DIR/config/fcitx5/conf/bamboo.conf" ~/.config/fcitx5/conf/bamboo
 run cp "$SCRIPT_DIR/config/ghostty/config" ~/.config/ghostty/config
 run cp "$SCRIPT_DIR/config/git/config" ~/.gitconfig
 
-# --- 6. User groups ---
+# --- 7. Set default shell to zsh ---
+log "Setting default shell to zsh..."
+if [ "$(getent passwd "$USER" | cut -d: -f7)" != "/bin/zsh" ]; then
+    run chsh -s /bin/zsh
+else
+    echo "Default shell is already zsh, skipping."
+fi
+
+# --- 8. User groups ---
 log "Setting up user groups..."
 run sudo groupadd -f plugdev
 run sudo usermod -aG plugdev,input,docker "$USER"
 
-# --- 7. Apply sysctl and regenerate boot ---
+# --- 9. Apply sysctl and regenerate boot ---
 log "Applying sysctl and regenerating boot entries..."
 run sudo sysctl --system
 run sudo limine-mkinitcpio
 
-# --- 8. Refresh fonts ---
+# --- 10. Refresh fonts ---
 log "Refreshing font cache..."
 run fc-cache -fv
 

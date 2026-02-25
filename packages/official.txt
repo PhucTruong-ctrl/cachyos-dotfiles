@@ -20,3 +20,8 @@ tmux
 vlc
 gamescope
 gemini-cli
+zoxide
+eza
+bat
+fzf
+fd
