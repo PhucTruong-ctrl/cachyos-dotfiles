@@ -1,6 +1,6 @@
 # CachyOS Dotfiles
 
-System configuration and dotfiles for CachyOS, migrated from NixOS. Everything needed to restore a fully configured development + gaming workstation from a fresh CachyOS install.
+System configuration and dotfiles for CachyOS with Hyprland, migrated from NixOS → KDE Plasma → Hyprland. Everything needed to restore a fully configured development + gaming workstation from a fresh CachyOS install. Hyprland dotfiles based on [JaKooLit/Hyprland-Dots](https://github.com/JaKooLit/Hyprland-Dots).
 
 ## Hardware
 
@@ -18,7 +18,12 @@ System configuration and dotfiles for CachyOS, migrated from NixOS. Everything n
 |-------|--------|
 | **OS** | CachyOS (Arch-based) with BORE scheduler |
 | **Kernel** | linux-cachyos 6.x |
-| **Desktop** | KDE Plasma on Wayland |
+| **Desktop** | Hyprland (Wayland compositor) |
+| **Bar** | Waybar |
+| **Launcher** | rofi-wayland |
+| **Notifications** | swaync (SwayNotificationCenter) |
+| **Lock Screen** | hyprlock |
+| **Display Manager** | SDDM |
 | **Bootloader** | Limine (not GRUB, not systemd-boot) |
 | **Shell** | zsh + Oh My Zsh + starship prompt |
 | **Terminal** | Ghostty (Catppuccin Mocha theme) |
@@ -31,19 +36,42 @@ System configuration and dotfiles for CachyOS, migrated from NixOS. Everything n
 ```
 cachyos-dotfiles/
 ├── config/                         # User configs (~/.config/)
+│   ├── btop/                       # System monitor
+│   ├── cava/                       # Audio visualizer
+│   ├── fastfetch/                  # System fetch
 │   ├── fcitx5/                     # Vietnamese input method
 │   │   ├── conf/bamboo.conf        #   Bamboo VNI settings
 │   │   ├── config                  #   Hotkeys (Ctrl+Shift toggle)
 │   │   └── profile                 #   IM profile
-│   ├── fish/config.fish            # Fish shell (backup, aliases, direnv, starship)
+│   ├── fish/config.fish            # Fish shell (backup)
 │   ├── ghostty/config              # Ghostty terminal (Catppuccin Mocha, JetBrains Mono)
 │   ├── git/config                  # Git global config
+│   ├── hypr/                       # Hyprland window manager
+│   │   ├── hyprland.conf           #   Main config (sources everything)
+│   │   ├── UserConfigs/            #   User customizations
+│   │   │   ├── 01-UserDefaults.conf #   Default apps (ghostty, thunar)
+│   │   │   ├── ENVariables.conf    #   Env vars (NVIDIA, fcitx5)
+│   │   │   ├── Startup_Apps.conf   #   Autostart (fcitx5)
+│   │   │   ├── UserKeybinds.conf   #   Custom keybinds
+│   │   │   └── ...                 #   Animations, decorations, etc.
+│   │   ├── configs/                #   JaKooLit defaults
+│   │   ├── scripts/                #   Utility scripts
+│   │   ├── monitors.conf           #   Monitor layout
+│   │   ├── hypridle.conf           #   Idle behavior
+│   │   └── hyprlock.conf           #   Lock screen
+│   ├── kitty/                      # Kitty terminal (JaKooLit default, backup)
+│   ├── rofi/                       # App launcher (rofi-wayland)
 │   ├── starship.toml               # Starship prompt theme
+│   ├── swaync/                     # Notification center
 │   ├── tmux/tmux.conf              # Tmux (mouse, clipboard, escape-time)
+│   ├── wallust/                    # Color generation from wallpapers
+│   ├── waybar/                     # Status bar
+│   ├── wlogout/                    # Logout menu
 │   └── zsh/.zshrc                  # Zsh (Oh My Zsh, starship, zoxide, eza, bat, fzf)
 ├── etc/                            # System configs (/etc/)
-│   ├── default/limine              # Boot params (nmi_watchdog=0, intel_pstate=passive)
+│   ├── default/limine              # Boot params (nvidia-drm.modeset=1, intel_pstate=passive)
 │   ├── intel-undervolt.conf        # CPU/GPU/Cache undervolt (-50mV)
+│   ├── modprobe.d/nvidia.conf      # NVIDIA DRM modesetting (modeset=1 fbdev=1)
 │   ├── sysctl.d/99-performance.conf # Kernel tuning (vm, net, fs)
 │   ├── systemd/system/             # Custom systemd services
 │   │   ├── nvidia-clock-cap.service #   Lock GPU boost at 1101 MHz
@@ -53,8 +81,8 @@ cachyos-dotfiles/
 │   └── udev/rules.d/
 │       └── 99-via-keyboard.rules   # VIA keyboard access (BIOI SAMICE)
 ├── packages/                       # Package lists
-│   ├── official.txt                # Pacman packages (27)
-│   └── aur.txt                     # AUR packages (12)
+│   ├── official.txt                # Pacman packages (273)
+│   └── aur.txt                     # AUR packages (15)
 ├── scripts/
 │   └── install-packages.sh         # Automated package installer
 ├── install.sh                      # Full system restore script
@@ -84,6 +112,7 @@ This system is tuned for **maximum performance** — fast and responsive over co
 
 ### Kernel Boot Parameters
 Set in `/etc/default/limine`, applied via `sudo limine-mkinitcpio`:
+- `nvidia-drm.modeset=1` — NVIDIA DRM modesetting (required for Hyprland)
 - `nmi_watchdog=0` — Disable NMI watchdog (saves power)
 - `intel_pstate=passive` — Allow TLP to control CPU frequency
 
@@ -107,14 +136,14 @@ Set in `/etc/default/limine`, applied via `sudo limine-mkinitcpio`:
 
 ## Packages
 
-### Official (pacman) — 27 packages
+### Official (pacman) — 273 packages
 Gaming: `lutris`, `heroic-games-launcher`, `gamescope`, `p7zip`, `jdk17-openjdk`
 Media: `vlc`, `discord`, `noisetorch`
 Productivity: `libreoffice-fresh`
 Fonts: `noto-fonts`, `noto-fonts-cjk`, `noto-fonts-emoji`, `ttf-liberation`, `ttf-fira-code`, `ttf-jetbrains-mono`, `ttf-jetbrains-mono-nerd`, `otf-firamono-nerd`
 Shell/Tools: `direnv`, `starship`, `tmux`, `wl-clipboard`, `gemini-cli`, `zoxide`, `eza`, `bat`, `fzf`, `fd`
 
-### AUR — 12 packages
+### AUR — 15 packages
 Apps: `google-chrome`, `visual-studio-code-insiders-bin`, `mongodb-compass`, `betterdiscordctl`, `appimagelauncher`
 Gaming: `prismlauncher-offline-bin`, `the-honkers-railway-launcher-bin`, `r2modman-bin`, `gale-bin`
 Music: `spotify`, `spicetify-cli`
@@ -215,7 +244,12 @@ After running `install.sh`, complete these manual steps:
 ## Key Config File Locations
 
 | Config | Repo Path | Live Path |
-|--------|-----------|-----------|
+|--------|-----------|-----------| 
+| Hyprland | `config/hypr/` | `~/.config/hypr/` |
+| Waybar | `config/waybar/` | `~/.config/waybar/` |
+| rofi | `config/rofi/` | `~/.config/rofi/` |
+| swaync | `config/swaync/` | `~/.config/swaync/` |
+| wlogout | `config/wlogout/` | `~/.config/wlogout/` |
 | Zsh | `config/zsh/.zshrc` | `~/.zshrc` |
 | Fish shell (backup) | `config/fish/config.fish` | `~/.config/fish/config.fish` |
 | Starship | `config/starship.toml` | `~/.config/starship.toml` |
@@ -223,6 +257,11 @@ After running `install.sh`, complete these manual steps:
 | Ghostty | `config/ghostty/config` | `~/.config/ghostty/config` |
 | Git | `config/git/config` | `~/.gitconfig` |
 | Fcitx5 | `config/fcitx5/` | `~/.config/fcitx5/` |
+| btop | `config/btop/` | `~/.config/btop/` |
+| cava | `config/cava/` | `~/.config/cava/` |
+| fastfetch | `config/fastfetch/` | `~/.config/fastfetch/` |
+| wallust | `config/wallust/` | `~/.config/wallust/` |
+| NVIDIA modprobe | `etc/modprobe.d/nvidia.conf` | `/etc/modprobe.d/nvidia.conf` |
 | TLP | `etc/tlp.conf` | `/etc/tlp.conf` |
 | Undervolt | `etc/intel-undervolt.conf` | `/etc/intel-undervolt.conf` |
 | Sysctl | `etc/sysctl.d/99-performance.conf` | `/etc/sysctl.d/99-performance.conf` |

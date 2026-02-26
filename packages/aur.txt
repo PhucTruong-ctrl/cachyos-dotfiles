@@ -1,12 +1,15 @@
-google-chrome
-visual-studio-code-insiders-bin
-betterdiscordctl
-mongodb-compass
+antigravity-tools-bin
 appimagelauncher
-# caprine-bin — SKIPPED: conflicts with nodejs (requires nodejs-lts-iron)
+betterdiscordctl
+gale-bin
+google-chrome
+gtk-engine-murrine
 prismlauncher-offline-bin
-the-honkers-railway-launcher-bin
 r2modman-bin
 spicetify-cli
 spotify
-gale-bin
+the-honkers-railway-launcher-bin
+ttf-victor-mono
+via
+visual-studio-code-insiders-bin
+wallust
