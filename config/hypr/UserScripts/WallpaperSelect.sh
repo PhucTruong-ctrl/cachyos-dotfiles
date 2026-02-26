@@ -153,6 +153,9 @@ apply_image_wallpaper() {
   "$SCRIPTSDIR/RefreshNoWaybar.sh"
   sleep 1
 
+  # Sync wallpaper to SDDM login screen (opens terminal for sudo password)
+  "$SCRIPTSDIR/sddm_wallpaper.sh" --normal
+
 }
 
 apply_video_wallpaper() {
