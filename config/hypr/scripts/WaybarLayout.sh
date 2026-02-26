@@ -15,6 +15,7 @@ msg=' 🎌 NOTE: Some waybar LAYOUT NOT fully compatible with some STYLES'
 apply_config() {
     ln -sf "$waybar_layouts/$1" "$waybar_config"
     "${SCRIPTSDIR}/Refresh.sh" &
+    disown
 }
 
 main() {
@@ -54,7 +55,7 @@ main() {
 
     case "$choice" in
         "no panel")
-            pgrep -x "waybar" && pkill waybar || true
+            pgrep -x "waybar" && pkill waybar 2>/dev/null || true
             ;;
         *)
             apply_config "$choice"
@@ -63,8 +64,8 @@ main() {
 }
 
 # Kill Rofi if already running before execution
-if pgrep -x "rofi" >/dev/null; then
-    pkill rofi
+if pgrep -x "rofi" >/dev/null 2>&1; then
+    pkill rofi 2>/dev/null || true
     #exit 0
 fi
 

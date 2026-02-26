@@ -5,7 +5,7 @@
 # for the upcoming changes on the simple_sddm_theme
 
 # variables
-terminal=kitty
+terminal=ghostty
 PICTURES_DIR="$(xdg-user-dir PICTURES 2>/dev/null || echo "$HOME/Pictures")"
 wallDIR="$PICTURES_DIR/wallpapers"
 SCRIPTSDIR="$HOME/.config/hypr/scripts"

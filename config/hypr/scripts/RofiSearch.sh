@@ -15,13 +15,15 @@ if [[ ! -f "$config_file" ]]; then
     exit 1
 fi
 
-# Process the config file in memory, removing the $ and fixing spaces
-config_content=$(sed 's/\$//g' "$config_file" | sed 's/ = /=/')
+# Safely extract config values without eval (prevents code injection)
+extract_conf_value() {
+    local key="$1"
+    grep -E "^\\\$?${key}\s*=" "$config_file" | head -1 | sed 's/^[^=]*=\s*//' | tr -d '"' | xargs
+}
 
-# Source the modified content directly from the variable
-eval "$config_content"
+Search_Engine=$(extract_conf_value "Search_Engine")
 
-# Check if $term is set correctly
+# Check if $Search_Engine is set correctly
 if [[ -z "$Search_Engine" ]]; then
     echo "Error: \$Search_Engine is not set in the configuration file!"
     exit 1

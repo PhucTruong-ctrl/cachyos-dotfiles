@@ -3,7 +3,7 @@
 # This script for selecting wallpapers (SUPER W)
 
 # WALLPAPERS PATH
-terminal=kitty
+terminal=ghostty
 PICTURES_DIR="$(xdg-user-dir PICTURES 2>/dev/null || echo "$HOME/Pictures")"
 wallDIR="$PICTURES_DIR/wallpapers"
 SCRIPTSDIR="$HOME/.config/hypr/scripts"
@@ -65,6 +65,12 @@ mapfile -d '' PICS < <(find -L "${wallDIR}" -type f \( \
   -iname "*.bmp" -o -iname "*.tiff" -o -iname "*.webp" -o \
   -iname "*.mp4" -o -iname "*.mkv" -o -iname "*.mov" -o -iname "*.webm" \) -print0)
 
+# Guard against empty wallpapers directory (prevents division by zero)
+if [[ ${#PICS[@]} -eq 0 ]]; then
+  notify-send -i "$iDIR/error.png" "Wallpaper Select" "No wallpapers found in $wallDIR"
+  exit 1
+fi
+
 RANDOM_PIC="${PICS[$((RANDOM % ${#PICS[@]}))]}"
 RANDOM_PIC_NAME=". random"
 
@@ -73,6 +79,7 @@ rofi_command="rofi -i -show -dmenu -config $rofi_theme -theme-str $rofi_override
 
 # Sorting Wallpapers
 menu() {
+  # shellcheck disable=SC2207
   IFS=$'\n' sorted_options=($(sort <<<"${PICS[*]}"))
 
   printf "%s\x00icon\x1f%s\n" "$RANDOM_PIC_NAME" "$RANDOM_PIC"
@@ -83,7 +90,7 @@ menu() {
       cache_gif_image="$HOME/.cache/gif_preview/${pic_name}.png"
       if [[ ! -f "$cache_gif_image" ]]; then
         mkdir -p "$HOME/.cache/gif_preview"
-        magick "$pic_path[0]" -resize 1920x1080 "$cache_gif_image"
+        magick "${pic_path}[0]" -resize 1920x1080 "$cache_gif_image"
       fi
       printf "%s\x00icon\x1f%s\n" "$pic_name" "$cache_gif_image"
     elif [[ "$pic_name" =~ \.(mp4|mkv|mov|webm|MP4|MKV|MOV|WEBM)$ ]]; then
@@ -136,6 +143,7 @@ apply_image_wallpaper() {
     swww-daemon --format xrgb &
   fi
 
+  # shellcheck disable=SC2086
   swww img -o "$focused_monitor" "$image_path" $SWWW_PARAMS
 
   # Run additional scripts (pass the image path to avoid cache race conditions)
@@ -163,6 +171,7 @@ apply_video_wallpaper() {
 
 # Main function
 main() {
+  # shellcheck disable=SC2090,SC2086
   choice=$(menu | $rofi_command)
   choice=$(echo "$choice" | xargs)
   RANDOM_PIC_NAME=$(echo "$RANDOM_PIC_NAME" | xargs)
@@ -199,8 +208,8 @@ main() {
 }
 
 # Check if rofi is already running
-if pidof rofi >/dev/null; then
-  pkill rofi
+if pidof rofi >/dev/null 2>&1; then
+  pkill rofi 2>/dev/null || true
 fi
 
 main

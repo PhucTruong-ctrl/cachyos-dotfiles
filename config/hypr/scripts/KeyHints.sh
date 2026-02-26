@@ -27,7 +27,7 @@ GDK_BACKEND=$BACKEND yad \
 " SHIFT K" "Searchable Keybinds" "(Search all Keybinds via rofi)" \
 " SHIFT E" "KooL Hyprland Settings Menu" "" \
 "" "" "" \
-" enter" "Terminal" "(kitty)" \
+" enter" "Terminal" "(ghostty)" \
 " SHIFT enter" "DropDown Terminal" " Q to close" \
 " B" "Launch Browser" "(Default browser)" \
 " A" "Desktop Overview" "(AGS - if opted to install)" \

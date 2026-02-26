@@ -15,6 +15,7 @@ msg=' 🎌 NOTE: Some waybar STYLES NOT fully compatible with some LAYOUTS'
 apply_style() {
     ln -sf "$waybar_styles/$1.css" "$waybar_style"
     "${SCRIPTSDIR}/Refresh.sh" &
+    disown
 }
 
 main() {
@@ -56,8 +57,8 @@ main() {
 }
 
 # Kill Rofi if already running before execution
-if pgrep -x "rofi" >/dev/null; then
-    pkill rofi
+if pgrep -x "rofi" >/dev/null 2>&1; then
+    pkill rofi 2>/dev/null || true
     #exit 0
 fi
 

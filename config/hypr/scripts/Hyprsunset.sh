@@ -65,9 +65,11 @@ if [[ "$state" == "on" ]]; then
     # Turning ON: start hyprsunset at target temp in background
     if command -v hyprsunset >/dev/null 2>&1; then
       nohup hyprsunset -t "$TARGET_TEMP" >/dev/null 2>&1 &
+      echo on > "$STATE_FILE"
+      notify-send -u low "Hyprsunset: Enabled" "${TARGET_TEMP}K" || true
+    else
+      notify-send -u normal "Hyprsunset" "hyprsunset binary not found — install it first" || true
     fi
-    echo on > "$STATE_FILE"
-    notify-send -u low "Hyprsunset: Enabled" "${TARGET_TEMP}K" || true
   fi
 }
 

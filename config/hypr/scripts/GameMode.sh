@@ -5,7 +5,6 @@
 notif="$HOME/.config/swaync/images/ja.png"
 SCRIPTSDIR="$HOME/.config/hypr/scripts"
 
-
 HYPRGAMEMODE=$(hyprctl getoption animations:enabled | awk 'NR==1{print $2}')
 if [ "$HYPRGAMEMODE" = 1 ] ; then
     hyprctl --batch "\
@@ -18,18 +17,17 @@ if [ "$HYPRGAMEMODE" = 1 ] ; then
         keyword decoration:rounding 0"
 	
 	hyprctl keyword "windowrule opacity 1 override 1 override 1 override, ^(.*)$"
-    swww kill 
+    swww kill 2>/dev/null || true
     notify-send -e -u low -i "$notif" " Gamemode:" " enabled"
     sleep 0.1
-    exit
+    exit 0
 else
 	swww-daemon --format xrgb && swww img "$HOME/.config/rofi/.current_wallpaper" &
 	sleep 0.1
-	${SCRIPTSDIR}/WallustSwww.sh
+	"${SCRIPTSDIR}/WallustSwww.sh"
 	sleep 0.5
-  hyprctl reload
-	${SCRIPTSDIR}/Refresh.sh	 
+	hyprctl reload
+	"${SCRIPTSDIR}/Refresh.sh"
     notify-send -e -u normal -i "$notif" " Gamemode:" " disabled"
-    exit
+    exit 0
 fi
-hyprctl reload

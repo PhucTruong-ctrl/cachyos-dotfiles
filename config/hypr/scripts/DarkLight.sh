@@ -25,9 +25,9 @@ qt5ct_light="$HOME/.config/qt5ct/colors/Catppuccin-Latte.conf"
 qt6ct_dark="$HOME/.config/qt6ct/colors/Catppuccin-Mocha.conf"
 qt6ct_light="$HOME/.config/qt6ct/colors/Catppuccin-Latte.conf"
 
-# intial kill process
-for pid in waybar rofi swaync ags swaybg; do
-    killall -SIGUSR1 "$pid"
+# initial kill process (suppress errors for processes that aren't running)
+for _proc in waybar rofi swaync ags swaybg; do
+    killall -SIGUSR1 "$_proc" 2>/dev/null || true
 done
 
 
@@ -39,7 +39,7 @@ swww="swww img"
 effect="--transition-bezier .43,1.19,1,.4 --transition-fps 60 --transition-type grow --transition-pos 0.925,0.977 --transition-duration 2"
 
 # Determine current theme mode
-if [ "$(cat $HOME/.cache/.theme_mode)" = "Light" ]; then
+if [ "$(cat "$HOME/.cache/.theme_mode" 2>/dev/null)" = "Light" ]; then
     next_mode="Dark"
     # Logic for Dark mode
     wallpaper_path="$dark_wallpapers"
@@ -118,18 +118,32 @@ if command -v ags >/dev/null 2>&1; then
 fi
 
 # kitty background color change
-if [ "$next_mode" = "Dark" ]; then
-    sed -i '/^foreground /s/^foreground .*/foreground #dddddd/' "${kitty_conf}"
-	sed -i '/^background /s/^background .*/background #000000/' "${kitty_conf}"
-	sed -i '/^cursor /s/^cursor .*/cursor #dddddd/' "${kitty_conf}"
-else
-	sed -i '/^foreground /s/^foreground .*/foreground #000000/' "${kitty_conf}"
-	sed -i '/^background /s/^background .*/background #dddddd/' "${kitty_conf}"
-	sed -i '/^cursor /s/^cursor .*/cursor #000000/' "${kitty_conf}"
+if [ -f "${kitty_conf}" ]; then
+    if [ "$next_mode" = "Dark" ]; then
+        sed -i '/^foreground /s/^foreground .*/foreground #dddddd/' "${kitty_conf}"
+	    sed -i '/^background /s/^background .*/background #000000/' "${kitty_conf}"
+	    sed -i '/^cursor /s/^cursor .*/cursor #dddddd/' "${kitty_conf}"
+    else
+	    sed -i '/^foreground /s/^foreground .*/foreground #000000/' "${kitty_conf}"
+	    sed -i '/^background /s/^background .*/background #dddddd/' "${kitty_conf}"
+	    sed -i '/^cursor /s/^cursor .*/cursor #000000/' "${kitty_conf}"
+    fi
+
+    for pid_kitty in $(pidof kitty); do
+        kill -SIGUSR1 "$pid_kitty"
+    done
 fi
 
-for pid_kitty in $(pidof kitty); do
-    kill -SIGUSR1 "$pid_kitty"
+# ghostty dark/light theme override
+ghostty_theme_conf="$HOME/.config/ghostty/theme.conf"
+if [ "$next_mode" = "Dark" ]; then
+    printf 'foreground = #dddddd\nbackground = #000000\ncursor-color = #dddddd\n' > "$ghostty_theme_conf"
+else
+    printf 'foreground = #000000\nbackground = #dddddd\ncursor-color = #000000\n' > "$ghostty_theme_conf"
+fi
+
+for pid_ghostty in $(pidof ghostty); do
+    kill -SIGUSR2 "$pid_ghostty" 2>/dev/null || true
 done
 
 # Set Dynamic Wallpaper for Dark or Light Mode
@@ -161,9 +175,9 @@ kvantummanager --set "$kvantum_theme"
 
 # set the rofi color for background
 if [ "$next_mode" = "Dark" ]; then
-    sed -i '/^background:/s/.*/background: rgba(0,0,0,0.7);/' $wallust_rofi
+    sed -i '/^background:/s/.*/background: rgba(0,0,0,0.7);/' "$wallust_rofi"
 else
-    sed -i '/^background:/s/.*/background: rgba(255,255,255,0.9);/' $wallust_rofi
+    sed -i '/^background:/s/.*/background: rgba(255,255,255,0.9);/' "$wallust_rofi"
 fi
 
 
@@ -209,7 +223,7 @@ set_custom_gtk_theme() {
 
         # Flatpak GTK apps (themes)
         if command -v flatpak &> /dev/null; then
-            flatpak --user override --filesystem=$HOME/.themes
+            flatpak --user override --filesystem="$HOME/.themes"
             sleep 0.5
             flatpak --user override --env=GTK_THEME="$selected_theme"
         fi
@@ -232,7 +246,7 @@ set_custom_gtk_theme() {
 
         # Flatpak GTK apps (icons)
         if command -v flatpak &> /dev/null; then
-            flatpak --user override --filesystem=$HOME/.icons
+            flatpak --user override --filesystem="$HOME/.icons"
             sleep 0.5
             flatpak --user override --env=ICON_THEME="$selected_icon"
         fi
@@ -248,12 +262,12 @@ set_custom_gtk_theme "$next_mode"
 update_theme_mode
 
 
-${SCRIPTSDIR}/WallustSwww.sh &&
+${SCRIPTSDIR}/WallustSwww.sh
 
 sleep 2
-# kill process
-for pid1 in waybar rofi swaync ags swaybg; do
-    killall "$pid1"
+# kill process (suppress errors for processes that aren't running)
+for _proc in waybar rofi swaync ags swaybg; do
+    killall "$_proc" 2>/dev/null || true
 done
 
 sleep 1

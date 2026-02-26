@@ -124,12 +124,27 @@
 	"on-scroll-down": "shift_down"
 },
 
-"clock#2": {
-    //"format": " {:%I:%M %p}", // AM PM format
-    "format": "  {:%H:%M}", // 24H
-    "format-alt": "{:L%A  |  %H:%M  |  %e %B}",
-    "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>"
-},
+// clock#2-5: Unused by current layout. Kept commented for reference.
+// "clock#2": {
+//     "format": "  {:%H:%M}",
+//     "format-alt": "{:L%A  |  %H:%M  |  %e %B}",
+//     "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>"
+// },
+// "clock#3": {
+//     "format": "{:L%H:%M - %d/%b}",
+//     "tooltip": false
+// },
+// "clock#4": {
+//     "interval": 60,
+//     "format": "{:L%B | %a %d, %Y | %H:%M}",
+//     "format-alt": "{:L%a %b %d, %G}",
+//     "tooltip-format": "<big>{:%B %Y}</big>\n<tt><small>{calendar}</small></tt>"
+// },
+// "clock#5": {
+//     "format": "{:%a %d | %H:%M}",
+//     "format-alt": "{:L%A, %d %B, %Y (%R)}",
+//     "tooltip-format": "<big>{:%B %Y}</big>\n<tt><small>{calendar}</small></tt>"
+// },
 
 "clock#3": {
     //"format": "{:L%I:%M %p - %d/%b}", //for AM/PM

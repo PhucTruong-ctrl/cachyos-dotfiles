@@ -28,6 +28,18 @@ export SWWW_TRANSITION_TYPE=simple
 INTERVAL=1800
 
 while true; do
+	# Count images first to avoid subshell variable scope issues
+	image_count=$(find "$1" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" \
+		-o -iname "*.gif" -o -iname "*.bmp" -o -iname "*.webp" \
+		-o -iname "*.tiff" -o -iname "*.pnm" -o -iname "*.tga" \
+		-o -iname "*.farbfeld" \) | wc -l)
+
+	if [[ "$image_count" -eq 0 ]]; then
+		notify-send "Auto Wallpaper" "No images found — retrying in 60s" -i dialog-warning
+		sleep 60
+		continue
+	fi
+
 	# Filter to image files only (skip directories, text files, etc.)
 	find "$1" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" \
 		-o -iname "*.gif" -o -iname "*.bmp" -o -iname "*.webp" \
@@ -38,16 +50,12 @@ while true; do
 		done \
 		| sort -n | cut -d':' -f2- \
 		| while read -r img; do
-			swww img -o $focused_monitor "$img"
+			swww img -o "$focused_monitor" "$img"
 			# Regenerate colors from the exact image path to avoid cache races
-			$HOME/.config/hypr/scripts/WallustSwww.sh "$img"
+			"$HOME/.config/hypr/scripts/WallustSwww.sh" "$img"
 			# Refresh UI components that depend on wallust output
-			$wallust_refresh
-			sleep $INTERVAL
+			"$wallust_refresh"
+			sleep "$INTERVAL"
 			
 		done
-
-	# Guard: if find produces no images, wait before retrying instead of busy-looping
-	notify-send "Auto Wallpaper" "No images found — retrying in 60s" -i dialog-warning
-	sleep 60
 done

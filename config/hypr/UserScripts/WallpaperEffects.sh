@@ -3,7 +3,7 @@
 # Wallpaper Effects using ImageMagick (SUPER SHIFT W)
 
 # Variables
-terminal=kitty
+terminal=ghostty
 wallpaper_current="$HOME/.config/hypr/wallpaper_effects/.wallpaper_current"
 wallpaper_output="$HOME/.config/hypr/wallpaper_effects/.wallpaper_modified"
 SCRIPTSDIR="$HOME/.config/hypr/scripts"
@@ -45,10 +45,9 @@ declare -A effects=(
 
 # Function to apply no effects
 no-effects() {
-    swww img -o "$focused_monitor" "$wallpaper_current" $SWWW_PARAMS &&
-    wait $!
-    wallust run "$wallpaper_current" -s &&
-    wait $!
+    # shellcheck disable=SC2086
+    swww img -o "$focused_monitor" "$wallpaper_current" $SWWW_PARAMS
+    wallust run "$wallpaper_current" -s
     # WallustSwww already reloads waybar colors — only refresh non-waybar services
 	sleep 2
 	"$SCRIPTSDIR/RefreshNoWaybar.sh"
@@ -66,7 +65,7 @@ main() {
         [[ "$effect" != "No Effects" ]] && options+=("$effect")
     done
 
-    choice=$(printf "%s\n" "${options[@]}" | LC_COLLATE=C sort | rofi -dmenu -i -config $rofi_theme)
+    choice=$(printf "%s\n" "${options[@]}" | LC_COLLATE=C sort | rofi -dmenu -i -config "$rofi_theme")
 
     # Process user choice
     if [[ -n "$choice" ]]; then
@@ -75,14 +74,16 @@ main() {
         elif [[ "${effects[$choice]+exists}" ]]; then
             # Apply selected effect
             notify-send -u normal -i "$iDIR/ja.png"  "Applying:" "$choice effects"
+            # shellcheck disable=SC2116,SC2086
             eval "${effects[$choice]}"
             
-            # intial kill process
-            for pid in swaybg mpvpaper; do
-            killall -SIGUSR1 "$pid"
+            # initial kill process (suppress errors for missing processes)
+            for _proc in swaybg mpvpaper; do
+                killall -SIGUSR1 "$_proc" 2>/dev/null || true
             done
 
             sleep 1
+            # shellcheck disable=SC2086
             swww img -o "$focused_monitor" "$wallpaper_output" $SWWW_PARAMS &
 
             sleep 2
@@ -99,8 +100,8 @@ main() {
 }
 
 # Check if rofi is already running and kill it
-if pidof rofi > /dev/null; then
-    pkill rofi
+if pidof rofi > /dev/null 2>&1; then
+    pkill rofi 2>/dev/null || true
 fi
 
 main

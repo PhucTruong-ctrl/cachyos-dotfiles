@@ -11,11 +11,14 @@ if [[ ! -f "$config_file" ]]; then
     exit 1
 fi
 
-# Process the config file in memory, removing the $ and fixing spaces
-config_content=$(sed 's/\$//g' "$config_file" | sed 's/ = /=/')
+# Safely extract config values without eval (prevents code injection)
+extract_conf_value() {
+    local key="$1"
+    grep -E "^\\\$?${key}\s*=" "$config_file" | head -1 | sed 's/^[^=]*=\s*//' | tr -d '"' | xargs
+}
 
-# Source the modified content directly from the variable
-eval "$config_content"
+term=$(extract_conf_value "term")
+files=$(extract_conf_value "files")
 
 # Check if $term is set correctly
 if [[ -z "$term" ]]; then
@@ -29,7 +32,7 @@ launch_files() {
         notify-send -u low -i "$HOME/.config/swaync/images/error.png" "Waybar: files" "Set \$files in 01-UserDefaults.conf or install a default file manager."
         return 1
     fi
-    eval "$files &"
+    $files &
 }
 
 if [[ "$1" == "--btop" ]]; then

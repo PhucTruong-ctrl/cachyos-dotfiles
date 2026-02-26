@@ -44,8 +44,12 @@ LOGFILE="$(dirname "$0")/dispatch.log"
 #   "--"          → argument separator
 #   After "--"    → command to execute (verbatim)
 
-TARGET_WS="$1"
-shift || true
+TARGET_WS="${1:-}"
+if [[ -z "$TARGET_WS" ]]; then
+  echo "Usage: $0 <workspace> [rule rule ...] -- <command>" >>"$LOGFILE"
+  exit 1
+fi
+shift
 
 CAPTURE_RULES=()
 while [[ "${1-}" != "--" && -n "${1-}" ]]; do

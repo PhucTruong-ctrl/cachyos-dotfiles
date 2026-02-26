@@ -200,8 +200,8 @@
 // Other Distro dont have notifications but can use to check for update for any other distro
 "custom/updater": {
 	"format": " {}",
-	"exec": "checkupdates | wc -l",
-	"exec-if": "[[ $(checkupdates | wc -l) ]]",
+	"exec": "command -v checkupdates >/dev/null && checkupdates 2>/dev/null | wc -l || echo 0",
+	"exec-if": "command -v checkupdates >/dev/null && [[ $(checkupdates 2>/dev/null | wc -l) -gt 0 ]]",
 	"interval": 43200, // (Arch Linux will try to check 12 hrs interval only
 	"on-click": "$HOME/.config/hypr/scripts/Distro_update.sh",
 	"tooltip": true,

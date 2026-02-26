@@ -27,12 +27,10 @@ BEZIER=".43,1.19,1,.4"
 SWWW_PARAMS="--transition-fps $FPS --transition-type $TYPE --transition-duration $DURATION --transition-bezier $BEZIER"
 
 
-swww query || swww-daemon --format xrgb && swww img -o $focused_monitor ${RANDOMPICS} $SWWW_PARAMS
+# shellcheck disable=SC2086
+swww query || swww-daemon --format xrgb && swww img -o "$focused_monitor" "${RANDOMPICS}" $SWWW_PARAMS
 
-wait $!
-"$SCRIPTSDIR/WallustSwww.sh" &&
-
-wait $!
+"$SCRIPTSDIR/WallustSwww.sh"
 sleep 2
 # WallustSwww.sh already reloads waybar colors — only refresh non-waybar services
 "$SCRIPTSDIR/RefreshNoWaybar.sh"

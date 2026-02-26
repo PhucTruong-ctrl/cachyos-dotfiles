@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 ##################################################################
 #                                                                #   
 #                                                                #
@@ -95,6 +96,12 @@ cmd_restore() {
 
 # Listen to focus events and restore window-specific layouts
 subscribe() {
+  if ! command -v socat >/dev/null 2>&1; then
+    notify-send -u critical -i "$ICON" "Per-Window KB Switch" "socat is required but not installed. Install it with: pacman -S socat"
+    echo "Error: socat is required but not installed." >&2
+    exit 1
+  fi
+
   local SOCKET2="$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock"
   [[ -S "$SOCKET2" ]] || { echo "Error: Hyprland socket not found." >&2; exit 1; }
 
