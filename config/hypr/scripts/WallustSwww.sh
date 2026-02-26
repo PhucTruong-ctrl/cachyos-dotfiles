@@ -5,8 +5,15 @@
 
 set -euo pipefail
 
-# Inputs and paths
-passed_path="${1:-}"
+# Parse arguments: supports optional --no-waybar-reload flag
+SKIP_WAYBAR_RELOAD=false
+passed_path=""
+for arg in "$@"; do
+  case "$arg" in
+    --no-waybar-reload) SKIP_WAYBAR_RELOAD=true ;;
+    *) passed_path="$arg" ;;
+  esac
+done
 cache_dir="$HOME/.cache/swww/"
 rofi_link="$HOME/.config/rofi/.current_wallpaper"
 wallpaper_current="$HOME/.config/hypr/wallpaper_effects/.wallpaper_current"
@@ -128,9 +135,11 @@ if pidof ghostty >/dev/null; then
   for pid in $(pidof ghostty); do kill -SIGUSR2 "$pid" 2>/dev/null || true; done
 fi
 
-# Prompt Waybar to reload colors
-if command -v waybar-msg >/dev/null 2>&1; then
-  waybar-msg cmd reload >/dev/null 2>&1 || true
-elif pidof waybar >/dev/null; then
-  killall -SIGUSR2 waybar 2>/dev/null || true
+# Prompt Waybar to reload colors (skip if --no-waybar-reload was passed)
+if [[ "$SKIP_WAYBAR_RELOAD" != "true" ]]; then
+  if command -v waybar-msg >/dev/null 2>&1; then
+    waybar-msg cmd reload >/dev/null 2>&1 || true
+  elif pidof waybar >/dev/null; then
+    killall -SIGUSR2 waybar 2>/dev/null || true
+  fi
 fi

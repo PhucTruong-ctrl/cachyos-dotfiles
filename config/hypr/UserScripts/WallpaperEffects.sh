@@ -49,9 +49,9 @@ no-effects() {
     wait $!
     wallust run "$wallpaper_current" -s &&
     wait $!
-    # Refresh rofi, waybar, wallust palettes
+    # WallustSwww already reloads waybar colors — only refresh non-waybar services
 	sleep 2
-	"$SCRIPTSDIR/Refresh.sh"
+	"$SCRIPTSDIR/RefreshNoWaybar.sh"
 
     notify-send -u low -i "$iDIR/ja.png" "No wallpaper" "effects applied"
     # copying wallpaper for rofi menu
@@ -89,8 +89,8 @@ main() {
   
             wallust run "$wallpaper_output" -s &
             sleep 1
-            # Refresh rofi, waybar, wallust palettes
-            "${SCRIPTSDIR}/Refresh.sh"
+            # wallust run already applied colors — only refresh non-waybar services
+            "${SCRIPTSDIR}/RefreshNoWaybar.sh"
             notify-send -u low -i "$iDIR/ja.png" "$choice" "effects applied"
         else
             echo "Effect '$choice' not recognized."

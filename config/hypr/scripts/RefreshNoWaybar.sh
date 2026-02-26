@@ -32,7 +32,8 @@ done
 pkill qs && qs &
 
 # Wallust refresh (synchronous to ensure colors are ready)
-${SCRIPTSDIR}/WallustSwww.sh
+# --no-waybar-reload: skip waybar reload since this script intentionally avoids touching waybar
+${SCRIPTSDIR}/WallustSwww.sh --no-waybar-reload
 sleep 0.2
 
 # reload swaync

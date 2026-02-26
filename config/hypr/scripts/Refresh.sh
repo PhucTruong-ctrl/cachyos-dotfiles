@@ -14,6 +14,12 @@ file_exists() {
   fi
 }
 
+# Kill cava processes BEFORE waybar to prevent orphaned zombies
+# (waybar spawns cava via custom modules; if we kill waybar without
+#  killing cava first, the old cava processes keep running forever)
+pkill -x cava 2>/dev/null || true
+sleep 0.2
+
 # Kill already running processes
 _ps=(waybar rofi swaync ags)
 for _prs in "${_ps[@]}"; do

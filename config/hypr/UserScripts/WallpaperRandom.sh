@@ -9,6 +9,13 @@ SCRIPTSDIR="$HOME/.config/hypr/scripts"
 focused_monitor=$(hyprctl monitors -j | jq -r '.[] | select(.focused) | .name')
 
 PICS=($(find -L "${wallDIR}" -type f \( -name "*.jpg" -o -name "*.jpeg" -o -name "*.png" -o -name "*.pnm" -o -name "*.tga" -o -name "*.tiff" -o -name "*.webp" -o -name "*.bmp" -o -name "*.farbfeld" -o -name "*.gif" \)))
+
+# Guard against empty wallpapers directory (prevents division by zero)
+if [[ ${#PICS[@]} -eq 0 ]]; then
+  notify-send "Random Wallpaper" "No wallpapers found in $wallDIR" -i dialog-warning
+  exit 1
+fi
+
 RANDOMPICS=${PICS[ $RANDOM % ${#PICS[@]} ]}
 
 
@@ -27,5 +34,6 @@ wait $!
 
 wait $!
 sleep 2
-"$SCRIPTSDIR/Refresh.sh"
+# WallustSwww.sh already reloads waybar colors — only refresh non-waybar services
+"$SCRIPTSDIR/RefreshNoWaybar.sh"
 

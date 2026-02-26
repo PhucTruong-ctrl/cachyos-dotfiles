@@ -11,6 +11,9 @@ wallust_refresh=$HOME/.config/hypr/scripts/RefreshNoWaybar.sh
 
 focused_monitor=$(hyprctl monitors | awk '/^Monitor/{name=$2} /focused: yes/{print name}')
 
+# Clean exit on Ctrl+C or kill signal
+trap 'notify-send "Auto Wallpaper" "Stopped" -i dialog-information; exit 0' INT TERM
+
 if [[ $# -lt 1 ]] || [[ ! -d $1   ]]; then
 	echo "Usage:
 	$0 <dir containing images>"
@@ -25,7 +28,11 @@ export SWWW_TRANSITION_TYPE=simple
 INTERVAL=1800
 
 while true; do
-	find "$1" \
+	# Filter to image files only (skip directories, text files, etc.)
+	find "$1" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" \
+		-o -iname "*.gif" -o -iname "*.bmp" -o -iname "*.webp" \
+		-o -iname "*.tiff" -o -iname "*.pnm" -o -iname "*.tga" \
+		-o -iname "*.farbfeld" \) \
 		| while read -r img; do
 			echo "$((RANDOM % 1000)):$img"
 		done \
@@ -39,4 +46,8 @@ while true; do
 			sleep $INTERVAL
 			
 		done
+
+	# Guard: if find produces no images, wait before retrying instead of busy-looping
+	notify-send "Auto Wallpaper" "No images found — retrying in 60s" -i dialog-warning
+	sleep 60
 done
