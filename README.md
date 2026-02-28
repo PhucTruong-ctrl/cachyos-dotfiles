@@ -58,6 +58,31 @@ cachyos-dotfiles/
 └── README.md
 ```
 
+## Config Directory Reference
+
+This is what each top-level item in `config/` is for:
+
+- `config/fastfetch/` - 
+- `config/fcitx5/` - input method engine settings; keyboard/input switching and Bamboo Vietnamese typing behavior.
+- `config/ghostty/` - Ghostty terminal emulator settings (font, theme, behavior); your preferred terminal profile.
+- `config/git/` - Git client configuration used for `~/.gitconfig` (identity, defaults, pager/editor options).
+- `config/hypr/` - Hyprland compositor config; window manager behavior, keybinds, monitor layout, startup apps, rules.
+- `config/mako/` - Mako notification daemon config (position, timeout, style of notifications).
+- `config/starship.toml` - prompt theme and module configuration for Starship shell prompt.
+- `config/swaylock/` - Swaylock lockscreen settings (visual + auth prompt behavior).
+- `config/tmux/` - Tmux terminal multiplexer settings (prefix, panes, status line, keymaps).
+- `config/waybar/` - Waybar top/bottom panel settings (modules, order, scripts, CSS styling).
+- `config/wlogout/` - logout/power menu layout and theme.
+- `config/wofi/` - Wofi launcher config + style (app launcher behavior and look).
+- `config/zellij/` - Zellij terminal workspace/multiplexer defaults.
+- `config/zsh/` - Zsh shell profile (`.zshrc`) and shell behavior defaults.
+
+Quick rule of thumb:
+
+- **Desktop/session behavior**: `hypr`, `waybar`, `wofi`, `wlogout`, `mako`, `swaylock`
+- **Terminal/shell workflow**: `ghostty`, `tmux`, `zellij`, `zsh`, `starship.toml`
+- **CLI/tools behavior**: `git`, `fastfetch`, `fcitx5`
+
 ## Hyprland Notes
 
 Main file: `config/hypr/hyprland.conf`
