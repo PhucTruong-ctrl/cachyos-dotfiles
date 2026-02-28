@@ -40,5 +40,8 @@ HISTSIZE=10000
 SAVEHIST=10000
 setopt appendhistory
 
-# opencode
-export PATH=/home/phuctruong/.opencode/bin:$PATH
+# user-local executables
+export PATH=/home/phuctruong/.local/bin:/home/phuctruong/.opencode/bin:/home/phuctruong/.bun/bin:$PATH
+
+# bun completions
+[ -s "/home/phuctruong/.bun/_bun" ] && source "/home/phuctruong/.bun/_bun"
