@@ -40,7 +40,6 @@ cachyos-v4-mirrorlist
 cachyos-wallpapers
 cachyos-zsh-config
 cantarell-fonts
-cava
 char-white
 chwd
 cliphist
@@ -218,11 +217,10 @@ snapper
 sof-firmware
 starship
 steam
+stow
 sudo
-swappy
 swaync
 switcheroo-control
-swww
 sysfsutils
 tailscale
 texinfo
@@ -271,3 +269,7 @@ yt-dlp
 zig
 zip
 zoxide
+wofi
+mako
+swaylock-effects
+waybar

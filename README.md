@@ -1,269 +1,159 @@
 # CachyOS Dotfiles
 
-System configuration and dotfiles for CachyOS with Hyprland, migrated from NixOS → KDE Plasma → Hyprland. Everything needed to restore a fully configured development + gaming workstation from a fresh CachyOS install. Hyprland dotfiles based on [JaKooLit/Hyprland-Dots](https://github.com/JaKooLit/Hyprland-Dots).
+Dotfiles and system restore scripts for a CachyOS laptop running Hyprland.
 
-## Hardware
+Current direction: this repo now tracks a **CachyOS-default Hyprland base** (from `cachyos-hyprland-settings`) plus a few personal overrides, so ricing can be done cleanly from a known baseline.
 
-| Component | Spec |
-|-----------|------|
-| **CPU** | Intel Core i5-1035G1 (4C/8T, Ice Lake) |
-| **GPU** | NVIDIA GeForce MX330 2GB (PRIME offload) |
-| **RAM** | 20GB DDR4 |
-| **Storage** | 477GB NVMe (Btrfs) |
-| **Keyboard** | BIOI SAMICE (VIA configurable, vendorId `0x8101`) |
+## What This Repo Manages
 
-## Software Stack
+- User configs under `config/` (deployed to `~/.config` with GNU Stow)
+- System configs under `etc/` (deployed with `sudo cp` via `install.sh`)
+- Package manifests under `packages/` (`official.txt`, `aur.txt`)
+- Provisioning scripts under `scripts/` and root `install.sh`
 
-| Layer | Choice |
-|-------|--------|
-| **OS** | CachyOS (Arch-based) with BORE scheduler |
-| **Kernel** | linux-cachyos 6.x |
-| **Desktop** | Hyprland (Wayland compositor) |
-| **Bar** | Waybar |
-| **Launcher** | rofi-wayland |
-| **Notifications** | swaync (SwayNotificationCenter) |
-| **Lock Screen** | hyprlock |
-| **Display Manager** | SDDM |
-| **Bootloader** | Limine (not GRUB, not systemd-boot) |
-| **Shell** | zsh + Oh My Zsh + starship prompt |
-| **Terminal** | Ghostty (Catppuccin Mocha theme) |
-| **Input Method** | fcitx5 + bamboo (Vietnamese, VNI method) |
-| **Browser** | Google Chrome |
-| **Editor** | VS Code Insiders + opencode (AI terminal IDE) |
+## Default Stack (Current)
 
-## Repository Structure
+- **WM/Compositor**: Hyprland
+- **Bar**: Waybar (CachyOS default config)
+- **Launcher**: Wofi (CachyOS default launcher)
+- **Notifications**: Mako
+- **Locker**: Swaylock
+- **Terminal**: Ghostty (personal preference)
+- **Shell**: Zsh + Oh My Zsh + Starship
+- **Input Method**: Fcitx5 + Bamboo
 
-```
+## Does CachyOS Provide Defaults?
+
+Yes. CachyOS ships desktop defaults through packages, including:
+
+- `cachyos-hyprland-settings`
+- `cachyos-settings`
+
+For Hyprland, defaults are provided in `/etc/skel/.config` (Hyprland, Waybar, Wofi, Wlogout, Mako, Swaylock, etc.).
+
+## Repository Layout
+
+```text
 cachyos-dotfiles/
-├── config/                         # User configs (~/.config/)
-│   ├── btop/                       # System monitor
-│   ├── cava/                       # Audio visualizer
-│   ├── fastfetch/                  # System fetch
-│   ├── fcitx5/                     # Vietnamese input method
-│   │   ├── conf/bamboo.conf        #   Bamboo VNI settings
-│   │   ├── config                  #   Hotkeys (Ctrl+Shift toggle)
-│   │   └── profile                 #   IM profile
-│   ├── fish/config.fish            # Fish shell (backup)
-│   ├── ghostty/config              # Ghostty terminal (Catppuccin Mocha, JetBrains Mono)
-│   ├── git/config                  # Git global config
-│   ├── hypr/                       # Hyprland window manager
-│   │   ├── hyprland.conf           #   Main config (sources everything)
-│   │   ├── UserConfigs/            #   User customizations
-│   │   │   ├── 01-UserDefaults.conf #   Default apps (ghostty, thunar)
-│   │   │   ├── ENVariables.conf    #   Env vars (NVIDIA, fcitx5)
-│   │   │   ├── Startup_Apps.conf   #   Autostart (fcitx5)
-│   │   │   ├── UserKeybinds.conf   #   Custom keybinds
-│   │   │   └── ...                 #   Animations, decorations, etc.
-│   │   ├── configs/                #   JaKooLit defaults
-│   │   ├── scripts/                #   Utility scripts
-│   │   ├── monitors.conf           #   Monitor layout
-│   │   ├── hypridle.conf           #   Idle behavior
-│   │   └── hyprlock.conf           #   Lock screen
-│   ├── kitty/                      # Kitty terminal (JaKooLit default, backup)
-│   ├── rofi/                       # App launcher (rofi-wayland)
-│   ├── starship.toml               # Starship prompt theme
-│   ├── swaync/                     # Notification center
-│   ├── tmux/tmux.conf              # Tmux (mouse, clipboard, escape-time)
-│   ├── wallust/                    # Color generation from wallpapers
-│   ├── waybar/                     # Status bar
-│   ├── wlogout/                    # Logout menu
-│   └── zsh/.zshrc                  # Zsh (Oh My Zsh, starship, zoxide, eza, bat, fzf)
-├── etc/                            # System configs (/etc/)
-│   ├── default/limine              # Boot params (nvidia-drm.modeset=1, intel_pstate=passive)
-│   ├── intel-undervolt.conf        # CPU/GPU/Cache undervolt (-50mV)
-│   ├── modprobe.d/nvidia.conf      # NVIDIA DRM modesetting (modeset=1 fbdev=1)
-│   ├── sysctl.d/99-performance.conf # Kernel tuning (vm, net, fs)
-│   ├── systemd/system/             # Custom systemd services
-│   │   ├── nvidia-clock-cap.service #   Lock GPU boost at 1101 MHz
-│   │   ├── tailscale-autoheal.service # Restart Tailscale if unhealthy
-│   │   └── tailscale-autoheal.timer   # Check every 2 minutes
-│   ├── tlp.conf                    # Power management (performance-first)
-│   └── udev/rules.d/
-│       └── 99-via-keyboard.rules   # VIA keyboard access (BIOI SAMICE)
-├── packages/                       # Package lists
-│   ├── official.txt                # Pacman packages (273)
-│   └── aur.txt                     # AUR packages (15)
-├── scripts/
-│   └── install-packages.sh         # Automated package installer
-├── install.sh                      # Full system restore script
+├── config/                  # User-level configs (stowed into ~/.config)
+│   ├── fastfetch/
+│   ├── fcitx5/
+│   ├── fish/
+│   ├── ghostty/
+│   ├── git/
+│   ├── hypr/
+│   ├── mako/
+│   ├── starship.toml
+│   ├── swaylock/
+│   ├── tmux/
+│   ├── waybar/
+│   ├── wlogout/
+│   ├── wofi/
+│   ├── zellij/
+│   └── zsh/
+├── etc/                     # System-level config files for /etc
+├── packages/                # official.txt + aur.txt manifests
+├── scripts/                 # helper scripts
+├── install.sh               # main install/restore script
 └── README.md
 ```
 
-## Thermal & Performance Optimization
+## Hyprland Notes
 
-This system is tuned for **maximum performance** — fast and responsive over cooling.
+Main file: `config/hypr/hyprland.conf`
 
-### TLP (Power Management)
-- **CPU Governor**: `performance` (AC) / `schedutil` (battery)
-- **Max CPU Frequency**: 100% on both AC and battery
-- **Turbo Boost**: Always enabled (`0` = never disabled)
-- **Energy Performance**: `performance` on AC, `balance_performance` on battery
-- **Platform Profile**: `performance`
+Modular includes live in `config/hypr/config/`:
 
-### Intel Undervolt
-- **CPU**: -50mV
-- **GPU**: -50mV
-- **CPU Cache**: -50mV
-- Applied at boot via `intel-undervolt.service`
+- `monitor.conf` - monitor rules and scaling
+- `keybinds.conf` - keybindings
+- `defaults.conf` - app variables (`$terminal`, `$applauncher`, `$filemanager`)
+- `autostart.conf` - startup services/apps
+- `windowrules.conf` - per-app rules
+- `input.conf`, `decorations.conf`, `animations.conf`, `colors.conf`, `environment.conf`, `variables.conf`
 
-### NVIDIA Clock Cap
-- GPU boost locked at **1101 MHz** to prevent thermal throttling
-- Applied at boot via `nvidia-clock-cap.service` using `nvidia-smi`
+Current keybind baseline includes:
 
-### Kernel Boot Parameters
-Set in `/etc/default/limine`, applied via `sudo limine-mkinitcpio`:
-- `nvidia-drm.modeset=1` — NVIDIA DRM modesetting (required for Hyprland)
-- `nmi_watchdog=0` — Disable NMI watchdog (saves power)
-- `intel_pstate=passive` — Allow TLP to control CPU frequency
+- `SUPER+ENTER` terminal
+- `SUPER+E` file manager
+- `SUPER+Q` close active window
+- `SUPER+D` launcher
+- `SUPER+1..5` switch workspaces
 
-### Kernel Tuning (sysctl)
-- `vm.swappiness=10` — Minimize swap usage
-- `vm.vfs_cache_pressure=50` — Keep directory/inode caches longer
-- `net.core.default_qdisc=fq` — Fair queuing scheduler
-- `net.ipv4.tcp_congestion_control=bbr` — BBR congestion control
-- `fs.inotify.max_user_watches=524288` — For large projects (VS Code, etc.)
+Current monitor override example (laptop panel):
 
-## Custom Systemd Services
+```ini
+monitor = eDP-1, 1920x1080@60, 0x0, 1.5
+```
 
-| Service | Type | Description |
-|---------|------|-------------|
-| `tailscale-autoheal.timer` | Timer (2min) | Checks Tailscale health, restarts if unhealthy |
-| `tailscale-autoheal.service` | Oneshot | The actual health check + restart script |
-| `nvidia-clock-cap.service` | Oneshot (boot) | Locks NVIDIA GPU boost clock at 1101 MHz |
-| `intel-undervolt.service` | Oneshot (boot) | Applies CPU/GPU/Cache undervolt (system package) |
-| `tlp.service` | Service | Power management daemon (system package) |
-| `thermald.service` | Service | Intel thermal daemon (system package) |
+## Symlink Model (Stow)
 
-## Packages
+This repo uses GNU Stow for user configs.
 
-### Official (pacman) — 273 packages
-Gaming: `lutris`, `heroic-games-launcher`, `gamescope`, `p7zip`, `jdk17-openjdk`
-Media: `vlc`, `discord`, `noisetorch`
-Productivity: `libreoffice-fresh`
-Fonts: `noto-fonts`, `noto-fonts-cjk`, `noto-fonts-emoji`, `ttf-liberation`, `ttf-fira-code`, `ttf-jetbrains-mono`, `ttf-jetbrains-mono-nerd`, `otf-firamono-nerd`
-Shell/Tools: `direnv`, `starship`, `tmux`, `wl-clipboard`, `gemini-cli`, `zoxide`, `eza`, `bat`, `fzf`, `fd`
+- Target directory: `~/.config`
+- Command used by installer: `stow --target="$HOME/.config" --restow config`
+- Additional direct symlinks:
+  - `config/zsh/.zshrc` -> `~/.zshrc`
+  - `config/git/config` -> `~/.gitconfig`
 
-### AUR — 15 packages
-Apps: `google-chrome`, `visual-studio-code-insiders-bin`, `mongodb-compass`, `betterdiscordctl`, `appimagelauncher`
-Gaming: `prismlauncher-offline-bin`, `the-honkers-railway-launcher-bin`, `r2modman-bin`, `gale-bin`
-Music: `spotify`, `spicetify-cli`
+Check symlink status:
 
-> **Note**: `caprine-bin` is skipped — conflicts with `nodejs` (requires `nodejs-lts-iron`).
-
-### Pre-installed by CachyOS
-These packages come with CachyOS and are NOT in the package lists:
-`steam`, `mangohud`, `gamemode`, `fish`, `ghostty`, `git`, `vim`, `wget`, `htop`, `fastfetch`, `lm_sensors`, `docker`, `nodejs`, `python`, `uv`, `pyenv`, `bun`, `zig`, `github-cli`, `tailscale`, `ufw`, `tlp`, `thermald`, `intel-undervolt`, `btrfs-progs`, `partitionmanager`, `lshw`, `usbutils`
-
-## Development Environment
-
-| Tool | Version | Notes |
-|------|---------|-------|
-| Node.js | 25.x | System package |
-| Bun | 1.3.x | Fast JS runtime/bundler |
-| Python | 3.14.x | With `uv` (fast pip) and `pyenv` |
-| Zig | 0.15.x | Systems programming |
-| Docker | Latest | Socket-activated, user in `docker` group |
-| Git | Latest | SSH auth via `gh auth`, credential helper |
-| opencode | Latest | AI terminal IDE at `~/.opencode/bin/opencode` |
-
-### MCP Servers (configured in opencode)
-- **Playwright** — Browser automation (`npx @playwright/mcp@latest`)
-- **GitHub** — Repository management (`npx @modelcontextprotocol/server-github`)
-- **SSH** — Remote server access (`npx ssh-mcp`)
-- **Discord** — Bot integration (Python venv at `~/.local/share/opencode/mcp/mcp-discord/`)
-
-## Gaming
-
-| Game/Tool | Launcher | Notes |
-|-----------|----------|-------|
-| Steam | Native | Proton for Windows games |
-| Minecraft | PrismLauncher (offline) | Cracked, worlds at `~/.local/share/PrismLauncher/` |
-| Honkai: Star Rail | HSR Launcher | `the-honkers-railway-launcher-bin` |
-| Other games | Lutris / Heroic | GOG, Epic, etc. |
-| Performance overlay | MangoHud | `mangohud %command%` |
-| Game optimizations | GameMode | `gamemoderun %command%` |
-| Deck plugins | Decky Loader v3 | Plugins at `~/homebrew/` |
-| Mod managers | r2modman, Gale | Thunderstore mod managers |
-
-## Usage
-
-### Fresh Install
 ```bash
-# Clone the repo
+for item in hypr waybar wofi fastfetch; do
+  ls -ld "$HOME/.config/$item"
+done
+```
+
+## Install / Restore
+
+```bash
 git clone git@github.com:PhucTruong-ctrl/cachyos-dotfiles.git ~/cachyos-dotfiles
+cd ~/cachyos-dotfiles
 
-# Preview what will be changed (no modifications)
-bash ~/cachyos-dotfiles/install.sh --dry-run
+# Preview
+bash install.sh --dry-run
 
-# Run the full restore
-bash ~/cachyos-dotfiles/install.sh
+# Apply
+bash install.sh
 ```
 
-### Adding Packages
+`install.sh` will:
+
+- install packages from manifests
+- copy tracked `/etc` files
+- install/enable required services
+- stow `config/` into `~/.config`
+- set zsh as default shell
+
+## Package Manifests
+
+- Official packages: `packages/official.txt`
+- AUR packages: `packages/aur.txt`
+
+Edit the manifests directly, then run:
+
 ```bash
-# Official (pacman) package
-echo "package-name" >> ~/cachyos-dotfiles/packages/official.txt
-
-# AUR package
-echo "package-name" >> ~/cachyos-dotfiles/packages/aur.txt
+bash scripts/install-packages.sh
 ```
 
-### Updating Configs
-Edit the files in this repo, then copy them to their live locations:
-```bash
-# Example: update Ghostty config
-cp ~/cachyos-dotfiles/config/ghostty/config ~/.config/ghostty/config
+## Performance / System Tuning (Tracked)
 
-# Example: update TLP (requires sudo)
-sudo cp ~/cachyos-dotfiles/etc/tlp.conf /etc/tlp.conf
-sudo systemctl restart tlp
-```
+Managed under `etc/`:
 
-### Boot Parameters
-Boot params are set in `/etc/default/limine` — **not** GRUB or systemd-boot:
-```bash
-sudo vim /etc/default/limine
-sudo limine-mkinitcpio    # Regenerate for both kernels
-# Reboot to apply
-```
+- `etc/intel-undervolt.conf`
+- `etc/tlp.conf`
+- `etc/sysctl.d/99-performance.conf`
+- `etc/default/limine`
+- `etc/systemd/system/nvidia-clock-cap.service`
+- `etc/systemd/system/tailscale-autoheal.service`
+- `etc/systemd/system/tailscale-autoheal.timer`
 
-## Post-Install Checklist
+## Troubleshooting
 
-After running `install.sh`, complete these manual steps:
+- Hypr parse errors: `hyprctl configerrors`
+- Reload Hypr config: `hyprctl reload`
+- Verify monitor state: `hyprctl monitors all`
+- Fastfetch compact profile missing: ensure `config/fastfetch/config-compact.jsonc` is present and linked to `~/.config/fastfetch/config-compact.jsonc`
 
-- [ ] **Reboot** to apply kernel boot params (`nmi_watchdog=0`, `intel_pstate=passive`)
-- [ ] **Tailscale**: `tailscale up` to connect to your network
-- [ ] **GitHub CLI**: `gh auth login` (SSH method)
-- [ ] **Fcitx5**: `fcitx5 -r -d` to reload input method, or log out and back in
-- [ ] **Intel undervolt**: `sudo intel-undervolt read` to verify -50mV applied
-- [ ] **Spicetify**: Open Spotify once, close it, then run `spicetify backup apply`
-- [ ] **Spicetify extensions**: Open Spotify → Marketplace → Install `adblockify` and `hidePodcasts`
-- [ ] **BetterDiscord**: `betterdiscordctl install` to inject into Discord
-- [ ] **VIA keyboard**: Open [usevia.app](https://usevia.app) in Chrome to configure BIOI SAMICE
+## Migration Status
 
-## Key Config File Locations
-
-| Config | Repo Path | Live Path |
-|--------|-----------|-----------| 
-| Hyprland | `config/hypr/` | `~/.config/hypr/` |
-| Waybar | `config/waybar/` | `~/.config/waybar/` |
-| rofi | `config/rofi/` | `~/.config/rofi/` |
-| swaync | `config/swaync/` | `~/.config/swaync/` |
-| wlogout | `config/wlogout/` | `~/.config/wlogout/` |
-| Zsh | `config/zsh/.zshrc` | `~/.zshrc` |
-| Fish shell (backup) | `config/fish/config.fish` | `~/.config/fish/config.fish` |
-| Starship | `config/starship.toml` | `~/.config/starship.toml` |
-| Tmux | `config/tmux/tmux.conf` | `~/.config/tmux/tmux.conf` |
-| Ghostty | `config/ghostty/config` | `~/.config/ghostty/config` |
-| Git | `config/git/config` | `~/.gitconfig` |
-| Fcitx5 | `config/fcitx5/` | `~/.config/fcitx5/` |
-| btop | `config/btop/` | `~/.config/btop/` |
-| cava | `config/cava/` | `~/.config/cava/` |
-| fastfetch | `config/fastfetch/` | `~/.config/fastfetch/` |
-| wallust | `config/wallust/` | `~/.config/wallust/` |
-| NVIDIA modprobe | `etc/modprobe.d/nvidia.conf` | `/etc/modprobe.d/nvidia.conf` |
-| TLP | `etc/tlp.conf` | `/etc/tlp.conf` |
-| Undervolt | `etc/intel-undervolt.conf` | `/etc/intel-undervolt.conf` |
-| Sysctl | `etc/sysctl.d/99-performance.conf` | `/etc/sysctl.d/99-performance.conf` |
-| Boot params | `etc/default/limine` | `/etc/default/limine` |
-| VIA keyboard | `etc/udev/rules.d/99-via-keyboard.rules` | `/etc/udev/rules.d/99-via-keyboard.rules` |
+This repo has been migrated away from JaKooLit-style layering to a cleaner CachyOS-default baseline. If you rice further, prefer adding changes on top of this baseline instead of reintroducing full upstream replacement trees.

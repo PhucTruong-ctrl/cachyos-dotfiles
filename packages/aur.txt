@@ -12,4 +12,3 @@ the-honkers-railway-launcher-bin
 ttf-victor-mono
 via
 visual-studio-code-insiders-bin
-wallust

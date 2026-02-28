@@ -1,88 +1,50 @@
-/* ----------- 💫 https://github.com/JaKooLit 💫 -------- */
-/* wallust-wlogout */
-
-/* Importing wallust colors */
-@import '../../.config/waybar/wallust/colors-waybar.css';
+* {
+	background-image: none;
+	box-shadow: none;
+}
 
 window {
-    font-size: 24pt;
-    color: @foreground; /* text */
-    background-color: rgba(30, 30, 46, 0.8);
+	background-color: rgba(17, 24, 38, 0.9); /* cachydblue with alpha */
 }
 
 button {
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: 20%;
-    background-color: rgba(200, 220, 255, 0);
-    animation: gradient_f 10s ease-in infinite;
-    transition: all 0.3s cubic-bezier(.55, 0.0, .28, 1.682), box-shadow 0.2s ease-in-out, background-color 0.2s ease-in-out;
-    border-radius: 80px;
-	border:0px;
+    border-radius: 0;
+    border-color: #007d6f; /* cachydgreen */
+	text-decoration-color: #ffffff; /* cachywhite */
+    color: #ffffff; /* cachywhite */
+	background-color: #111826; /* cachydblue */
+	border-style: solid;
+	border-width: 1px;
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: 25%;
+}
+
+button:focus, button:active, button:hover {
+	background-color: #00aa84; /* cachymgreen */
 	outline-style: none;
 }
-
-button:focus {
-    background-size: 50%;
-	border: 0px;
-	outline-style: none;
-
-}
-
-button:hover {
-    background-color: transparent; 
-    color: @color13;
-    background-size: 50%;
-    margin: 30px;
-    border-radius: 80px;
-    outline-style: none;
-	
-}
-
-/* Adjust the size of the icon or content inside the button */
-button span {
-    font-size: 1.2em; /* Increase the font size */
-}
-
 
 #lock {
-    background-image: image(url("./icons/lock.png"));
-}
-#lock:hover {
-    background-image: image(url("./icons/lock-hover.png"));
+    background-image: image(url("/usr/share/wlogout/icons/lock.png"), url("/usr/local/share/wlogout/icons/lock.png"));
 }
 
 #logout {
-    background-image: image(url("./icons/logout.png"));
-}
-#logout:hover {
-    background-image: image(url("./icons/logout-hover.png"));
+    background-image: image(url("/usr/share/wlogout/icons/logout.png"), url("/usr/local/share/wlogout/icons/logout.png"));
 }
 
 #suspend {
-    background-image: image(url("./icons/sleep.png"));
-}
-#suspend:hover {
-    background-image: image(url("./icons/sleep-hover.png"));
-}
-
-#shutdown {
-    background-image: image(url("./icons/power.png"));
-}
-#shutdown:hover {
-    background-image: image(url("./icons/power-hover.png"));
-}
-
-#reboot {
-    background-image: image(url("./icons/restart.png"));
-}
-#reboot:hover {
-    background-image: image(url("./icons/restart-hover.png"));
+    background-image: image(url("/usr/share/wlogout/icons/suspend.png"), url("/usr/local/share/wlogout/icons/suspend.png"));
 }
 
 #hibernate {
-    background-image: image(url("./icons/hibernate.png"));
+    background-image: image(url("/usr/share/wlogout/icons/hibernate.png"), url("/usr/local/share/wlogout/icons/hibernate.png"));
 }
-#hibernate:hover {
-    background-image: image(url("./icons/hibernate-hover.png"));
+
+#shutdown {
+    background-image: image(url("/usr/share/wlogout/icons/shutdown.png"), url("/usr/local/share/wlogout/icons/shutdown.png"));
+}
+
+#reboot {
+    background-image: image(url("/usr/share/wlogout/icons/reboot.png"), url("/usr/local/share/wlogout/icons/reboot.png"));
 }

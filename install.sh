@@ -59,18 +59,16 @@ else
     echo "Oh My Zsh already installed, skipping."
 fi
 
-# --- 6. Copy user configs ---
-log "Installing user configs..."
-run mkdir -p ~/.config/fish ~/.config/fcitx5 ~/.config/fcitx5/conf ~/.config/ghostty ~/.config/tmux
-run cp "$SCRIPT_DIR/config/zsh/.zshrc" ~/.zshrc
-run cp "$SCRIPT_DIR/config/fish/config.fish" ~/.config/fish/config.fish
-run cp "$SCRIPT_DIR/config/starship.toml" ~/.config/starship.toml
-run cp "$SCRIPT_DIR/config/tmux/tmux.conf" ~/.config/tmux/tmux.conf
-run cp "$SCRIPT_DIR/config/fcitx5/profile" ~/.config/fcitx5/profile
-run cp "$SCRIPT_DIR/config/fcitx5/config" ~/.config/fcitx5/config
-run cp "$SCRIPT_DIR/config/fcitx5/conf/bamboo.conf" ~/.config/fcitx5/conf/bamboo.conf
-run cp "$SCRIPT_DIR/config/ghostty/config" ~/.config/ghostty/config
-run cp "$SCRIPT_DIR/config/git/config" ~/.gitconfig
+# --- 6. Symlink user configs with stow ---
+log "Symlinking user configs with stow..."
+if ! command -v stow >/dev/null 2>&1; then
+    warn "stow not found, installing..."
+    run sudo pacman -S --needed --noconfirm stow
+fi
+run mkdir -p "$HOME/.config"
+run stow --target="$HOME/.config" --restow config
+run ln -sf "$SCRIPT_DIR/config/zsh/.zshrc" "$HOME/.zshrc"
+run ln -sf "$SCRIPT_DIR/config/git/config" "$HOME/.gitconfig"
 
 # --- 7. Set default shell to zsh ---
 log "Setting default shell to zsh..."
