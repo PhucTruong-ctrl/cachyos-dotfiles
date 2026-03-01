@@ -44,11 +44,24 @@ Scope {
             }
 
             // Bar geometry & background
+            // NOTE: implicitHeight is the correct property (QsWindow.height is
+            // deprecated).  The compositor sizes the surface from implicitHeight.
             implicitHeight: 40
             color: "#1e1e2e"    // Catppuccin Mocha base
 
-            // Prevent desktop windows from overlapping the bar
-            exclusionMode: ExclusionMode.Normal
+            // Reserve exclusive space so Hyprland subtracts exactly 40 px from
+            // the top of the usable area on every monitor, preventing tiled
+            // windows from sliding under the bar.
+            //
+            // Why exclusiveZone and NOT exclusionMode?
+            //   - exclusionMode: ExclusionMode.Normal tells QS to *auto-derive*
+            //     the zone from the committed surface size, which can race on
+            //     startup or break with the deprecated `height` property.
+            //   - exclusiveZone: 40 sets the wlr-layer-shell exclusiveZone
+            //     directly and unconditionally.  Setting this also implicitly
+            //     sets exclusionMode to Normal (per QS 0.2 docs), so there is
+            //     no conflict.  This is the only reliable path on Hyprland.
+            exclusiveZone: 40
 
             // ------------------------------------------------------------------
             // Layout: [Workspaces] ——————————— [Clock]
