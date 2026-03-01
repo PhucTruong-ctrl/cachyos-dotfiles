@@ -32,7 +32,7 @@
 //   Launcher.qml           — Application launcher overlay
 //   QuickSettings.qml      — Volume / brightness / WiFi sliders + toggles
 //   SysBar.qml             — CPU / RAM / Temp indicators (inline in Bar)
-//   CalendarPane.qml       — Month calendar popup
+//   CalendarPopup.qml      — Month calendar popup (clickable clock → toggle)
 //   ControlCenter.qml      — Wallpaper grid + matugen integration
 //   NotificationCenter.qml — Notification history center
 
@@ -97,24 +97,25 @@ ShellRoot {
     QuickSettings {}
 
     // ──────────────────────────────────────────────────────────────────────────
-    // Calendar Pane  (Task 5)
+    // Calendar Popup  (Task 5)
     //
-    // Month-view popup anchored below the clock in the bar.
+    // Month-view popup anchored top-right, drops below the clock in the bar.
     // Hidden by default. Toggle via:  qs ipc call toggle-calendar toggle
-    //
-    // Uncomment once CalendarPane.qml is implemented:
-    // CalendarPane {}
+    //                            or:  click the clock in the bar.
     // ──────────────────────────────────────────────────────────────────────────
+
+    CalendarPopup {}
 
     // ──────────────────────────────────────────────────────────────────────────
     // Wallpaper Control Center  (Task 6)
     //
-    // Fullscreen overlay grid of ~/Wallpaper images; applies via swww + matugen.
-    // Part of toggle-control-center IPC surface.
-    //
-    // Uncomment once ControlCenter.qml is implemented:
-    // ControlCenter {}
+    // Fullscreen overlay grid of ~/Pictures/wallpapers images.
+    // Clicking a thumbnail applies the wallpaper via swww + regenerates the
+    // Catppuccin colour scheme via matugen.
+    // IPC toggle:  qs ipc call toggle-wallpapers toggle
     // ──────────────────────────────────────────────────────────────────────────
+
+    ControlCenter {}
 
     // ──────────────────────────────────────────────────────────────────────────
     // Notification Center  (Task 7)
