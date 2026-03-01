@@ -3,12 +3,14 @@
 // Renders one PanelWindow per screen so the bar spans every monitor.
 // Contains:
 //   - Clock: driven by Quickshell's built-in SystemClock (seconds precision)
+//     Clicking the clock toggles the CalendarPopup via IPC.
 //   - Workspace indicator: live Repeater bound to Hyprland.workspaces.values
 //     Each pill is clickable — calls workspace.activate() to switch.
 //     The focused workspace is highlighted in Catppuccin Mocha mauve.
 
 import Quickshell
 import Quickshell.Hyprland
+import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
 
@@ -24,6 +26,16 @@ Scope {
     }
 
     readonly property string clockText: Qt.formatDateTime(clock.date, "hh:mm:ss  ddd d MMM")
+
+    // ---------------------------------------------------------------------------
+    // IPC helper: toggle the CalendarPopup by calling the toggle-calendar handler.
+    // We use a short-lived Process so the bar never blocks the UI thread.
+    // The command is set and re-run on each clock click.
+    // ---------------------------------------------------------------------------
+    Process {
+        id: calendarToggleProc
+        command: ["qs", "ipc", "call", "toggle-calendar", "toggle"]
+    }
 
     // ---------------------------------------------------------------------------
     // One PanelWindow per monitor (handles hotplug correctly via Variants)
@@ -148,15 +160,44 @@ Scope {
                     Layout.alignment: Qt.AlignVCenter
                 }
 
-                // ── Right section: clock ───────────────────────────────────────
-                Text {
-                    id: clockLabel
+                // ── Right section: clock (click → toggle CalendarPopup) ────────
+                Item {
                     Layout.alignment: Qt.AlignVCenter
-                    text:  barRoot.clockText
-                    color: "#cdd6f4"    // Catppuccin Mocha text
-                    font.pixelSize: 13
-                    font.family:    "monospace"
-                    leftPadding: 12    // visual gap between SysBar pill and clock
+                    implicitWidth:  clockLabel.implicitWidth  + 24  // extra hit area
+                    implicitHeight: clockLabel.implicitHeight + 8
+
+                    // Subtle hover tint behind the clock
+                    Rectangle {
+                        anchors.fill: parent
+                        anchors.margins: 2
+                        radius: 6
+                        color: clockHover.containsMouse ? "#313244" : "transparent"
+
+                        Behavior on color {
+                            ColorAnimation { duration: 120 }
+                        }
+                    }
+
+                    Text {
+                        id: clockLabel
+                        anchors.centerIn: parent
+                        text:  barRoot.clockText
+                        color: "#cdd6f4"    // Catppuccin Mocha text
+                        font.pixelSize: 13
+                        font.family:    "monospace"
+                    }
+
+                    MouseArea {
+                        id: clockHover
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape:  Qt.PointingHandCursor
+
+                        onClicked: {
+                            console.log("[Bar] clock clicked — toggling CalendarPopup");
+                            calendarToggleProc.running = true;
+                        }
+                    }
                 }
             }
         }
