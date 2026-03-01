@@ -143,6 +143,11 @@ Scope {
                 // ── Center spacer ─────────────────────────────────────────────
                 Item { Layout.fillWidth: true }
 
+                // ── Right section: SysBar pill (CPU / RAM / Temp) ─────────────
+                SysBar {
+                    Layout.alignment: Qt.AlignVCenter
+                }
+
                 // ── Right section: clock ───────────────────────────────────────
                 Text {
                     id: clockLabel
@@ -151,6 +156,7 @@ Scope {
                     color: "#cdd6f4"    // Catppuccin Mocha text
                     font.pixelSize: 13
                     font.family:    "monospace"
+                    leftPadding: 12    // visual gap between SysBar pill and clock
                 }
             }
         }
