@@ -82,187 +82,194 @@ Scope {
         // Do not push other windows aside
         exclusionMode: ExclusionMode.Ignore
 
-        // ── Global key handler for Escape ─────────────────────────────────────
-        Keys.onEscapePressed: {
-            console.log("[Power] Escape pressed — closing power menu");
-            powerWindow.visible = false;
-        }
-
-        // ── Dim backdrop (click outside → close) ──────────────────────────────
-        MouseArea {
+        // ── Root Item: PanelWindow is not an Item, so Keys must go on a child ─
+        Item {
+            id: powerWindowRoot
             anchors.fill: parent
-            onClicked: {
-                console.log("[Power] backdrop clicked — closing power menu");
+            focus: true
+
+            // ── Global key handler for Escape ─────────────────────────────────
+            Keys.onEscapePressed: {
+                console.log("[Power] Escape pressed — closing power menu");
                 powerWindow.visible = false;
             }
 
-            Rectangle {
-                anchors.fill: parent
-                color: "#cc000000"   // semi-transparent dark overlay
-            }
-        }
-
-        // ──────────────────────────────────────────────────────────────────────
-        // Centered power-menu card
-        // ──────────────────────────────────────────────────────────────────────
-        Rectangle {
-            id: powerCard
-            anchors.centerIn: parent
-            width:  420
-            height: implicitHeight + 48
-            implicitHeight: cardLayout.implicitHeight
-            radius: 18
-
-            // Catppuccin Mocha palette (matches Bar.qml / Launcher.qml)
-            color:        "#1e1e2e"   // base
-            border.color: "#313244"   // surface0
-            border.width: 1
-
-            // Swallow backdrop clicks so they don't close the menu
+            // ── Dim backdrop (click outside → close) ──────────────────────────
             MouseArea {
                 anchors.fill: parent
-                onClicked: { /* swallow */ }
+                onClicked: {
+                    console.log("[Power] backdrop clicked — closing power menu");
+                    powerWindow.visible = false;
+                }
+
+                Rectangle {
+                    anchors.fill: parent
+                    color: "#cc000000"   // semi-transparent dark overlay
+                }
             }
 
-            ColumnLayout {
-                id: cardLayout
-                anchors {
-                    top:    parent.top
-                    left:   parent.left
-                    right:  parent.right
-                    margins: 24
-                }
-                spacing: 16
+            // ──────────────────────────────────────────────────────────────────
+            // Centered power-menu card
+            // ──────────────────────────────────────────────────────────────────
+            Rectangle {
+                id: powerCard
+                anchors.centerIn: parent
+                width:  420
+                height: implicitHeight + 48
+                implicitHeight: cardLayout.implicitHeight
+                radius: 18
 
-                // ── Header ────────────────────────────────────────────────────
+                // Catppuccin Mocha palette (matches Bar.qml / Launcher.qml)
+                color:        "#1e1e2e"   // base
+                border.color: "#313244"   // surface0
+                border.width: 1
+
+                // Swallow backdrop clicks so they don't close the menu
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: { /* swallow */ }
+                }
+
                 ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 4
+                    id: cardLayout
+                    anchors {
+                        top:    parent.top
+                        left:   parent.left
+                        right:  parent.right
+                        margins: 24
+                    }
+                    spacing: 16
 
-                    Text {
-                        text: " Power"
-                        color: "#cba6f7"       // Catppuccin Mocha mauve
-                        font.pixelSize: 18
-                        font.bold: true
-                        Layout.alignment: Qt.AlignHCenter
+                    // ── Header ────────────────────────────────────────────────
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 4
+
+                        Text {
+                            text: " Power"
+                            color: "#cba6f7"       // Catppuccin Mocha mauve
+                            font.pixelSize: 18
+                            font.bold: true
+                            Layout.alignment: Qt.AlignHCenter
+                        }
+
+                        Text {
+                            text: "Choose an action"
+                            color: "#6c7086"       // overlay0
+                            font.pixelSize: 12
+                            Layout.alignment: Qt.AlignHCenter
+                        }
                     }
 
-                    Text {
-                        text: "Choose an action"
-                        color: "#6c7086"       // overlay0
-                        font.pixelSize: 12
-                        Layout.alignment: Qt.AlignHCenter
+                    // ── Divider ───────────────────────────────────────────────
+                    Rectangle {
+                        Layout.fillWidth: true
+                        height: 1
+                        color:  "#313244"   // surface0
                     }
-                }
 
-                // ── Divider ───────────────────────────────────────────────────
-                Rectangle {
-                    Layout.fillWidth: true
-                    height: 1
-                    color:  "#313244"   // surface0
-                }
+                    // ── Action buttons grid (3 columns × 2 rows) ──────────────
+                    GridLayout {
+                        Layout.fillWidth: true
+                        columns:    3
+                        rowSpacing: 10
+                        columnSpacing: 10
 
-                // ── Action buttons grid (3 columns × 2 rows) ──────────────────
-                GridLayout {
-                    Layout.fillWidth: true
-                    columns:    3
-                    rowSpacing: 10
-                    columnSpacing: 10
+                        // Model: [ icon (Nerd Font), label, command args ]
+                        // Buttons are instantiated via Repeater so adding/removing
+                        // entries here requires zero other changes.
+                        Repeater {
+                            model: [
+                                { icon: "󰌾", label: "Lock",     cmd: ["hyprlock"] },
+                                { icon: "󰤄", label: "Suspend",  cmd: ["systemctl", "suspend"] },
+                                { icon: "󰗼", label: "Logout",   cmd: ["hyprctl", "dispatch", "exit"] },
+                                { icon: "󰜉", label: "Reboot",   cmd: ["systemctl", "reboot"] },
+                                { icon: "󰐥", label: "Shutdown", cmd: ["systemctl", "poweroff"] },
+                                { icon: "󰅗", label: "Cancel",   cmd: [] }
+                            ]
 
-                    // Model: [ icon (Nerd Font), label, command args ]
-                    // Buttons are instantiated via Repeater so adding/removing
-                    // entries here requires zero other changes.
-                    Repeater {
-                        model: [
-                            { icon: "󰌾", label: "Lock",     cmd: ["hyprlock"] },
-                            { icon: "󰤄", label: "Suspend",  cmd: ["systemctl", "suspend"] },
-                            { icon: "󰗼", label: "Logout",   cmd: ["hyprctl", "dispatch", "exit"] },
-                            { icon: "󰜉", label: "Reboot",   cmd: ["systemctl", "reboot"] },
-                            { icon: "󰐥", label: "Shutdown", cmd: ["systemctl", "poweroff"] },
-                            { icon: "󰅗", label: "Cancel",   cmd: [] }
-                        ]
+                            delegate: Rectangle {
+                                required property var modelData
+                                required property int index
 
-                        delegate: Rectangle {
-                            required property var modelData
-                            required property int index
+                                Layout.fillWidth: true
+                                height: 72
+                                radius: 12
 
-                            Layout.fillWidth: true
-                            height: 72
-                            radius: 12
-
-                            // Highlight colours per category
-                            readonly property color accentColor: {
-                                if (modelData.label === "Cancel")   return "#6c7086"  // overlay0 (neutral)
-                                if (modelData.label === "Lock")     return "#89dceb"  // sky
-                                if (modelData.label === "Suspend")  return "#89b4fa"  // blue
-                                if (modelData.label === "Logout")   return "#fab387"  // peach
-                                if (modelData.label === "Reboot")   return "#f9e2af"  // yellow
-                                if (modelData.label === "Shutdown") return "#f38ba8"  // red
-                                return "#cdd6f4"
-                            }
-
-                            color: btnArea.containsMouse ? Qt.darker(accentColor, 4.5) : "#181825"
-
-                            border.color: btnArea.containsMouse ? accentColor : "#313244"
-                            border.width: 1
-
-                            Behavior on color {
-                                ColorAnimation { duration: 120 }
-                            }
-                            Behavior on border.color {
-                                ColorAnimation { duration: 120 }
-                            }
-
-                            ColumnLayout {
-                                anchors.centerIn: parent
-                                spacing: 6
-
-                                Text {
-                                    text:  modelData.icon
-                                    color: parent.parent.accentColor
-                                    font.pixelSize: 24
-                                    Layout.alignment: Qt.AlignHCenter
+                                // Highlight colours per category
+                                readonly property color accentColor: {
+                                    if (modelData.label === "Cancel")   return "#6c7086"  // overlay0 (neutral)
+                                    if (modelData.label === "Lock")     return "#89dceb"  // sky
+                                    if (modelData.label === "Suspend")  return "#89b4fa"  // blue
+                                    if (modelData.label === "Logout")   return "#fab387"  // peach
+                                    if (modelData.label === "Reboot")   return "#f9e2af"  // yellow
+                                    if (modelData.label === "Shutdown") return "#f38ba8"  // red
+                                    return "#cdd6f4"
                                 }
 
-                                Text {
-                                    text:  modelData.label
-                                    color: btnArea.containsMouse
-                                           ? "#cdd6f4"    // bright when hovered
-                                           : "#a6adc8"    // subtext1 otherwise
-                                    font.pixelSize: 12
-                                    font.bold: btnArea.containsMouse
-                                    Layout.alignment: Qt.AlignHCenter
+                                color: btnArea.containsMouse ? Qt.darker(accentColor, 4.5) : "#181825"
 
-                                    Behavior on color {
-                                        ColorAnimation { duration: 120 }
+                                border.color: btnArea.containsMouse ? accentColor : "#313244"
+                                border.width: 1
+
+                                Behavior on color {
+                                    ColorAnimation { duration: 120 }
+                                }
+                                Behavior on border.color {
+                                    ColorAnimation { duration: 120 }
+                                }
+
+                                ColumnLayout {
+                                    anchors.centerIn: parent
+                                    spacing: 6
+
+                                    Text {
+                                        text:  modelData.icon
+                                        color: parent.parent.accentColor
+                                        font.pixelSize: 24
+                                        Layout.alignment: Qt.AlignHCenter
+                                    }
+
+                                    Text {
+                                        text:  modelData.label
+                                        color: btnArea.containsMouse
+                                               ? "#cdd6f4"    // bright when hovered
+                                               : "#a6adc8"    // subtext1 otherwise
+                                        font.pixelSize: 12
+                                        font.bold: btnArea.containsMouse
+                                        Layout.alignment: Qt.AlignHCenter
+
+                                        Behavior on color {
+                                            ColorAnimation { duration: 120 }
+                                        }
                                     }
                                 }
-                            }
 
-                            MouseArea {
-                                id: btnArea
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape:  Qt.PointingHandCursor
+                                MouseArea {
+                                    id: btnArea
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape:  Qt.PointingHandCursor
 
-                                onClicked: {
-                                    if (modelData.label === "Cancel") {
-                                        console.log("[Power] button clicked: Cancel — closing menu");
-                                        powerWindow.visible = false;
-                                    } else {
-                                        console.log("[Power] button clicked: " + modelData.label +
-                                            " — executing: " + JSON.stringify(modelData.cmd));
-                                        root.runCmd(modelData.cmd);
+                                    onClicked: {
+                                        if (modelData.label === "Cancel") {
+                                            console.log("[Power] button clicked: Cancel — closing menu");
+                                            powerWindow.visible = false;
+                                        } else {
+                                            console.log("[Power] button clicked: " + modelData.label +
+                                                " — executing: " + JSON.stringify(modelData.cmd));
+                                            root.runCmd(modelData.cmd);
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                }
 
-                // Spacer at the bottom of the card
-                Item { height: 8 }
+                    // Spacer at the bottom of the card
+                    Item { height: 8 }
+                }
             }
-        }
+        } // end Item powerWindowRoot
     }
 }

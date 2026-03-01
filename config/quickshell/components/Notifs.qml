@@ -19,6 +19,7 @@ import Quickshell.Widgets
 import Quickshell.Services.Notifications
 import QtQuick
 import QtQuick.Layouts
+import "../services"
 
 Scope {
     id: root
@@ -44,6 +45,16 @@ Scope {
                 " summary=" + (notif.summary ?? "") +
                 " urgency=" + notif.urgency +
                 " expireTimeout=" + notif.expireTimeout);
+
+            // Add notification to persistent store for the Dashboard
+            NotifStore.addNotification({
+                appName: notif.appName ?? "(unknown)",
+                appIcon: notif.appIcon ?? "",
+                summary: notif.summary ?? "",
+                body: notif.body ?? "",
+                urgency: notif.urgency,
+                timestamp: Date.now()
+            });
 
             // Track the notification so it lands in trackedNotifications
             notif.tracked = true;

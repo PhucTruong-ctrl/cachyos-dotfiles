@@ -3,7 +3,6 @@
 // Renders one PanelWindow per screen so the bar spans every monitor.
 // Contains:
 //   - Clock: driven by Quickshell's built-in SystemClock (seconds precision)
-//     Clicking the clock toggles the CalendarPopup via IPC.
 //   - Workspace indicator: live Repeater bound to Hyprland.workspaces.values
 //     Each pill is clickable — calls workspace.activate() to switch.
 //     The focused workspace is highlighted in Catppuccin Mocha mauve.
@@ -27,14 +26,20 @@ Scope {
 
     readonly property string clockText: Qt.formatDateTime(clock.date, "hh:mm:ss  ddd d MMM")
 
-    // ---------------------------------------------------------------------------
-    // IPC helper: toggle the CalendarPopup by calling the toggle-calendar handler.
-    // We use a short-lived Process so the bar never blocks the UI thread.
-    // The command is set and re-run on each clock click.
-    // ---------------------------------------------------------------------------
     Process {
-        id: calendarToggleProc
-        command: ["qs", "ipc", "call", "toggle-calendar", "toggle"]
+        id: wifiProcess
+        command: ["alacritty", "-e", "nmtui"]
+    }
+
+    Process {
+        id: btProcess
+        command: ["alacritty", "-e", "bluetuith"]
+    }
+
+    IpcCommand {
+        id: toggleCalendarCommand
+        target: "toggle-calendar"
+        command: "toggle"
     }
 
     // ---------------------------------------------------------------------------
@@ -155,47 +160,63 @@ Scope {
                 // ── Center spacer ─────────────────────────────────────────────
                 Item { Layout.fillWidth: true }
 
-                // ── Right section: SysBar pill (CPU / RAM / Temp) ─────────────
-                SysBar {
+                // ── Right section: sys tray & clock ───────────────────────────
+                RowLayout {
                     Layout.alignment: Qt.AlignVCenter
-                }
+                    spacing: 12
+                    
+                    // Static App Tray
+                    Row {
+                        spacing: 8
+                        Layout.alignment: Qt.AlignVCenter
 
-                // ── Right section: clock (click → toggle CalendarPopup) ────────
-                Item {
-                    Layout.alignment: Qt.AlignVCenter
-                    implicitWidth:  clockLabel.implicitWidth  + 24  // extra hit area
-                    implicitHeight: clockLabel.implicitHeight + 8
+                        // Wifi Icon
+                        Text {
+                            text: "󰖩" // nf-md-wifi (nerd font)
+                            color: "#cdd6f4"
+                            font.pixelSize: 16
+                            font.family: "monospace" // Ensure nerd font is available via monospace fallback
+                            
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    wifiProcess.running = true;
+                                }
+                            }
+                        }
 
-                    // Subtle hover tint behind the clock
-                    Rectangle {
-                        anchors.fill: parent
-                        anchors.margins: 2
-                        radius: 6
-                        color: clockHover.containsMouse ? "#313244" : "transparent"
-
-                        Behavior on color {
-                            ColorAnimation { duration: 120 }
+                        // Bluetooth Icon
+                        Text {
+                            text: "󰂯" // nf-md-bluetooth (nerd font)
+                            color: "#cdd6f4"
+                            font.pixelSize: 16
+                            font.family: "monospace"
+                            
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    btProcess.running = true;
+                                }
+                            }
                         }
                     }
 
+                    // Clock
                     Text {
                         id: clockLabel
-                        anchors.centerIn: parent
-                        text:  barRoot.clockText
+                        text: barRoot.clockText
                         color: "#cdd6f4"    // Catppuccin Mocha text
                         font.pixelSize: 13
-                        font.family:    "monospace"
-                    }
-
-                    MouseArea {
-                        id: clockHover
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape:  Qt.PointingHandCursor
-
-                        onClicked: {
-                            console.log("[Bar] clock clicked — toggling CalendarPopup");
-                            calendarToggleProc.running = true;
+                        font.family: "monospace"
+                        
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                toggleCalendarCommand.dispatch();
+                            }
                         }
                     }
                 }

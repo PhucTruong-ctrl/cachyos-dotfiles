@@ -1,129 +1,85 @@
-// shell.qml — Quickshell master entry point
+// shell.qml — Quickshell master loader
 //
-// Executed by Quickshell on startup:
+// This file is the single entrypoint executed by Quickshell on startup:
 //   quickshell -p ~/.config/quickshell/shell.qml
 //
-// Responsibilities (strict — no UI layout logic lives here):
-//   1. Shell-level settings (watchFiles)
-//   2. Global singleton imports (Globals palette + constants)
-//   3. Top-level IPC handlers that orchestrate cross-component visibility
-//   4. Instantiate each component module — each module owns its own
-//      PanelWindow(s), IpcHandler, and internal layout
-//
-// Multi-monitor strategy:
-//   The Bar component internally uses:
-//     Variants { model: Quickshell.screens }
-//   so it creates one PanelWindow per connected screen automatically.
-//   Overlay components (Launcher, Power, ControlCenter, NotificationCenter)
-//   are single-screen overlays that appear on whichever screen has focus —
-//   this is the correct UX for popup panels on Wayland/Hyprland.
-//
-// IPC surface (invoke via `qs ipc call <target> <function>`):
-//   toggle-launcher           → toggle   — App launcher overlay
-//   toggle-power              → toggle   — Power menu overlay
-//   toggle-control-center     → toggle   — Quick-settings + sliders panel
-//   toggle-notification-center → toggle  — Notification history panel
-//   toggle-calendar           → toggle   — Calendar popup
+// Responsibilities:
+//   1. Declare shell-level settings (watchFiles, etc.)
+//   2. Instantiate each component module — no UI layout logic lives here
+//   3. Each component manages its own IpcHandler and visibility internally
 //
 // Component map (all files under components/):
-//   Bar.qml                — Status bar  (top panel, one window per monitor)
-//   Notifs.qml             — Live notification daemon (freedesktop D-Bus)
-//   Power.qml              — Power menu overlay
-//   Launcher.qml           — Application launcher overlay
-//   QuickSettings.qml      — Volume / brightness / WiFi sliders + toggles
-//   SysBar.qml             — CPU / RAM / Temp indicators (inline in Bar)
-//   CalendarPopup.qml      — Month calendar popup (clickable clock → toggle)
-//   ControlCenter.qml      — Wallpaper grid + matugen integration
-//   NotificationCenter.qml — Notification history center
+//   Bar.qml      — Status bar (top panel, one PanelWindow per monitor)
+//   Notifs.qml   — Notification daemon overlay (org.freedesktop.Notifications)
+//   Power.qml    — Power menu overlay (lock / logout / suspend / reboot / shutdown)
+//   Launcher.qml — Application launcher (fuzzy, .desktop-file driven)
 
 import QtQuick
 import Quickshell
 import "components"
+import "services"
 
 ShellRoot {
-    // ──────────────────────────────────────────────────────────────────────────
+    // ------------------------------------------------------------------
     // Shell-level settings
-    // ──────────────────────────────────────────────────────────────────────────
-
+    // ------------------------------------------------------------------
     settings {
         // Reload the shell automatically whenever any .qml source file is saved.
         watchFiles: true
     }
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // Status Bar
+    // ------------------------------------------------------------------
+    // Load Bar here
     //
-    // Bar.qml uses Variants { model: Quickshell.screens } internally to spawn
-    // one PanelWindow per monitor. It handles hotplug automatically.
-    // Do NOT wrap it in another Variants here — Bar owns its own screen loop.
-    // ──────────────────────────────────────────────────────────────────────────
-
+    // Bar.qml creates one PanelWindow per connected screen and handles
+    // monitor hotplug automatically via Quickshell's Variants helper.
+    // ------------------------------------------------------------------
     Bar {}
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // Notification Daemon
+    // ------------------------------------------------------------------
+    // Load Notifs here
     //
-    // Registers on org.freedesktop.Notifications (replaces mako/dunst).
-    // Must start immediately so no notifications are lost at shell startup.
-    // ──────────────────────────────────────────────────────────────────────────
-
+    // Notifs.qml registers as the org.freedesktop.Notifications D-Bus
+    // service (mako/dunst replacement) and renders ephemeral popup cards
+    // in the top-right corner.  Always active — the daemon must start
+    // immediately so no notifications are lost at shell startup.
+    // ------------------------------------------------------------------
     Notifs {}
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // Power Menu
+    // ------------------------------------------------------------------
+    // Load Power here
     //
-    // Hidden by default. Toggle via:  qs ipc call toggle-power toggle
-    // ──────────────────────────────────────────────────────────────────────────
-
+    // Power.qml is a fullscreen overlay hidden by default.
+    // Toggle via:  qs ipc call toggle-power toggle
+    // Keybind wiring is done in config/hypr/config/keybinds.conf.
+    // The component's own IpcHandler handles visibility internally.
+    // ------------------------------------------------------------------
     Power {}
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // Application Launcher
+    // ------------------------------------------------------------------
+    // Load Launcher here
     //
-    // Hidden by default. Toggle via:  qs ipc call toggle-launcher toggle
-    // ──────────────────────────────────────────────────────────────────────────
-
+    // Launcher.qml is a keyboard-driven overlay hidden by default.
+    // Toggle via:  qs ipc call toggle-launcher toggle
+    // Keybind wiring is done in config/hypr/config/keybinds.conf.
+    // The component's own IpcHandler handles visibility internally.
+    // ------------------------------------------------------------------
     Launcher {}
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // Quick Settings Panel  (Task 3 + Task 4)
+    // ------------------------------------------------------------------
+    // Load CalendarPane here
     //
-    // Slide-in panel with volume / brightness sliders and action toggles
-    // (Night Mode, Game Mode, Caffeine).
-    // Hidden by default. Toggle via:  qs ipc call toggle-control-center toggle
-    //                            or:  qs ipc call toggle-quicksettings toggle
-    // ──────────────────────────────────────────────────────────────────────────
+    // CalendarPane.qml is a popup housing a MonthGrid and DayOfWeekRow.
+    // Toggle via:  qs ipc call toggle-calendar toggle
+    // ------------------------------------------------------------------
+    CalendarPane {}
 
-    QuickSettings {}
-
-    // ──────────────────────────────────────────────────────────────────────────
-    // Calendar Popup  (Task 5)
+    // ------------------------------------------------------------------
+    // Load Dashboard here
     //
-    // Month-view popup anchored top-right, drops below the clock in the bar.
-    // Hidden by default. Toggle via:  qs ipc call toggle-calendar toggle
-    //                            or:  click the clock in the bar.
-    // ──────────────────────────────────────────────────────────────────────────
-
-    CalendarPopup {}
-
-    // ──────────────────────────────────────────────────────────────────────────
-    // Wallpaper Control Center  (Task 6)
-    //
-    // Fullscreen overlay grid of ~/Pictures/wallpapers images.
-    // Clicking a thumbnail applies the wallpaper via swww + regenerates the
-    // Catppuccin colour scheme via matugen.
-    // IPC toggle:  qs ipc call toggle-wallpapers toggle
-    // ──────────────────────────────────────────────────────────────────────────
-
-    ControlCenter {}
-
-    // ──────────────────────────────────────────────────────────────────────────
-    // Notification Center  (Task 7)
-    //
-    // Slide-in panel showing notification history; clears on request.
-    // Hidden by default. Toggle via:  qs ipc call toggle-notification-center toggle
-    //
-    // Uncomment once NotificationCenter.qml is implemented:
-    // NotificationCenter {}
-    // ──────────────────────────────────────────────────────────────────────────
+    // Dashboard.qml is a massive PanelWindow showing NotifCenter and 
+    // Performance metrics, docked to the right edge.
+    // Toggle via: qs ipc call toggle-dashboard toggle
+    // ------------------------------------------------------------------
+    Dashboard {}
 }

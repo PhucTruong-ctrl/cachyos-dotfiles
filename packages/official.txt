@@ -15,6 +15,7 @@ bluez-hid2hci
 bluez-libs
 bluez-obex
 bluez-utils
+brightnessctl
 btop
 btrfs-assistant
 btrfs-progs
@@ -181,6 +182,7 @@ openssh
 os-prober
 otf-firamono-nerd
 pacman-contrib
+pamixer
 paru
 pavucontrol
 perl
@@ -221,6 +223,7 @@ stow
 sudo
 swaync
 switcheroo-control
+swww
 sysfsutils
 tailscale
 texinfo
@@ -258,6 +261,7 @@ which
 wireless-regdb
 wireplumber
 wl-clipboard
+wlsunset
 wpa_supplicant
 xarchiver
 xdg-user-dirs
