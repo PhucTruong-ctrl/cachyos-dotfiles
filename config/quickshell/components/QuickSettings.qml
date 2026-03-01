@@ -72,9 +72,12 @@ Scope {
             if (panel.visible) {
                 console.log("[QuickSettings] opening — polling system state");
                 // Refresh both values when the panel opens so sliders are accurate
-                volGetProc.running  = true;
-                briGetProc.running  = true;
-                briMaxProc.running  = true;
+                volGetProc.running      = true;
+                briGetProc.running      = true;
+                briMaxProc.running      = true;
+                nightModeProbe.running  = true;
+                gameModeProbe.running   = true;
+                caffeineProbe.running   = true;
             }
         }
     }
@@ -327,9 +330,12 @@ Scope {
     // have a valid divisor before the first panel open.
     // ──────────────────────────────────────────────────────────────────────────
     Component.onCompleted: {
-        briMaxProc.running = true;
-        volGetProc.running = true;
-        briGetProc.running = true;
+        briMaxProc.running      = true;
+        volGetProc.running      = true;
+        briGetProc.running      = true;
+        nightModeProbe.running  = true;
+        gameModeProbe.running   = true;
+        caffeineProbe.running   = true;
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -676,6 +682,269 @@ Scope {
                             }
                             Behavior on border.width {
                                 NumberAnimation { duration: Globals.animFast }
+                            }
+                        }
+                    }
+                }
+
+                // ── Section divider ───────────────────────────────────────────
+                Rectangle {
+                    Layout.fillWidth: true
+                    height: 1
+                    color:  Globals.colorBorder
+                }
+
+                // ── Action toggles label ───────────────────────────────────────
+                Text {
+                    text:               "Actions"
+                    color:              Globals.colorTextDim
+                    font.pixelSize:     11
+                    font.bold:          true
+                    font.letterSpacing: 1.5
+                }
+
+                // ──────────────────────────────────────────────────────────────
+                // Action Toggles Row
+                //
+                // Three equal-width chip buttons side-by-side:
+                //   Night Mode  | Game Mode  | Caffeine
+                //
+                // Active  → green-tinted background + Globals.green border/text
+                // Inactive → Globals.colorSurface background + muted border/text
+                // ──────────────────────────────────────────────────────────────
+                RowLayout {
+                    id: actionTogglesRow
+                    Layout.fillWidth: true
+                    spacing: Globals.spacingNormal
+
+                    // ── Night Mode chip ────────────────────────────────────────
+                    Rectangle {
+                        id: nightChip
+                        Layout.fillWidth: true
+                        height: 76
+                        radius: Globals.radiusMedium
+
+                        // Active → Globals.green at 20% alpha tint + green border
+                        // Inactive → surface + dim border
+                        color: root.nightModeActive
+                               ? Qt.rgba(
+                                     Globals.green.r,
+                                     Globals.green.g,
+                                     Globals.green.b,
+                                     0.18)
+                               : Globals.colorSurface
+
+                        border.color: root.nightModeActive
+                                      ? Globals.green
+                                      : (nightChipHover.containsMouse
+                                         ? Globals.colorSurfaceRaised
+                                         : Globals.colorBorder)
+                        border.width: root.nightModeActive ? 2 : 1
+
+                        Behavior on color        { ColorAnimation { duration: Globals.animNormal } }
+                        Behavior on border.color { ColorAnimation { duration: Globals.animNormal } }
+
+                        ColumnLayout {
+                            anchors.centerIn: parent
+                            spacing: 5
+
+                            // Icon: sun-with-moon glyph (Nerd Font)
+                            Text {
+                                text: root.nightModeActive ? "󰖙" : "󰖔"
+                                color: root.nightModeActive
+                                       ? Globals.green
+                                       : Globals.colorTextDim
+                                font.pixelSize: 22
+                                Layout.alignment: Qt.AlignHCenter
+
+                                Behavior on color { ColorAnimation { duration: Globals.animNormal } }
+                            }
+
+                            Text {
+                                text:      "Night"
+                                color:     root.nightModeActive
+                                           ? Globals.green
+                                           : Globals.colorTextDim
+                                font.pixelSize: 11
+                                font.bold:      root.nightModeActive
+                                Layout.alignment: Qt.AlignHCenter
+
+                                Behavior on color { ColorAnimation { duration: Globals.animNormal } }
+                            }
+                        }
+
+                        MouseArea {
+                            id: nightChipHover
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape:  Qt.PointingHandCursor
+
+                            onClicked: {
+                                console.log("[QuickSettings] Night Mode clicked — was active: "
+                                    + root.nightModeActive);
+                                if (root.nightModeActive) {
+                                    nightModeOff.running = true;
+                                    root.nightModeActive = false;
+                                } else {
+                                    nightModeOn.running  = true;
+                                    root.nightModeActive = true;
+                                }
+                                // Re-probe to confirm actual process state
+                                nightProbeDelay.restart();
+                            }
+                        }
+                    }
+
+                    // ── Game Mode chip ─────────────────────────────────────────
+                    Rectangle {
+                        id: gameChip
+                        Layout.fillWidth: true
+                        height: 76
+                        radius: Globals.radiusMedium
+
+                        color: root.gameModeActive
+                               ? Qt.rgba(
+                                     Globals.green.r,
+                                     Globals.green.g,
+                                     Globals.green.b,
+                                     0.18)
+                               : Globals.colorSurface
+
+                        border.color: root.gameModeActive
+                                      ? Globals.green
+                                      : (gameChipHover.containsMouse
+                                         ? Globals.colorSurfaceRaised
+                                         : Globals.colorBorder)
+                        border.width: root.gameModeActive ? 2 : 1
+
+                        Behavior on color        { ColorAnimation { duration: Globals.animNormal } }
+                        Behavior on border.color { ColorAnimation { duration: Globals.animNormal } }
+
+                        ColumnLayout {
+                            anchors.centerIn: parent
+                            spacing: 5
+
+                            // Icon: game controller / sword (Nerd Font)
+                            Text {
+                                text:  "󰊗"
+                                color: root.gameModeActive
+                                       ? Globals.green
+                                       : Globals.colorTextDim
+                                font.pixelSize: 22
+                                Layout.alignment: Qt.AlignHCenter
+
+                                Behavior on color { ColorAnimation { duration: Globals.animNormal } }
+                            }
+
+                            Text {
+                                text:      "Game"
+                                color:     root.gameModeActive
+                                           ? Globals.green
+                                           : Globals.colorTextDim
+                                font.pixelSize: 11
+                                font.bold:      root.gameModeActive
+                                Layout.alignment: Qt.AlignHCenter
+
+                                Behavior on color { ColorAnimation { duration: Globals.animNormal } }
+                            }
+                        }
+
+                        MouseArea {
+                            id: gameChipHover
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape:  Qt.PointingHandCursor
+
+                            onClicked: {
+                                console.log("[QuickSettings] Game Mode clicked — was active: "
+                                    + root.gameModeActive);
+                                if (root.gameModeActive) {
+                                    // Turn blur back ON (disable game mode)
+                                    gameModeOff.running = true;
+                                    root.gameModeActive = false;
+                                } else {
+                                    // Turn blur OFF (enable game mode)
+                                    gameModeOn.running  = true;
+                                    root.gameModeActive = true;
+                                }
+                                gameModeDelay.restart();
+                            }
+                        }
+                    }
+
+                    // ── Caffeine chip ──────────────────────────────────────────
+                    Rectangle {
+                        id: caffeineChip
+                        Layout.fillWidth: true
+                        height: 76
+                        radius: Globals.radiusMedium
+
+                        color: root.caffeineActive
+                               ? Qt.rgba(
+                                     Globals.green.r,
+                                     Globals.green.g,
+                                     Globals.green.b,
+                                     0.18)
+                               : Globals.colorSurface
+
+                        border.color: root.caffeineActive
+                                      ? Globals.green
+                                      : (caffeineChipHover.containsMouse
+                                         ? Globals.colorSurfaceRaised
+                                         : Globals.colorBorder)
+                        border.width: root.caffeineActive ? 2 : 1
+
+                        Behavior on color        { ColorAnimation { duration: Globals.animNormal } }
+                        Behavior on border.color { ColorAnimation { duration: Globals.animNormal } }
+
+                        ColumnLayout {
+                            anchors.centerIn: parent
+                            spacing: 5
+
+                            // Icon: coffee / awake glyph (Nerd Font)
+                            Text {
+                                text:  root.caffeineActive ? "󰅶" : "󰒲"
+                                color: root.caffeineActive
+                                       ? Globals.green
+                                       : Globals.colorTextDim
+                                font.pixelSize: 22
+                                Layout.alignment: Qt.AlignHCenter
+
+                                Behavior on color { ColorAnimation { duration: Globals.animNormal } }
+                            }
+
+                            Text {
+                                text:      "Caffeine"
+                                color:     root.caffeineActive
+                                           ? Globals.green
+                                           : Globals.colorTextDim
+                                font.pixelSize: 11
+                                font.bold:      root.caffeineActive
+                                Layout.alignment: Qt.AlignHCenter
+
+                                Behavior on color { ColorAnimation { duration: Globals.animNormal } }
+                            }
+                        }
+
+                        MouseArea {
+                            id: caffeineChipHover
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape:  Qt.PointingHandCursor
+
+                            onClicked: {
+                                console.log("[QuickSettings] Caffeine clicked — was active: "
+                                    + root.caffeineActive);
+                                if (root.caffeineActive) {
+                                    // Resume hypridle (CONT = un-pause)
+                                    caffeineOff.running  = true;
+                                    root.caffeineActive  = false;
+                                } else {
+                                    // Suspend hypridle (STOP = pause idle daemon)
+                                    caffeineOn.running  = true;
+                                    root.caffeineActive = true;
+                                }
+                                caffeineDelay.restart();
                             }
                         }
                     }

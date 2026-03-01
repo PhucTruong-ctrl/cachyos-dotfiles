@@ -86,10 +86,12 @@ ShellRoot {
     Launcher {}
 
     // ──────────────────────────────────────────────────────────────────────────
-    // Quick Settings Panel  (Task 3)
+    // Quick Settings Panel  (Task 3 + Task 4)
     //
-    // Slide-in panel with volume / brightness sliders.
-    // Hidden by default. Toggle via:  qs ipc call toggle-quicksettings toggle
+    // Slide-in panel with volume / brightness sliders and action toggles
+    // (Night Mode, Game Mode, Caffeine).
+    // Hidden by default. Toggle via:  qs ipc call toggle-control-center toggle
+    //                            or:  qs ipc call toggle-quicksettings toggle
     // ──────────────────────────────────────────────────────────────────────────
 
     QuickSettings {}
