@@ -157,6 +157,17 @@ ShellRoot {
     ScreenshotTool {}
 
     // ------------------------------------------------------------------
+    // Load Overview here
+    //
+    // Overview.qml is a fullscreen window-switcher overlay.
+    // Shows all open windows grouped by workspace with search/filter.
+    // Toggle via: qs ipc call toggle-overview toggle
+    // Keybind: SUPER+Tab (wired in config/hypr/config/keybinds.conf)
+    // Uses HyprlandService singleton for live hyprctl IPC queries.
+    // ------------------------------------------------------------------
+    Overview {}
+
+    // ------------------------------------------------------------------
     // Wallpaper restore on startup
     //
     // Reads the persisted wallpaper path from
