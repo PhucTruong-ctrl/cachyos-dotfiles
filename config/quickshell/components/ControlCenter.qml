@@ -33,6 +33,7 @@ PanelWindow {
 
     WlrLayershell.layer:         WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+    exclusionMode:               ExclusionMode.Ignore
 
     color:   "transparent"
     visible: false
