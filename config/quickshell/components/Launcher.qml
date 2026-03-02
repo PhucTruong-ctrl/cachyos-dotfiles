@@ -15,6 +15,7 @@
 //   - MUST NOT take focus when not explicitly toggled (visible: false at start).
 
 import Quickshell
+import "../services"
 import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Widgets
@@ -141,7 +142,7 @@ Scope {
 
             Rectangle {
                 anchors.fill: parent
-                color: "#aa000000"   // semi-transparent black overlay
+                color: Qt.rgba(0,0,0, 0.65)   // semi-transparent black overlay
             }
         }
 
@@ -154,8 +155,8 @@ Scope {
             radius: 14
 
             // Catppuccin Mocha palette (matches Bar.qml)
-            color:        "#1e1e2e"   // base
-            border.color: "#313244"   // surface0
+            color:        GlobalState.base   // base
+            border.color: GlobalState.surface0   // surface0
             border.width: 1
 
             // Prevent backdrop click from propagating through the card
@@ -172,7 +173,7 @@ Scope {
                 // ── Header ────────────────────────────────────────────────────
                 Text {
                     text: " App Launcher"
-                    color: "#cba6f7"       // Catppuccin Mocha mauve
+                    color: GlobalState.matugenPrimary       // Catppuccin Mocha mauve
                     font.pixelSize: 15
                     font.bold: true
                 }
@@ -182,8 +183,8 @@ Scope {
                     Layout.fillWidth: true
                     height: 44
                     radius: 10
-                    color: "#313244"      // surface0
-                    border.color: searchInput.activeFocus ? "#cba6f7" : "#45475a"
+                    color: GlobalState.surface0      // surface0
+                    border.color: searchInput.activeFocus ? GlobalState.matugenPrimary : GlobalState.surface1
                     border.width: 1
 
                     // Animate border color on focus
@@ -200,7 +201,7 @@ Scope {
                         // Search icon
                         Text {
                             text: ""          // Nerd Font search glyph
-                            color: "#6c7086"
+                            color: GlobalState.overlay1
                             font.pixelSize: 16
                             Layout.alignment: Qt.AlignVCenter
                         }
@@ -210,7 +211,7 @@ Scope {
                             id: searchInput
                             Layout.fillWidth: true
                             Layout.alignment: Qt.AlignVCenter
-                            color:            "#cdd6f4"   // text
+                            color:            GlobalState.text   // text
                             font.pixelSize:   15
                             clip:             true
 
@@ -218,7 +219,7 @@ Scope {
                             Text {
                                 anchors.fill:       parent
                                 text:               "Type to search applications…"
-                                color:              "#6c7086"   // overlay0
+                                color:              GlobalState.overlay1   // overlay0
                                 font:               parent.font
                                 visible:            !parent.text && !parent.activeFocus
                                 verticalAlignment:  Text.AlignVCenter
@@ -290,7 +291,7 @@ Scope {
                 Text {
                     text: resultsList.count + " result" +
                           (resultsList.count !== 1 ? "s" : "")
-                    color:          "#6c7086"   // overlay0
+                    color:          GlobalState.overlay1   // overlay0
                     font.pixelSize: 11
                 }
 
@@ -310,14 +311,14 @@ Scope {
                     // Selection highlight bar
                     highlight: Rectangle {
                         radius: 8
-                        color:  "#313244"   // surface0
+                        color:  GlobalState.surface0   // surface0
 
                         // Left accent stripe
                         Rectangle {
                             width:  3
                             height: 22
                             radius: 2
-                            color:  "#cba6f7"   // mauve
+                            color:  GlobalState.matugenPrimary   // mauve
                             anchors.left:            parent.left
                             anchors.leftMargin:      3
                             anchors.verticalCenter:  parent.verticalCenter
@@ -334,7 +335,7 @@ Scope {
                         radius: 8
                         color:  hoverArea.containsMouse &&
                                 root.selectedIndex !== index
-                                ? "#181825"   // mantle — subtle hover tint
+                                ? GlobalState.mantle   // mantle — subtle hover tint
                                 : "transparent"
 
                         Behavior on color {
@@ -365,7 +366,7 @@ Scope {
                                 Text {
                                     anchors.centerIn: parent
                                     text:             ""   // Nerd Font terminal glyph
-                                    color:            "#cba6f7"
+                                    color:            GlobalState.matugenPrimary
                                     font.pixelSize:   20
                                     visible: (delegateRoot.modelData.icon ?? "") === ""
                                 }
@@ -380,8 +381,8 @@ Scope {
                                 Text {
                                     text:  delegateRoot.modelData.name ?? ""
                                     color: root.selectedIndex === delegateRoot.index
-                                           ? "#cdd6f4"   // text (bright when selected)
-                                           : "#a6adc8"   // subtext1
+                                           ? GlobalState.text   // text (bright when selected)
+                                           : GlobalState.subtext0   // subtext1
                                     font.pixelSize: 13
                                     font.bold: root.selectedIndex === delegateRoot.index
                                     elide: Text.ElideRight
@@ -391,7 +392,7 @@ Scope {
                                 Text {
                                     text: delegateRoot.modelData.genericName ??
                                           delegateRoot.modelData.comment ?? ""
-                                    color:          "#6c7086"   // overlay0
+                                    color:          GlobalState.overlay1   // overlay0
                                     font.pixelSize: 11
                                     elide:          Text.ElideRight
                                     Layout.fillWidth: true
@@ -422,7 +423,7 @@ Scope {
                     Text {
                         anchors.centerIn: parent
                         text:  "No applications found"
-                        color: "#6c7086"
+                        color: GlobalState.overlay1
                         font.pixelSize: 14
                         visible: resultsList.count === 0 && searchInput.text !== ""
                     }
@@ -448,20 +449,20 @@ Scope {
                                 width:  keyLabel.implicitWidth + 8
                                 height: 18
                                 radius: 4
-                                color:  "#313244"
+                                color:  GlobalState.surface0
 
                                 Text {
                                     id: keyLabel
                                     anchors.centerIn: parent
                                     text:             modelData.key
-                                    color:            "#6c7086"
+                                    color:            GlobalState.overlay1
                                     font.pixelSize:   10
                                 }
                             }
 
                             Text {
                                 text:           modelData.label
-                                color:          "#6c7086"
+                                color:          GlobalState.overlay1
                                 font.pixelSize: 10
                                 anchors.verticalCenter: parent.verticalCenter
                             }
