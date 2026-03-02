@@ -3,7 +3,7 @@ import QtQuick 2.15
 import Quickshell
 import Quickshell.Io
 
-QtObject {
+Item {
     id: root
     
     // System Status
@@ -16,8 +16,10 @@ QtObject {
     Process {
         id: cpuProcess
         command: ["sh", "-c", "top -bn1 | grep 'Cpu(s)' | awk '{print $2 + $4}'"]
-        stdout: function(output) {
-            root.cpuUsage = parseFloat(output) || 0.0;
+        onStdoutChanged: {
+            if (stdout && stdout.length > 0) {
+                root.cpuUsage = parseFloat(stdout[0]) || 0.0;
+            }
         }
     }
 
@@ -25,8 +27,10 @@ QtObject {
     Process {
         id: ramProcess
         command: ["sh", "-c", "free -m | awk '/Mem:/ {print ($3/$2)*100}'"]
-        stdout: function(output) {
-            root.ramUsage = parseFloat(output) || 0.0;
+        onStdoutChanged: {
+            if (stdout && stdout.length > 0) {
+                root.ramUsage = parseFloat(stdout[0]) || 0.0;
+            }
         }
     }
 
@@ -34,8 +38,10 @@ QtObject {
     Process {
         id: tempProcess
         command: ["sh", "-c", "cat /sys/class/thermal/thermal_zone0/temp | awk '{print $1/1000}'"]
-        stdout: function(output) {
-            root.cpuTemp = parseFloat(output) || 0.0;
+        onStdoutChanged: {
+            if (stdout && stdout.length > 0) {
+                root.cpuTemp = parseFloat(stdout[0]) || 0.0;
+            }
         }
     }
 

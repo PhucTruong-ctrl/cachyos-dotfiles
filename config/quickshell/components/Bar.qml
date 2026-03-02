@@ -12,6 +12,7 @@ import Quickshell.Hyprland
 import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
+import "../services"
 
 Scope {
     id: barRoot
@@ -36,10 +37,9 @@ Scope {
         command: ["alacritty", "-e", "bluetuith"]
     }
 
-    IpcCommand {
-        id: toggleCalendarCommand
-        target: "toggle-calendar"
-        command: "toggle"
+    Process {
+        id: calProc
+        command: ["quickshell", "ipc", "call", "toggle-calendar", "toggle"]
     }
 
     // ---------------------------------------------------------------------------
@@ -61,27 +61,13 @@ Scope {
             }
 
             // Bar geometry & background
-            // NOTE: implicitHeight is the correct property (QsWindow.height is
-            // deprecated).  The compositor sizes the surface from implicitHeight.
             implicitHeight: 40
             color: "#1e1e2e"    // Catppuccin Mocha base
 
-            // Reserve exclusive space so Hyprland subtracts exactly 40 px from
-            // the top of the usable area on every monitor, preventing tiled
-            // windows from sliding under the bar.
-            //
-            // Why exclusiveZone and NOT exclusionMode?
-            //   - exclusionMode: ExclusionMode.Normal tells QS to *auto-derive*
-            //     the zone from the committed surface size, which can race on
-            //     startup or break with the deprecated `height` property.
-            //   - exclusiveZone: 40 sets the wlr-layer-shell exclusiveZone
-            //     directly and unconditionally.  Setting this also implicitly
-            //     sets exclusionMode to Normal (per QS 0.2 docs), so there is
-            //     no conflict.  This is the only reliable path on Hyprland.
             exclusiveZone: 40
 
             // ------------------------------------------------------------------
-            // Layout: [Workspaces] ——————————— [Clock]
+            // Layout: [Workspaces] ——— [System Monitor] ——— [Tray | Icons | Clock]
             // ------------------------------------------------------------------
             RowLayout {
                 anchors.fill: parent
@@ -95,10 +81,6 @@ Scope {
                     spacing: 6
                     Layout.alignment: Qt.AlignVCenter
 
-                    // Hyprland.workspaces is an ObjectModel<HyprlandWorkspace>.
-                    // .values exposes the backing JS array so a standard Repeater
-                    // can iterate it.  The model is reactive: Quickshell updates
-                    // it whenever workspaces are added, removed, or focused.
                     Repeater {
                         model: Hyprland.workspaces.values
 
@@ -110,7 +92,6 @@ Scope {
                             height: 22
                             radius: 4
 
-                            // Focused workspace → mauve pill; others → surface0
                             color: modelData.focused ? "#cba6f7" : "#313244"
 
                             Behavior on color {
@@ -119,14 +100,12 @@ Scope {
 
                             Text {
                                 anchors.centerIn: parent
-                                // Prefer the numeric id; fall back to the name
                                 text:  modelData.id > 0 ? modelData.id : modelData.name
                                 color: wsPill.modelData.focused ? "#1e1e2e" : "#cdd6f4"
                                 font.pixelSize: 11
                                 font.bold: wsPill.modelData.focused
                             }
 
-                            // Urgent indicator — tiny red dot in the top-right corner
                             Rectangle {
                                 visible: wsPill.modelData.urgent
                                 width:  6
@@ -141,15 +120,10 @@ Scope {
                                 }
                             }
 
-                            // Click → switch to this workspace
                             MouseArea {
                                 anchors.fill: parent
                                 cursorShape:  Qt.PointingHandCursor
                                 onClicked: {
-                                    console.log("[Bar] workspace pill clicked: id=" +
-                                        wsPill.modelData.id + " name=" +
-                                        wsPill.modelData.name + " focused=" +
-                                        wsPill.modelData.focused);
                                     wsPill.modelData.activate();
                                 }
                             }
@@ -157,10 +131,40 @@ Scope {
                     }
                 }
 
-                // ── Center spacer ─────────────────────────────────────────────
+                // ── Left spacer ───────────────────────────────────────────────
                 Item { Layout.fillWidth: true }
 
-                // ── Right section: sys tray & clock ───────────────────────────
+                // ── Middle section: System Monitor ────────────────────────────
+                RowLayout {
+                    Layout.alignment: Qt.AlignVCenter
+                    spacing: 16
+                    
+                    // CPU
+                    Row {
+                        spacing: 4
+                        Text { text: "󰻠"; color: "#cba6f7"; font.family: "monospace"; font.pixelSize: 14; anchors.verticalCenter: parent.verticalCenter }
+                        Text { text: Performance.cpuUsage.toFixed(1) + "%"; color: "#cdd6f4"; font.family: "monospace"; font.pixelSize: 13; anchors.verticalCenter: parent.verticalCenter }
+                    }
+                    
+                    // RAM
+                    Row {
+                        spacing: 4
+                        Text { text: "󰍛"; color: "#89b4fa"; font.family: "monospace"; font.pixelSize: 14; anchors.verticalCenter: parent.verticalCenter }
+                        Text { text: Performance.ramUsage.toFixed(1) + "%"; color: "#cdd6f4"; font.family: "monospace"; font.pixelSize: 13; anchors.verticalCenter: parent.verticalCenter }
+                    }
+                    
+                    // CPU Temp
+                    Row {
+                        spacing: 4
+                        Text { text: "󰔏"; color: "#f38ba8"; font.family: "monospace"; font.pixelSize: 14; anchors.verticalCenter: parent.verticalCenter }
+                        Text { text: Performance.cpuTemp.toFixed(1) + "°C"; color: "#cdd6f4"; font.family: "monospace"; font.pixelSize: 13; anchors.verticalCenter: parent.verticalCenter }
+                    }
+                }
+
+                // ── Right spacer ──────────────────────────────────────────────
+                Item { Layout.fillWidth: true }
+
+                // ── Right section: sys tray & icons & clock ───────────────────
                 RowLayout {
                     Layout.alignment: Qt.AlignVCenter
                     spacing: 12
@@ -175,14 +179,12 @@ Scope {
                             text: "󰖩" // nf-md-wifi (nerd font)
                             color: "#cdd6f4"
                             font.pixelSize: 16
-                            font.family: "monospace" // Ensure nerd font is available via monospace fallback
+                            font.family: "monospace"
                             
                             MouseArea {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    wifiProcess.running = true;
-                                }
+                                onClicked: wifiProcess.running = true
                             }
                         }
 
@@ -196,10 +198,46 @@ Scope {
                             MouseArea {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    btProcess.running = true;
-                                }
+                                onClicked: btProcess.running = true
                             }
+                        }
+                    }
+                    
+                    // Theme Icon
+                    Text {
+                        text: "󰸉" // nf-md-wallpaper
+                        color: "#cdd6f4"
+                        font.pixelSize: 16
+                        font.family: "monospace"
+                        
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: themeIpc.running = true
+                        }
+                        
+                        Process {
+                            id: themeIpc
+                            command: ["quickshell", "ipc", "call", "toggle-theme", "toggle"]
+                        }
+                    }
+
+                    // Notification Icon
+                    Text {
+                        text: "󰂚" // nf-md-bell
+                        color: "#cdd6f4"
+                        font.pixelSize: 16
+                        font.family: "monospace"
+                        
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: notifIpc.running = true
+                        }
+                        
+                        Process {
+                            id: notifIpc
+                            command: ["quickshell", "ipc", "call", "toggle-notifs", "toggle"]
                         }
                     }
 
@@ -214,9 +252,7 @@ Scope {
                         MouseArea {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                toggleCalendarCommand.dispatch();
-                            }
+                            onClicked: calProc.running = true
                         }
                     }
                 }

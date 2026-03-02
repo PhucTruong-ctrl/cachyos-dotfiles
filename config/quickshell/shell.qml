@@ -75,11 +75,20 @@ ShellRoot {
     CalendarPane {}
 
     // ------------------------------------------------------------------
-    // Load Dashboard here
+    // Load NotifPane here
     //
-    // Dashboard.qml is a massive PanelWindow showing NotifCenter and 
-    // Performance metrics, docked to the right edge.
-    // Toggle via: qs ipc call toggle-dashboard toggle
+    // NotifPane.qml is a PanelWindow showing NotifCenter
+    // docked to the right edge.
+    // Toggle via: qs ipc call toggle-notifs toggle
     // ------------------------------------------------------------------
-    Dashboard {}
+    NotifPane {}
+
+    // ------------------------------------------------------------------
+    // Load ThemePane here
+    //
+    // ThemePane.qml is a PanelWindow showing ThemeMatrix
+    // docked to the right edge.
+    // Toggle via: qs ipc call toggle-theme toggle
+    // ------------------------------------------------------------------
+    ThemePane {}
 }

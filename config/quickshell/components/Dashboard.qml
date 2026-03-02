@@ -1,7 +1,7 @@
 // Dashboard.qml — Quickshell Dashboard overlay
 // 
 // Large panel anchored to the right side of the screen containing
-// the Notification Center and Performance metrics.
+// the Notification Center, System Monitoring, and Wallpaper Matrix.
 //
 // Triggered via: qs ipc call toggle-dashboard toggle
 
@@ -15,9 +15,6 @@ import "../services"
 PanelWindow {
     id: root
 
-    // ------------------------------------------------------------------
-    // Panel Window Settings
-    // ------------------------------------------------------------------
     // Position on the right side of the screen
     anchors {
         top: true
@@ -25,51 +22,30 @@ PanelWindow {
         right: true
     }
 
-    width: 380
+    width: 450
 
-    // Set to overlay layer
-    WlrLayerShell.layer: WlrLayer.Overlay
-    
-    // Ensure search fields work (if any) but doesn't hijack the compositor when hidden
-    WlrLayerShell.keyboardFocus: KeyboardFocus.OnDemand
+    WlrLayershell.layer: WlrLayer.Overlay
+    WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 
     color: "transparent"
-
-    // Default hidden state
     visible: false
 
-    // ------------------------------------------------------------------
-    // IPC Handler (qs ipc call toggle-dashboard toggle)
-    // ------------------------------------------------------------------
     IpcHandler {
         target: "toggle-dashboard"
-        onMessage: (msg) => {
-            if (msg === "toggle") {
-                root.visible = !root.visible
-            } else if (msg === "show") {
-                root.visible = true
-            } else if (msg === "hide") {
-                root.visible = false
-            } else {
-                console.warn("Dashboard module unhandled IPC target:", target, "message:", msg)
-            }
-        }
+        function toggle(): void { root.visible = !root.visible }
+        function show(): void { root.visible = true }
+        function hide(): void { root.visible = false }
     }
 
-    // Auto-hide when focus is lost clicking outside (assuming it doesn't break things)
-    onActiveFocusChanged: {
-        if (!activeFocus && root.visible) {
-            root.visible = false
-        }
-    }
+    // Keep track of active tab (0 = SysMon/Notifs, 1 = Wallpapers)
+    property int currentTab: 0
 
-    // Main layout
     Rectangle {
         anchors.fill: parent
         anchors.margins: 12
-        color: "#1e1e2e" // Catppuccin Mocha Base
+        color: GlobalState.base
         radius: 12
-        border.color: "#89b4fa" // Catppuccin Mocha Blue
+        border.color: GlobalState.mauve
         border.width: 1
 
         ColumnLayout {
@@ -77,96 +53,52 @@ PanelWindow {
             anchors.margins: 16
             spacing: 16
 
-            // Performance Header
-            Text {
-                text: "System Monitor"
-                font.pixelSize: 18
-                font.bold: true
-                color: "#cdd6f4" // Catppuccin Mocha Text
-                Layout.alignment: Qt.AlignHCenter
-            }
-
-            // Performance Row
+            // Tabs Header
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 12
 
-                // CPU
                 Rectangle {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 80
-                    color: "#313244" // Surface0
+                    Layout.preferredHeight: 36
+                    color: root.currentTab === 0 ? GlobalState.surface1 : GlobalState.surface0
                     radius: 8
                     
-                    ColumnLayout {
+                    Text {
                         anchors.centerIn: parent
-                        Text {
-                            text: "CPU"
-                            color: "#a6adc8" // Subtext0
-                            font.pixelSize: 12
-                            Layout.alignment: Qt.AlignHCenter
-                        }
-                        Text {
-                            // Link to Performance.qml service CPU usage
-                            text: Performance.cpuUsage.toFixed(1) + "%"
-                            color: "#cdd6f4"
-                            font.pixelSize: 20
-                            font.bold: true
-                            Layout.alignment: Qt.AlignHCenter
-                        }
+                        text: "󰕮 System" // nf-md-view_dashboard
+                        font.family: "monospace"
+                        font.pixelSize: 14
+                        font.bold: root.currentTab === 0
+                        color: root.currentTab === 0 ? GlobalState.mauve : GlobalState.subtext1
+                    }
+                    
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: root.currentTab = 0
                     }
                 }
 
-                // RAM
                 Rectangle {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 80
-                    color: "#313244" // Surface0
+                    Layout.preferredHeight: 36
+                    color: root.currentTab === 1 ? GlobalState.surface1 : GlobalState.surface0
                     radius: 8
-                    
-                    ColumnLayout {
+
+                    Text {
                         anchors.centerIn: parent
-                        Text {
-                            text: "RAM"
-                            color: "#a6adc8" // Subtext0
-                            font.pixelSize: 12
-                            Layout.alignment: Qt.AlignHCenter
-                        }
-                        Text {
-                            // Link to Performance.qml service memory usage
-                            text: Performance.ramUsage.toFixed(1) + "%"
-                            color: "#cdd6f4"
-                            font.pixelSize: 20
-                            font.bold: true
-                            Layout.alignment: Qt.AlignHCenter
-                        }
+                        text: "󰸉 Wallpapers" // nf-md-wallpaper
+                        font.family: "monospace"
+                        font.pixelSize: 14
+                        font.bold: root.currentTab === 1
+                        color: root.currentTab === 1 ? GlobalState.mauve : GlobalState.subtext1
                     }
-                }
-            }
-
-            // CPU Temp (Bonus)
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: 40
-                color: "#313244" // Surface0
-                radius: 8
-
-                RowLayout {
-                    anchors.centerIn: parent
-                    spacing: 8
                     
-                    Text {
-                        text: "TEMP"
-                        color: "#a6adc8" // Subtext0
-                        font.pixelSize: 12
-                        Layout.alignment: Qt.AlignVCenter
-                    }
-                    Text {
-                        text: Performance.cpuTemp.toFixed(1) + "°C"
-                        color: "#cdd6f4"
-                        font.pixelSize: 16
-                        font.bold: true
-                        Layout.alignment: Qt.AlignVCenter
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: root.currentTab = 1
                     }
                 }
             }
@@ -175,22 +107,134 @@ PanelWindow {
             Rectangle {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 1
-                color: "#45475a" // Surface1
+                color: GlobalState.surface1
             }
 
-            // Notification Center Header
-            Text {
-                text: "Notifications"
-                font.pixelSize: 18
-                font.bold: true
-                color: "#cdd6f4"
-                Layout.alignment: Qt.AlignHCenter
-            }
-
-            // Notification Center (Takes up the rest of the vertical space)
-            NotifCenter {
+            // StackLayout equivalent using visible properties for simple toggle
+            // -- Tab 0: System Monitoring & Notifications --
+            ColumnLayout {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                spacing: 16
+                visible: root.currentTab === 0
+
+                // Performance Row
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 12
+
+                    // CPU
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 80
+                        color: GlobalState.surface0
+                        radius: 8
+                        
+                        ColumnLayout {
+                            anchors.centerIn: parent
+                            Text {
+                                text: "CPU"
+                                color: GlobalState.subtext0
+                                font.pixelSize: 12
+                                Layout.alignment: Qt.AlignHCenter
+                            }
+                            Text {
+                                text: Performance.cpuUsage.toFixed(1) + "%"
+                                color: GlobalState.text
+                                font.pixelSize: 20
+                                font.bold: true
+                                Layout.alignment: Qt.AlignHCenter
+                            }
+                        }
+                    }
+
+                    // RAM
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 80
+                        color: GlobalState.surface0
+                        radius: 8
+                        
+                        ColumnLayout {
+                            anchors.centerIn: parent
+                            Text {
+                                text: "RAM"
+                                color: GlobalState.subtext0
+                                font.pixelSize: 12
+                                Layout.alignment: Qt.AlignHCenter
+                            }
+                            Text {
+                                text: Performance.ramUsage.toFixed(1) + "%"
+                                color: GlobalState.text
+                                font.pixelSize: 20
+                                font.bold: true
+                                Layout.alignment: Qt.AlignHCenter
+                            }
+                        }
+                    }
+
+                    // CPU Temp
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 80
+                        color: GlobalState.surface0
+                        radius: 8
+
+                        ColumnLayout {
+                            anchors.centerIn: parent
+                            Text {
+                                text: "TEMP"
+                                color: GlobalState.subtext0
+                                font.pixelSize: 12
+                                Layout.alignment: Qt.AlignHCenter
+                            }
+                            Text {
+                                text: Performance.cpuTemp.toFixed(1) + "°C"
+                                color: GlobalState.text
+                                font.pixelSize: 20
+                                font.bold: true
+                                Layout.alignment: Qt.AlignHCenter
+                            }
+                        }
+                    }
+                }
+
+                // Divider
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 1
+                    color: GlobalState.surface1
+                }
+
+                // Notifications Header
+                Text {
+                    text: "Notifications"
+                    font.pixelSize: 16
+                    font.bold: true
+                    color: GlobalState.text
+                }
+
+                // Notification Center
+                NotifCenter {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                }
+            }
+
+            // -- Tab 1: Wallpapers (ThemeMatrix) --
+            ColumnLayout {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                visible: root.currentTab === 1
+
+                ThemeMatrix {
+                    id: themeMatrix
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    cellWidth: 194  // Adjusted for 450px width panel
+                    cellHeight: 120
+                    clip: true
+                }
             }
         }
     }
