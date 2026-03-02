@@ -71,7 +71,7 @@ Scope {
 
     Process {
         id: calProc
-        command: ["quickshell", "ipc", "call", "toggle-calendar", "toggle"]
+        command: ["qs", "ipc", "call", "toggle-calendar", "toggle"]
     }
 
     // ---------------------------------------------------------------------------
@@ -265,6 +265,7 @@ Scope {
 
                         // Wifi Icon
                         Item {
+                            id: wifiTrigger
                             width: 24
                             height: 24
                             
@@ -282,6 +283,10 @@ Scope {
                                 acceptedButtons: Qt.LeftButton | Qt.RightButton
                                 onClicked: mouse => {
                                     if (mouse.button === Qt.RightButton) {
+                                        // Capture geometry before opening control center
+                                        var pos = wifiTrigger.mapToItem(null, 0, 0)
+                                        PopupAnchorService.setAnchor("control-center", pos.x, wifiTrigger.width, barWindow.height)
+                                        PopupStateService.toggleExclusive("control-center")
                                         controlCenterIpc.running = false
                                         controlCenterIpc.running = true
                                     } else {
@@ -293,6 +298,7 @@ Scope {
 
                         // Bluetooth Icon
                         Item {
+                            id: bluetoothTrigger
                             width: 24
                             height: 24
                             
@@ -310,6 +316,10 @@ Scope {
                                 acceptedButtons: Qt.LeftButton | Qt.RightButton
                                 onClicked: mouse => {
                                     if (mouse.button === Qt.RightButton) {
+                                        // Capture geometry before opening control center
+                                        var pos = bluetoothTrigger.mapToItem(null, 0, 0)
+                                        PopupAnchorService.setAnchor("control-center", pos.x, bluetoothTrigger.width, barWindow.height)
+                                        PopupStateService.toggleExclusive("control-center")
                                         controlCenterIpc.running = false
                                         controlCenterIpc.running = true
                                     } else {
@@ -347,40 +357,66 @@ Scope {
                     }
 
                     // Theme Icon
-                    Text {
-                        text: "󰸉" // nf-md-wallpaper
-                        color: GlobalState.matugenOnSurface
-                        font.pixelSize: 16
-                        font.family: "monospace"
-                        
+                    Item {
+                        id: themeTrigger
+                        width: 20
+                        height: 20
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "󰸉" // nf-md-wallpaper
+                            color: GlobalState.matugenOnSurface
+                            font.pixelSize: 16
+                            font.family: "monospace"
+                        }
+
                         MouseArea {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: themeIpc.running = true
+                            onClicked: {
+                                var pos = themeTrigger.mapToItem(null, 0, 0)
+                                PopupAnchorService.setAnchor("theme", pos.x, themeTrigger.width, barWindow.height)
+                                PopupStateService.toggleExclusive("theme")
+                                themeIpc.running = false
+                                themeIpc.running = true
+                            }
                         }
-                        
+
                         Process {
                             id: themeIpc
-                            command: ["quickshell", "ipc", "call", "toggle-theme", "toggle"]
+                            command: ["qs", "ipc", "call", "toggle-theme", "toggle"]
                         }
                     }
 
                     // Notification Icon
-                    Text {
-                        text: "󰂚" // nf-md-bell
-                        color: GlobalState.matugenOnSurface
-                        font.pixelSize: 16
-                        font.family: "monospace"
-                        
+                    Item {
+                        id: notifTrigger
+                        width: 20
+                        height: 20
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "󰂚" // nf-md-bell
+                            color: GlobalState.matugenOnSurface
+                            font.pixelSize: 16
+                            font.family: "monospace"
+                        }
+
                         MouseArea {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: notifIpc.running = true
+                            onClicked: {
+                                var pos = notifTrigger.mapToItem(null, 0, 0)
+                                PopupAnchorService.setAnchor("notifs", pos.x, notifTrigger.width, barWindow.height)
+                                PopupStateService.toggleExclusive("notifs")
+                                notifIpc.running = false
+                                notifIpc.running = true
+                            }
                         }
-                        
+
                         Process {
                             id: notifIpc
-                            command: ["quickshell", "ipc", "call", "toggle-notifs", "toggle"]
+                            command: ["qs", "ipc", "call", "toggle-notifs", "toggle"]
                         }
                     }
 
@@ -395,7 +431,13 @@ Scope {
                         MouseArea {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: calProc.running = true
+                            onClicked: {
+                                var pos = clockLabel.mapToItem(null, 0, 0)
+                                PopupAnchorService.setAnchor("calendar", pos.x, clockLabel.width, barWindow.height)
+                                PopupStateService.toggleExclusive("calendar")
+                                calProc.running = false
+                                calProc.running = true
+                            }
                         }
                     }
                 }

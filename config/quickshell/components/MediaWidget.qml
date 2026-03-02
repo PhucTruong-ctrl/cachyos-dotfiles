@@ -2,8 +2,11 @@
 //
 // Shows: music icon + scrolling "title — artist" text + play/pause button
 // Only visible when MediaService.hasPlayer is true.
-// Click on text → opens MediaPane via IPC.
+// Click on text → opens MediaPane via IPC, anchored below this widget.
 // Play/pause button toggles playback directly.
+//
+// Geometry wiring: setAnchor("media", ...) is called before toggling MediaPane
+// so PopupAnchorService can position the pane directly below this widget.
 //
 // Colors: all from GlobalState
 // Animations: all durations/curves from Appearance
@@ -43,6 +46,7 @@ Item {
 
         // Scrolling title — artist text
         Item {
+            id: mediaTextTrigger
             width:  120
             height: 20
             clip:   true
@@ -77,8 +81,12 @@ Item {
                 anchors.fill:  parent
                 cursorShape:   Qt.PointingHandCursor
                 onClicked: {
-                    mediaPaneIpc.running = false;
-                    mediaPaneIpc.running = true;
+                    // Capture trigger geometry so MediaPane can anchor below this widget
+                    var pos = mediaTextTrigger.mapToItem(null, 0, 0)
+                    PopupAnchorService.setAnchor("media", pos.x, mediaTextTrigger.width, 40)
+                    PopupStateService.toggleExclusive("media")
+                    mediaPaneIpc.running = false
+                    mediaPaneIpc.running = true
                 }
             }
         }
