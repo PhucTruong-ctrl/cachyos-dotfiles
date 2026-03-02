@@ -109,6 +109,17 @@ ShellRoot {
     ThemePane {}
 
     // ------------------------------------------------------------------
+    // Load ControlCenter here
+    //
+    // ControlCenter.qml is a slide-down panel anchored top-right.
+    // Contains quick toggles, volume/brightness sliders, and
+    // expandable WiFi/Bluetooth sub-panels.
+    // Toggle via:  qs ipc call control-center toggle
+    // Keybind wiring is done in config/hypr/config/keybinds.conf.
+    // ------------------------------------------------------------------
+    ControlCenter {}
+
+    // ------------------------------------------------------------------
     // Wallpaper restore on startup
     //
     // Reads the persisted wallpaper path from
