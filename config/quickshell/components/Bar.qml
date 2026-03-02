@@ -12,6 +12,7 @@ import Quickshell.Hyprland
 import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
+import Quickshell.Services.SystemTray
 import "../services"
 
 Scope {
@@ -80,6 +81,7 @@ Scope {
         model: Quickshell.screens
 
         PanelWindow {
+            id: barWindow
             // Quickshell injects the ShellScreen for this instance
             required property var modelData
             screen: modelData
@@ -204,6 +206,62 @@ Scope {
                     Row {
                         spacing: 8
                         Layout.alignment: Qt.AlignVCenter
+
+                        // System Tray
+                        Repeater {
+                            model: SystemTray.items
+                            delegate: Item {
+                                required property var modelData
+                                visible: modelData.status !== SystemTrayItem.Passive
+                                width: visible ? 24 : 0
+                                height: 24
+
+                                Image {
+                                    anchors.centerIn: parent
+                                    source: modelData.icon
+                                    sourceSize.width: 16
+                                    sourceSize.height: 16
+                                }
+
+                                Rectangle {
+                                    visible: modelData.status === SystemTrayItem.NeedsAttention
+                                    width: 6
+                                    height: 6
+                                    radius: 3
+                                    color: GlobalState.matugenError
+                                    anchors {
+                                        top: parent.top
+                                        right: parent.right
+                                        topMargin: 2
+                                        rightMargin: 2
+                                    }
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    acceptedButtons: Qt.LeftButton | Qt.RightButton
+                                    onClicked: mouse => {
+                                        if (mouse.button === Qt.RightButton) {
+                                            modelData.display(barWindow, mouse.x, mouse.y)
+                                        } else {
+                                            if (modelData.onlyMenu) {
+                                                modelData.display(barWindow, mouse.x, mouse.y)
+                                            } else {
+                                                modelData.activate()
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            width: 1
+                            height: 16
+                            color: GlobalState.overlay1
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
 
                         // Wifi Icon
                         Item {
