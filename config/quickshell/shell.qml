@@ -15,13 +15,17 @@
 //   Launcher.qml — Application launcher (fuzzy, .desktop-file driven)
 //
 // Services (all pragma Singleton, auto-discovered via `import "services"`):
-//   GlobalState.qml    — Catppuccin Mocha + Matugen dynamic colors, state flags
-//   Appearance.qml     — Centralized animation durations, easing curves, panel radius
-//   NetworkService.qml — nmcli WiFi wrapper
-//   BluetoothService.qml — bluetoothctl wrapper
-//   NotifStore.qml     — Notification persistence
-//   Performance.qml    — CPU/RAM/Temp polling
-//   MediaService.qml   — MPRIS playerctl backend (title, artist, controls)
+//   GlobalState.qml        — Catppuccin Mocha + Matugen dynamic colors, state flags
+//   Appearance.qml         — Centralized animation durations, easing curves, panel radius
+//   NetworkService.qml     — nmcli WiFi wrapper
+//   BluetoothService.qml   — bluetoothctl wrapper
+//   NotifStore.qml         — Notification persistence
+//   Performance.qml        — CPU/RAM/Temp polling
+//   MediaService.qml       — MPRIS playerctl backend (title, artist, controls)
+//   PopupAnchorService.qml — Stores trigger geometry (anchorX/anchorWidth/barY) for
+//                            icon-anchored popup positioning; exposes popupXFor().
+//   PopupStateService.qml  — Single-open popup coordination; openExclusive() /
+//                            toggleExclusive() ensure only one popup is open at a time.
 
 import QtQuick
 import Quickshell
