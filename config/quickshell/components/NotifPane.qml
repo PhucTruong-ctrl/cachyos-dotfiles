@@ -21,6 +21,7 @@ PanelWindow {
 
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+    WlrLayershell.namespace: "quickshell-notifs"
     exclusionMode: ExclusionMode.Ignore
 
     IpcHandler {

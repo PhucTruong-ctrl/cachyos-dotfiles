@@ -121,7 +121,7 @@ Scope {
                 radius: 18
 
                 // Catppuccin Mocha palette (matches Bar.qml / Launcher.qml)
-                color:        GlobalState.base   // base
+                color:        Qt.rgba(GlobalState.base.r, GlobalState.base.g, GlobalState.base.b, Appearance.panelOpacity)
                 border.color: GlobalState.surface0   // surface0
                 border.width: 1
 

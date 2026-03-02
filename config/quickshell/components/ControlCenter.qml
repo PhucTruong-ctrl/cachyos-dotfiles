@@ -32,6 +32,7 @@ PanelWindow {
 
     WlrLayershell.layer:         WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+    WlrLayershell.namespace:     "quickshell-control-center"
     exclusionMode:               ExclusionMode.Ignore
 
     color:   "transparent"
@@ -329,7 +330,7 @@ PanelWindow {
         y:             0
         width:         400
         height:        mainColumn.implicitHeight + 24
-        color:  GlobalState.base
+        color:  Qt.rgba(GlobalState.base.r, GlobalState.base.g, GlobalState.base.b, Appearance.panelOpacity)
         radius: Appearance.panelRadius
         border.color: GlobalState.matugenPrimary
         border.width: 1

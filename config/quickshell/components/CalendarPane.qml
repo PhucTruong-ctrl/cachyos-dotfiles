@@ -24,6 +24,7 @@ Scope {
 
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+        WlrLayershell.namespace: "quickshell-calendar"
         exclusionMode: ExclusionMode.Ignore
 
         anchors {
@@ -47,7 +48,7 @@ Scope {
             anchors.topMargin:   45
             width:  320
             height: 320
-            color: GlobalState.base
+            color: Qt.rgba(GlobalState.base.r, GlobalState.base.g, GlobalState.base.b, Appearance.panelOpacity)
             radius: Appearance.panelRadius
             border.color: GlobalState.mauve
             border.width: 1
