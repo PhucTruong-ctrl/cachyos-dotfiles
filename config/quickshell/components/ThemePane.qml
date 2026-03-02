@@ -50,7 +50,7 @@ PanelWindow {
             anchors.fill: parent
             anchors.margins: 12
             color: GlobalState.base
-            radius: 12
+            radius: Appearance.panelRadius
             border.color: GlobalState.matugenPrimary
             border.width: 1
             

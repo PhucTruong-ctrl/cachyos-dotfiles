@@ -8,7 +8,7 @@
 //     instead of hardcoded hex values)
 //   - Expandable sub-panels: WiFi network list, Bluetooth device list
 //
-// Animation: slide-down from top, 250ms, Easing.OutExpo
+// Animation: slide-down from top, Appearance.panelSlide ms, Appearance.standardDecel
 // Colors: ALL from GlobalState — no hardcoded Catppuccin hex values
 
 import QtQuick
@@ -72,24 +72,24 @@ PanelWindow {
         }
     }
 
-    // ── Slide-in: off-screen → y=0, OutExpo, 250ms ───────────────────────────
+    // ── Slide-in: off-screen → y=0, Appearance.standardDecel ────────────────
     NumberAnimation {
         id:           slideInAnim
         target:       contentRect
         property:     "y"
         to:           0
-        duration:     250
-        easing.type:  Easing.OutExpo
+        duration:     Appearance.panelSlide
+        easing.type:  Appearance.standardDecel
     }
 
-    // ── Slide-out: y=0 → off-screen, InExpo, 200ms ───────────────────────────
+    // ── Slide-out: y=0 → off-screen, Appearance.standardAccel ────────────────
     NumberAnimation {
         id:           slideOutAnim
         target:       contentRect
         property:     "y"
         to:           -(contentRect.height + 12)
-        duration:     200
-        easing.type:  Easing.InExpo
+        duration:     Appearance.contentSwitch
+        easing.type:  Appearance.standardAccel
         onStopped:    root.visible = false
     }
 
@@ -287,7 +287,7 @@ PanelWindow {
         border.color: active ? GlobalState.lavender       : "transparent"
         border.width: 1
 
-        Behavior on color { ColorAnimation { duration: 150 } }
+        Behavior on color { ColorAnimation { duration: Appearance.popupFade } }
 
         ColumnLayout {
             anchors.centerIn: parent
@@ -330,7 +330,7 @@ PanelWindow {
         width:         400
         height:        mainColumn.implicitHeight + 24
         color:  GlobalState.base
-        radius: 12
+        radius: Appearance.panelRadius
         border.color: GlobalState.matugenPrimary
         border.width: 1
         clip:   true
@@ -403,7 +403,7 @@ PanelWindow {
                     color:        NetworkService.wifiEnabled ? GlobalState.matugenPrimary : GlobalState.surface0
                     border.color: NetworkService.wifiEnabled ? GlobalState.lavender       : "transparent"
                     border.width: 1
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    Behavior on color { ColorAnimation { duration: Appearance.popupFade } }
 
                     ColumnLayout {
                         anchors.centerIn: parent
@@ -467,7 +467,7 @@ PanelWindow {
                     color:        BluetoothService.enabled ? GlobalState.matugenPrimary : GlobalState.surface0
                     border.color: BluetoothService.enabled ? GlobalState.lavender       : "transparent"
                     border.width: 1
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    Behavior on color { ColorAnimation { duration: Appearance.popupFade } }
 
                     ColumnLayout {
                         anchors.centerIn: parent
@@ -739,7 +739,7 @@ PanelWindow {
                         color:            modelData.active
                                               ? GlobalState.matugenPrimary
                                               : (netItemHover.containsMouse ? GlobalState.surface1 : GlobalState.surface0)
-                        Behavior on color { ColorAnimation { duration: 100 } }
+                        Behavior on color { ColorAnimation { duration: Appearance.popupFade } }
 
                         RowLayout {
                             anchors.fill:    parent
@@ -864,7 +864,7 @@ PanelWindow {
                         color:            modelData.connected
                                               ? GlobalState.matugenPrimary
                                               : (btItemHover.containsMouse ? GlobalState.surface1 : GlobalState.surface0)
-                        Behavior on color { ColorAnimation { duration: 100 } }
+                        Behavior on color { ColorAnimation { duration: Appearance.popupFade } }
 
                         RowLayout {
                             anchors.fill:    parent

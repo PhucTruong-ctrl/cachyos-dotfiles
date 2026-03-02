@@ -214,10 +214,10 @@ Scope {
                                 border.width: 1
 
                                 Behavior on color {
-                                    ColorAnimation { duration: 120 }
+                                    ColorAnimation { duration: Appearance.popupFade }
                                 }
                                 Behavior on border.color {
-                                    ColorAnimation { duration: 120 }
+                                    ColorAnimation { duration: Appearance.popupFade }
                                 }
 
                                 ColumnLayout {
@@ -241,7 +241,7 @@ Scope {
                                         Layout.alignment: Qt.AlignHCenter
 
                                         Behavior on color {
-                                            ColorAnimation { duration: 120 }
+                                            ColorAnimation { duration: Appearance.popupFade }
                                         }
                                     }
                                 }

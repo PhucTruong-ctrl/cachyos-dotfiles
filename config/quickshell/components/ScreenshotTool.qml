@@ -181,8 +181,8 @@ Scope {
                                     onClicked: runScreenshot(modelData.mode)
                                 }
 
-                                Behavior on color { ColorAnimation { duration: 150 } }
-                                Behavior on border.color { ColorAnimation { duration: 150 } }
+                                Behavior on color { ColorAnimation { duration: Appearance.popupFade } }
+                                Behavior on border.color { ColorAnimation { duration: Appearance.popupFade } }
                             }
                         }
                     }

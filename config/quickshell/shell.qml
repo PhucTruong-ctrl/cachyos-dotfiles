@@ -13,12 +13,20 @@
 //   Notifs.qml   — Notification daemon overlay (org.freedesktop.Notifications)
 //   Power.qml    — Power menu overlay (lock / logout / suspend / reboot / shutdown)
 //   Launcher.qml — Application launcher (fuzzy, .desktop-file driven)
+//
+// Services (all pragma Singleton, auto-discovered via `import "services"`):
+//   GlobalState.qml    — Catppuccin Mocha + Matugen dynamic colors, state flags
+//   Appearance.qml     — Centralized animation durations, easing curves, panel radius
+//   NetworkService.qml — nmcli WiFi wrapper
+//   BluetoothService.qml — bluetoothctl wrapper
+//   NotifStore.qml     — Notification persistence
+//   Performance.qml    — CPU/RAM/Temp polling
 
 import QtQuick
 import Quickshell
 import Quickshell.Io
 import "components"
-import "services"
+import "services"   // Loads GlobalState, Appearance, NetworkService, BluetoothService, etc.
 
 ShellRoot {
     // ------------------------------------------------------------------

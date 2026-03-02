@@ -189,7 +189,7 @@ Scope {
 
                     // Animate border color on focus
                     Behavior on border.color {
-                        ColorAnimation { duration: 150 }
+                        ColorAnimation { duration: Appearance.popupFade }
                     }
 
                     RowLayout {
@@ -339,7 +339,7 @@ Scope {
                                 : "transparent"
 
                         Behavior on color {
-                            ColorAnimation { duration: 100 }
+                            ColorAnimation { duration: Appearance.popupFade }
                         }
 
                         RowLayout {

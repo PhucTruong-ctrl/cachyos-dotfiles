@@ -158,23 +158,23 @@ Scope {
                 NumberAnimation {
                     properties: "opacity,y"
                     from:       0
-                    duration:   200
-                    easing.type: Easing.OutCubic
+                    duration:   Appearance.contentSwitch
+                    easing.type: Appearance.standardDecel
                 }
             }
             remove: Transition {
                 NumberAnimation {
                     property:  "opacity"
                     to:        0
-                    duration:  150
-                    easing.type: Easing.InCubic
+                    duration:  Appearance.popupFade
+                    easing.type: Appearance.standardAccel
                 }
             }
             displaced: Transition {
                 NumberAnimation {
                     properties: "y"
-                    duration:   200
-                    easing.type: Easing.OutCubic
+                    duration:   Appearance.contentSwitch
+                    easing.type: Appearance.standardDecel
                 }
             }
 
@@ -275,7 +275,7 @@ Scope {
                             Layout.alignment: Qt.AlignVCenter
 
                             Behavior on color {
-                                ColorAnimation { duration: 100 }
+                                ColorAnimation { duration: Appearance.popupFade }
                             }
 
                             MouseArea {
@@ -338,7 +338,7 @@ Scope {
                                 border.width: 1
 
                                 Behavior on color {
-                                    ColorAnimation { duration: 100 }
+                                    ColorAnimation { duration: Appearance.popupFade }
                                 }
 
                                 Text {

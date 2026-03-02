@@ -1,0 +1,6 @@
+singleton Appearance 1.0 Appearance.qml
+singleton BluetoothService 1.0 BluetoothService.qml
+singleton GlobalState 1.0 GlobalState.qml
+singleton NetworkService 1.0 NetworkService.qml
+singleton NotifStore 1.0 NotifStore.qml
+singleton Performance 1.0 Performance.qml
