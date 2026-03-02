@@ -55,6 +55,7 @@ QtObject {
     // Useful State Toggles
     property bool caffeineActive: false
     property bool nightModeActive: false
+    property bool dndActive: false
 
     // System Status
     property bool isBatteryCharging: false
