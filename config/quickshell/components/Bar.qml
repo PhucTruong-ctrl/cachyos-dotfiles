@@ -27,6 +27,42 @@ Scope {
 
     readonly property string clockText: Qt.formatDateTime(clock.date, "hh:mm:ss  ddd d MMM")
 
+    // Battery icon: level-accurate nerd font glyph, swaps set based on charge state
+    readonly property string batteryIcon: {
+        var p = GlobalState.batteryRemaining
+        if (GlobalState.isBatteryCharging) {
+            if (p <= 10) return "󰢜"
+            if (p <= 20) return "󰂆"
+            if (p <= 30) return "󰂇"
+            if (p <= 40) return "󰂈"
+            if (p <= 50) return "󰢝"
+            if (p <= 60) return "󰂉"
+            if (p <= 70) return "󰢞"
+            if (p <= 80) return "󰂊"
+            if (p <= 90) return "󰂋"
+            return "󰂅"
+        } else {
+            if (p <= 10) return "󰁺"
+            if (p <= 20) return "󰁻"
+            if (p <= 30) return "󰁼"
+            if (p <= 40) return "󰁽"
+            if (p <= 50) return "󰁾"
+            if (p <= 60) return "󰁿"
+            if (p <= 70) return "󰂀"
+            if (p <= 80) return "󰂁"
+            if (p <= 90) return "󰂂"
+            return "󰁹"
+        }
+    }
+
+    // Battery color: green=charging, red=critical(≤20%), yellow=low(≤50%), normal otherwise
+    readonly property color batteryColor: {
+        if (GlobalState.isBatteryCharging)        return GlobalState.success
+        if (GlobalState.batteryRemaining <= 20)   return GlobalState.matugenError
+        if (GlobalState.batteryRemaining <= 50)   return GlobalState.warning
+        return GlobalState.matugenOnSurface
+    }
+
     Process {
         id: wifiProcess
         command: ["alacritty", "-e", "nmtui"]
@@ -34,7 +70,7 @@ Scope {
 
     Process {
         id: btProcess
-        command: ["alacritty", "-e", "bluetuith"]
+        command: ["overskride"]
     }
 
     Process {
@@ -175,34 +211,73 @@ Scope {
                         Layout.alignment: Qt.AlignVCenter
 
                         // Wifi Icon
-                        Text {
-                            text: "󰖩" // nf-md-wifi (nerd font)
-                            color: GlobalState.matugenOnSurface
-                            font.pixelSize: 16
-                            font.family: "monospace"
+                        Item {
+                            width: 24
+                            height: 24
+                            
+                            Text {
+                                anchors.centerIn: parent
+                                text: "󰖩" // nf-md-wifi (nerd font)
+                                color: GlobalState.matugenOnSurface
+                                font.pixelSize: 16
+                                font.family: "monospace"
+                            }
                             
                             MouseArea {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
-                                onClicked: wifiProcess.running = true
+                                onClicked: {
+                                    wifiProcess.running = false
+                                    wifiProcess.running = true
+                                }
                             }
                         }
 
                         // Bluetooth Icon
-                        Text {
-                            text: "󰂯" // nf-md-bluetooth (nerd font)
-                            color: GlobalState.matugenOnSurface
-                            font.pixelSize: 16
-                            font.family: "monospace"
+                        Item {
+                            width: 24
+                            height: 24
+                            
+                            Text {
+                                anchors.centerIn: parent
+                                text: "󰂯" // nf-md-bluetooth (nerd font)
+                                color: GlobalState.matugenOnSurface
+                                font.pixelSize: 16
+                                font.family: "monospace"
+                            }
                             
                             MouseArea {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
-                                onClicked: btProcess.running = true
+                                onClicked: {
+                                    btProcess.running = false
+                                    btProcess.running = true
+                                }
                             }
                         }
                     }
-                    
+
+                    // Battery: icon swaps between charging/discharging sets; color signals level
+                    Row {
+                        spacing: 4
+                        Layout.alignment: Qt.AlignVCenter
+
+                        Text {
+                            text: barRoot.batteryIcon
+                            color: barRoot.batteryColor
+                            font.pixelSize: 16
+                            font.family: "monospace"
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                        Text {
+                            text: GlobalState.batteryRemaining + "%"
+                            color: barRoot.batteryColor
+                            font.family: "monospace"
+                            font.pixelSize: 13
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                    }
+
                     // Theme Icon
                     Text {
                         text: "󰸉" // nf-md-wallpaper

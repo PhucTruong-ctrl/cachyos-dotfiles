@@ -47,9 +47,10 @@ QtObject {
     property color matugenError: red
 
     // Functional aliases (bound to dynamic matugen colors)
-    property color accent: matugenPrimary
-    property color success: green
-    property color warning: yellow
+    // Using readonly property ensures a reactive dynamic binding in QML
+    readonly property color accent: matugenPrimary
+    readonly property color success: green
+    readonly property color warning: yellow
 
     // Useful State Toggles
     property bool caffeineActive: false
@@ -74,17 +75,19 @@ QtObject {
                 try {
                     const parsed = JSON.parse(raw);
                     if (parsed && parsed.colors) {
-                        const colors = parsed.colors;
+                        const matugenColors = parsed.colors;
                         console.log("GlobalState: Matugen colors loaded successfully");
-                        root.matugenPrimary          = colors.primary          || root.matugenPrimary;
-                        root.matugenOnPrimary        = colors.onPrimary        || root.matugenOnPrimary;
-                        root.matugenBackground       = colors.background       || root.matugenBackground;
-                        root.matugenOnBackground     = colors.onBackground     || root.matugenOnBackground;
-                        root.matugenSurface          = colors.surface          || root.matugenSurface;
-                        root.matugenOnSurface        = colors.onSurface        || root.matugenOnSurface;
-                        root.matugenSurfaceVariant   = colors.surfaceVariant   || root.matugenSurfaceVariant;
-                        root.matugenOnSurfaceVariant = colors.onSurfaceVariant || root.matugenOnSurfaceVariant;
-                        root.matugenError            = colors.error            || root.matugenError;
+                        root.matugenPrimary          = matugenColors.primary          || root.matugenPrimary;
+                        root.matugenOnPrimary        = matugenColors.onPrimary        || root.matugenOnPrimary;
+                        root.matugenBackground       = matugenColors.background       || root.matugenBackground;
+                        root.matugenOnBackground     = matugenColors.onBackground     || root.matugenOnBackground;
+                        root.matugenSurface          = matugenColors.surface          || root.matugenSurface;
+                        root.matugenOnSurface        = matugenColors.onSurface        || root.matugenOnSurface;
+                        root.matugenSurfaceVariant   = matugenColors.surfaceVariant   || root.matugenSurfaceVariant;
+                        root.matugenOnSurfaceVariant = matugenColors.onSurfaceVariant || root.matugenOnSurfaceVariant;
+                        root.matugenError            = matugenColors.error            || root.matugenError;
+                        
+                        console.log("GlobalState: New Primary Color ->", root.matugenPrimary);
                     }
                 } catch(e) {
                     console.error("GlobalState: Failed to parse matugen colors - " + e);
@@ -99,6 +102,36 @@ QtObject {
         // Force-restart: stop first so the false→true transition is always detected
         colorReader.running = false;
         colorReader.running = true;
+    }
+
+    // ── Battery polling ──────────────────────────────────────────────────────
+    property Process batteryReader: Process {
+        command: ["bash", "-c",
+            "echo \"$(cat /sys/class/power_supply/BAT0/capacity 2>/dev/null || echo 100)" +
+            " $(cat /sys/class/power_supply/BAT0/status 2>/dev/null || echo Unknown)\""]
+        running: false
+        stdout: SplitParser {
+            onRead: data => {
+                const parts = data.trim().split(" ");
+                if (parts.length >= 2) {
+                    const pct = parseInt(parts[0]);
+                    const st  = parts[1];
+                    if (!isNaN(pct)) root.batteryRemaining  = pct;
+                    root.isBatteryCharging = (st === "Charging" || st === "Full");
+                }
+            }
+        }
+    }
+
+    property Timer batteryTimer: Timer {
+        interval: 30000
+        running: true
+        repeat: true
+        triggeredOnStart: true
+        onTriggered: {
+            root.batteryReader.running = false;
+            root.batteryReader.running = true;
+        }
     }
 
     Component.onCompleted: {
