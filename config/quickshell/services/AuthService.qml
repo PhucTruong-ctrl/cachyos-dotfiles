@@ -1,7 +1,6 @@
 // AuthService.qml — PAM authentication singleton for the Quickshell lock screen.
 //
 // Uses the native Quickshell.Services.Pam (PamContext) for direct PAM integration.
-// Falls back to pam-helper.sh (Python ctypes libpam) if the native module is unavailable.
 //
 // Usage: import "../services" in LockScreen.qml, then use AuthService.*
 //
