@@ -58,12 +58,24 @@ matugen image "$wallpaper" --json hex \
             onSurface: .colors.on_surface.dark,
             surfaceVariant: .colors.surface_variant.dark,
             onSurfaceVariant: .colors.on_surface_variant.dark,
+            surfaceContainer: (.colors.surface_container.dark // .colors.surface_variant.dark),
+            surfaceContainerLow: (.colors.surface_container_low.dark // .colors.surface.dark),
             error: .colors.error.dark
         }
     }' > "$tmp_file"
 
 mv "$tmp_file" "$colors_file"
 log_info "Wrote $colors_file"
+
+# Generate GTK CSS overrides from the new colors.json
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+gtk_gen="$script_dir/gtk-theme-gen.sh"
+if [[ -x "$gtk_gen" ]]; then
+    log_info "Generating GTK CSS overrides..."
+    "$gtk_gen" || log_warn "gtk-theme-gen.sh failed (non-fatal)"
+else
+    log_warn "gtk-theme-gen.sh not found or not executable: $gtk_gen"
+fi
 
 # No IPC needed — GlobalState.qml uses a FileWatcher on colors.json
 # which detects this write and triggers reloadColors() automatically.
