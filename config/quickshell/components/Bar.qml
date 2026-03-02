@@ -128,7 +128,7 @@ Scope {
                             color: modelData.focused ? GlobalState.matugenPrimary : GlobalState.matugenSurface
 
                             Behavior on color {
-                                ColorAnimation { duration: 120 }
+                                ColorAnimation { duration: Appearance.popupFade }
                             }
 
                             Text {

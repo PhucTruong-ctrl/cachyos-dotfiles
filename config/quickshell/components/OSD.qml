@@ -143,12 +143,12 @@ PanelWindow {
     // ── UI Layout ───────────────────────────────────────────────────────────
     Rectangle {
         anchors.fill: parent
-        radius: 16
+        radius: Appearance.panelRadius + 4   // OSD uses slightly larger radius (16 vs 12)
         color: Qt.rgba(
             GlobalState.surface0.r,
             GlobalState.surface0.g,
             GlobalState.surface0.b,
-            0.9
+            Appearance.panelOpacity + 0.05   // 0.90 — slightly more opaque for readability
         )
 
         RowLayout {

@@ -2,9 +2,9 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import "../services"
 import Quickshell.Wayland
 import Quickshell.Io
+import "../services"
 
 PanelWindow {
     id: root

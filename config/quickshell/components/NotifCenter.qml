@@ -45,7 +45,7 @@ Rectangle {
                 border.width: 1
 
                 Behavior on color {
-                    ColorAnimation { duration: 100 }
+                    ColorAnimation { duration: Appearance.popupFade }
                 }
 
                 Text {
@@ -203,10 +203,10 @@ Rectangle {
             }
 
             add: Transition {
-                NumberAnimation { properties: "opacity,x"; from: 0; duration: 200; easing.type: Easing.OutCubic }
+                NumberAnimation { properties: "opacity,x"; from: 0; duration: Appearance.contentSwitch; easing.type: Appearance.standardDecel }
             }
             remove: Transition {
-                NumberAnimation { property: "opacity"; to: 0; duration: 150; easing.type: Easing.InCubic }
+                NumberAnimation { property: "opacity"; to: 0; duration: Appearance.popupFade; easing.type: Appearance.standardAccel }
             }
         }
     }

@@ -48,7 +48,7 @@ Scope {
             width:  320
             height: 320
             color: GlobalState.base
-            radius: 12
+            radius: Appearance.panelRadius
             border.color: GlobalState.mauve
             border.width: 1
 

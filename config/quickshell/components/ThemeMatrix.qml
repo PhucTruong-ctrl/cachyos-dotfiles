@@ -44,7 +44,7 @@ GridView {
                 opacity: hoverArea.containsMouse ? 0.8 : 1.0
 
                 Behavior on opacity {
-                    NumberAnimation { duration: 150 }
+                    NumberAnimation { duration: Appearance.popupFade }
                 }
             }
             
