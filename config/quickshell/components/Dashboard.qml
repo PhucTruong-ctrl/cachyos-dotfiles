@@ -25,6 +25,7 @@ PanelWindow {
 
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+    WlrLayershell.namespace: "quickshell-dashboard"
     exclusionMode: ExclusionMode.Ignore
 
     color: "transparent"
@@ -52,7 +53,7 @@ PanelWindow {
         anchors.top:    parent.top
         anchors.bottom: parent.bottom
         width: 450
-        color: GlobalState.base
+        color: Qt.rgba(GlobalState.base.r, GlobalState.base.g, GlobalState.base.b, Appearance.panelOpacity)
         radius: 12
         border.color: GlobalState.mauve
         border.width: 1

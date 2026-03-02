@@ -10,6 +10,7 @@ PanelWindow {
 
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+    WlrLayershell.namespace: "quickshell-osd"
     exclusionMode: ExclusionMode.Ignore
 
     // Center-bottom positioning
