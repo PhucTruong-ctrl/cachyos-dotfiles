@@ -77,6 +77,15 @@ else
     log_warn "gtk-theme-gen.sh not found or not executable: $gtk_gen"
 fi
 
+# Generate hyprlock color variables from the new colors.json
+hyprlock_gen="$script_dir/hyprlock-colors.sh"
+if [[ -x "$hyprlock_gen" ]]; then
+    log_info "Generating hyprlock color variables..."
+    "$hyprlock_gen" || log_warn "hyprlock-colors.sh failed (non-fatal)"
+else
+    log_warn "hyprlock-colors.sh not found or not executable: $hyprlock_gen"
+fi
+
 # No IPC needed — GlobalState.qml uses a FileWatcher on colors.json
 # which detects this write and triggers reloadColors() automatically.
 log_info "FileWatcher will pick up the change automatically"
