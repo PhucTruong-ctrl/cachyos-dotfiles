@@ -21,6 +21,7 @@
 //   BluetoothService.qml — bluetoothctl wrapper
 //   NotifStore.qml     — Notification persistence
 //   Performance.qml    — CPU/RAM/Temp polling
+//   MediaService.qml   — MPRIS playerctl backend (title, artist, controls)
 
 import QtQuick
 import Quickshell
@@ -155,6 +156,28 @@ ShellRoot {
     // Toggle via: qs ipc call toggle-screenshot toggle
     // ------------------------------------------------------------------
     ScreenshotTool {}
+
+    // ------------------------------------------------------------------
+    // Load LockScreen here
+    //
+    // LockScreen.qml is a fullscreen Overlay lock screen with PAM auth.
+    // Lock via:   qs ipc call toggle-lockscreen lock
+    // Toggle via: qs ipc call toggle-lockscreen toggle
+    // Keybind:    Super+L  →  qs ipc call toggle-lockscreen lock
+    // The component's own IpcHandler handles visibility internally.
+    // Authentication is handled by AuthService (Quickshell.Services.Pam).
+    // ------------------------------------------------------------------
+    LockScreen {}
+
+    // ------------------------------------------------------------------
+    // Load MediaPane here
+    //
+    // MediaPane.qml is a centered popup panel showing MPRIS media
+    // controls — album art, title/artist, play/pause/prev/next.
+    // Toggle via:  qs ipc call toggle-media toggle
+    // Keybind:     SUPER + M (see config/hypr/config/keybinds.conf)
+    // ------------------------------------------------------------------
+    MediaPane {}
 
     // ------------------------------------------------------------------
     // Load Overview here

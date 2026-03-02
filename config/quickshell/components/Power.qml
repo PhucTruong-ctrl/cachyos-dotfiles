@@ -181,7 +181,7 @@ Scope {
                         // entries here requires zero other changes.
                         Repeater {
                             model: [
-                                { icon: "󰌾", label: "Lock",     cmd: ["hyprlock"] },
+                                { icon: "󰌾", label: "Lock",     cmd: ["qs", "ipc", "call", "toggle-lockscreen", "lock"] },
                                 { icon: "󰤄", label: "Suspend",  cmd: ["systemctl", "suspend"] },
                                 { icon: "󰗼", label: "Logout",   cmd: ["hyprctl", "dispatch", "exit"] },
                                 { icon: "󰜉", label: "Reboot",   cmd: ["systemctl", "reboot"] },
