@@ -15,10 +15,12 @@ Item {
     // Note: Quickshell Process executes standard commands.
     Process {
         id: cpuProcess
-        command: ["sh", "-c", "top -bn1 | grep 'Cpu(s)' | awk '{print $2 + $4}'"]
-        onStdoutChanged: {
-            if (stdout && stdout.length > 0) {
-                root.cpuUsage = parseFloat(stdout[0]) || 0.0;
+        command: ["bash", "-c", "top -bn1 | grep 'Cpu(s)' | awk '{print $2 + $4}' || echo 0"]
+        stdout: SplitParser {
+            onRead: data => {
+                console.log("CPU returned: " + data);
+                let val = parseFloat(data);
+                if (!isNaN(val)) root.cpuUsage = val;
             }
         }
     }
@@ -26,10 +28,12 @@ Item {
     // Fetch RAM Usage
     Process {
         id: ramProcess
-        command: ["sh", "-c", "free -m | awk '/Mem:/ {print ($3/$2)*100}'"]
-        onStdoutChanged: {
-            if (stdout && stdout.length > 0) {
-                root.ramUsage = parseFloat(stdout[0]) || 0.0;
+        command: ["bash", "-c", "free -m | awk '/Mem:/ {print $3/$2 * 100}' || echo 0"]
+        stdout: SplitParser {
+            onRead: data => {
+                console.log("RAM returned: " + data);
+                let val = parseFloat(data);
+                if (!isNaN(val)) root.ramUsage = val;
             }
         }
     }
@@ -37,10 +41,12 @@ Item {
     // Fetch CPU Temp
     Process {
         id: tempProcess
-        command: ["sh", "-c", "cat /sys/class/thermal/thermal_zone0/temp | awk '{print $1/1000}'"]
-        onStdoutChanged: {
-            if (stdout && stdout.length > 0) {
-                root.cpuTemp = parseFloat(stdout[0]) || 0.0;
+        command: ["bash", "-c", "sensors | grep -E 'Package id 0|Core 0|Tctl' | head -n 1 | grep -oE '\\+[0-9.]+' | head -n 1 | tr -d '+' || acpi -t | awk '{print $4}' | head -n 1"]
+        stdout: SplitParser {
+            onRead: data => {
+                console.log("Temp returned: " + data);
+                let val = parseFloat(data);
+                if (!isNaN(val)) root.cpuTemp = val;
             }
         }
     }

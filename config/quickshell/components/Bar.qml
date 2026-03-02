@@ -135,7 +135,7 @@ Scope {
                 Item { Layout.fillWidth: true }
 
                 // ── Middle section: System Monitor ────────────────────────────
-                RowLayout {
+                Row {
                     Layout.alignment: Qt.AlignVCenter
                     spacing: 16
                     
