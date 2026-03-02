@@ -109,6 +109,15 @@ ShellRoot {
     ThemePane {}
 
     // ------------------------------------------------------------------
+    // Load Dashboard here
+    //
+    // Dashboard.qml is a PanelWindow showing system stats + wallpaper grid
+    // docked to the right edge.
+    // Toggle via: qs ipc call toggle-dashboard toggle
+    // ------------------------------------------------------------------
+    Dashboard {}
+
+    // ------------------------------------------------------------------
     // Load ControlCenter here
     //
     // ControlCenter.qml is a slide-down panel anchored top-right.
@@ -118,6 +127,26 @@ ShellRoot {
     // Keybind wiring is done in config/hypr/config/keybinds.conf.
     // ------------------------------------------------------------------
     ControlCenter {}
+
+    // ------------------------------------------------------------------
+    // Load OSD here
+    //
+    // OSD.qml is an on-screen display popup for volume and brightness.
+    // Automatically appears when volume or brightness changes.
+    // ------------------------------------------------------------------
+    OSD {}
+
+    // Polkit: using system hyprpolkitagent (started in autostart.conf)
+    // No custom QML polkit agent needed.
+
+    // ------------------------------------------------------------------
+    // Load ScreenshotTool here
+    //
+    // ScreenshotTool.qml is a custom screenshot UI integrated into the shell.
+    // Includes mode selection (Full/Region/Window) and Save/Copy toggles.
+    // Toggle via: qs ipc call toggle-screenshot toggle
+    // ------------------------------------------------------------------
+    ScreenshotTool {}
 
     // ------------------------------------------------------------------
     // Wallpaper restore on startup

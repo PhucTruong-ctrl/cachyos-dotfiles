@@ -4,8 +4,8 @@
 //
 // Contains:
 //   - Quick toggles: WiFi, Bluetooth, Night Mode, Caffeine, DND, Airplane Mode
-//   - Volume and Brightness sliders (migrated from QuickSettings.qml, rewritten
-//     with GlobalState colors instead of hardcoded hex values)
+//   - Volume and Brightness sliders (rewritten with GlobalState colors
+//     instead of hardcoded hex values)
 //   - Expandable sub-panels: WiFi network list, Bluetooth device list
 //
 // Animation: slide-down from top, 250ms, Easing.OutExpo
@@ -238,7 +238,7 @@ PanelWindow {
     }
 
     // ── Inline component: CustomSlider ────────────────────────────────────────
-    // Identical to QuickSettings.qml but uses GlobalState colors exclusively.
+    // Custom slider component using GlobalState colors exclusively.
     component CustomSlider: Slider {
         id: sliderCtrl
 
