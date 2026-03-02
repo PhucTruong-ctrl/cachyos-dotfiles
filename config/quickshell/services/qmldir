@@ -1,5 +1,6 @@
 singleton Appearance 1.0 Appearance.qml
 singleton BatteryService 1.0 BatteryService.qml
+singleton ClipboardService 1.0 ClipboardService.qml
 singleton BluetoothService 1.0 BluetoothService.qml
 singleton GlobalState 1.0 GlobalState.qml
 singleton NetworkService 1.0 NetworkService.qml
