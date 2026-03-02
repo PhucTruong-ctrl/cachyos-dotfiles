@@ -10,6 +10,7 @@
 //   - Horizontal row of workspace columns, each showing window cards.
 //   - Window cards: app class icon + truncated title, proportionally sized.
 //   - Click a card  → focus window, close overview.
+//   - Drag a card   → drag it across workspace columns; drop to move window.
 //   - Click empty workspace area → switch to workspace, close overview.
 //   - Search bar filters by title/class.
 //   - Escape or backdrop click → close.
@@ -29,6 +30,14 @@ Scope {
     id: root
 
     // ──────────────────────────────────────────────────────────────────────────
+    // Drag-and-drop state (shared between window cards and workspace drop zones)
+    // ──────────────────────────────────────────────────────────────────────────
+    /// True while a window card is being dragged.
+    property bool draggingWindow: false
+    /// The workspace id currently hovered during a drag (-1 = none).
+    property int  hoveredWorkspaceId: -1
+
+    // ──────────────────────────────────────────────────────────────────────────
     // IPC Handler — target: "toggle-overview"
     // Invoke: qs ipc call toggle-overview toggle
     // ──────────────────────────────────────────────────────────────────────────
@@ -41,6 +50,8 @@ Scope {
             if (overviewWindow.visible) {
                 console.log("[Overview] opening — refreshing window list");
                 searchInput.text = "";
+                root.draggingWindow   = false;
+                root.hoveredWorkspaceId = -1;
                 HyprlandService.fetchWorkspaces();
                 HyprlandService.fetchClients();
                 searchInput.forceActiveFocus();
@@ -274,6 +285,9 @@ Scope {
                                         // or model changes.
                                         property var workspaceClients: root.clientsForWorkspace(modelData.id)
 
+                                        // True when this column is the active drop target
+                                        property bool isDragTarget: root.draggingWindow && root.hoveredWorkspaceId === modelData.id
+
                                         // Connections to refresh clients when model or search changes
                                         Connections {
                                             target: HyprlandService.clientModel
@@ -291,13 +305,20 @@ Scope {
                                         width:  220
                                         height: parent.height
                                         radius: 10
-                                        color:  wsHoverArea.containsMouse && workspaceClients.length === 0
-                                                ? Qt.rgba(GlobalState.surface0.r, GlobalState.surface0.g, GlobalState.surface0.b, 0.4)
-                                                : Qt.rgba(GlobalState.mantle.r,   GlobalState.mantle.g,   GlobalState.mantle.b,   0.6)
-                                        border.color: GlobalState.surface1
-                                        border.width: 1
+                                        color: isDragTarget
+                                               ? Qt.rgba(GlobalState.matugenPrimary.r, GlobalState.matugenPrimary.g, GlobalState.matugenPrimary.b, 0.15)
+                                               : (wsHoverArea.containsMouse && workspaceClients.length === 0
+                                                  ? Qt.rgba(GlobalState.surface0.r, GlobalState.surface0.g, GlobalState.surface0.b, 0.4)
+                                                  : Qt.rgba(GlobalState.mantle.r, GlobalState.mantle.g, GlobalState.mantle.b, 0.6))
+                                        border.color: isDragTarget
+                                                      ? GlobalState.matugenPrimary
+                                                      : GlobalState.surface1
+                                        border.width: isDragTarget ? 2 : 1
 
                                         Behavior on color {
+                                            ColorAnimation { duration: Appearance.popupFade }
+                                        }
+                                        Behavior on border.color {
                                             ColorAnimation { duration: Appearance.popupFade }
                                         }
 
@@ -350,8 +371,9 @@ Scope {
                                                     Repeater {
                                                         model: workspaceClients
 
-                                                        // ── Window card ───────
+                                                         // ── Window card ───────
                                                         Rectangle {
+                                                            id: windowCard
                                                             required property var modelData
                                                             required property int index
 
@@ -365,10 +387,11 @@ Scope {
                                                             }
                                                             radius: 8
 
-                                                            color:  cardArea.containsMouse
+                                                            // Highlight when being dragged or hovered
+                                                            color:  (cardArea.containsMouse || cardDragHandler.active)
                                                                     ? GlobalState.surface1
                                                                     : GlobalState.surface0
-                                                            border.color: cardArea.containsMouse
+                                                            border.color: (cardArea.containsMouse || cardDragHandler.active)
                                                                           ? GlobalState.matugenPrimary
                                                                           : "transparent"
                                                             border.width: 1
@@ -379,6 +402,13 @@ Scope {
                                                             Behavior on border.color {
                                                                 ColorAnimation { duration: Appearance.popupFade }
                                                             }
+
+                                                            // ── Drag attached properties ──
+                                                            // Binding Drag.active to handler makes Qt
+                                                            // pick up this item for DropArea hit-testing.
+                                                            Drag.active:   cardDragHandler.active
+                                                            Drag.hotSpot.x: width  / 2
+                                                            Drag.hotSpot.y: height / 2
 
                                                             RowLayout {
                                                                 anchors.fill:          parent
@@ -439,31 +469,83 @@ Scope {
                                                                 }
                                                             }
 
+                                                            // ── Click handler ─────
                                                             MouseArea {
                                                                 id: cardArea
                                                                 anchors.fill: parent
                                                                 hoverEnabled: true
-                                                                cursorShape:  Qt.PointingHandCursor
+                                                                cursorShape: cardDragHandler.active
+                                                                             ? Qt.ClosedHandCursor
+                                                                             : Qt.PointingHandCursor
 
                                                                 onClicked: {
+                                                                    // Ignore release that ends a drag gesture
+                                                                    if (cardDragHandler.active) return;
                                                                     console.log("[Overview] window card clicked: " + modelData.address);
                                                                     HyprlandService.focusWindow(modelData.address);
                                                                     root.close();
                                                                 }
                                                             }
-                                                        }
+
+                                                            // ── Drag handler ──────
+                                                            // target: null — we don't move the card visually,
+                                                            // just track drag state to highlight DropAreas.
+                                                            DragHandler {
+                                                                id: cardDragHandler
+                                                                target: null
+                                                                dragThreshold: 10
+
+                                                                onActiveChanged: {
+                                                                    if (active) {
+                                                                        root.draggingWindow = true;
+                                                                    } else {
+                                                                        // Drag ended — read captured target before clearing
+                                                                        const targetWs = root.hoveredWorkspaceId;
+                                                                        const srcWs    = windowCard.modelData.workspaceId;
+                                                                        root.draggingWindow     = false;
+                                                                        root.hoveredWorkspaceId = -1;
+                                                                        if (targetWs !== -1 && targetWs !== srcWs) {
+                                                                            const addr = windowCard.modelData.address;
+                                                                            console.log("[Overview] drag-drop: move " + addr + " → ws " + targetWs);
+                                                                            HyprlandService.moveWindowToWorkspace(addr, targetWs);
+                                                                            // Refresh models after hyprland has time to process
+                                                                            Qt.callLater(function() {
+                                                                                HyprlandService.fetchWorkspaces();
+                                                                                HyprlandService.fetchClients();
+                                                                            });
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        } // Rectangle windowCard
                                                     } // Repeater window cards
                                                 } // Column cardsColumn
                                             } // Flickable
                                         } // ColumnLayout (workspace content)
+
+                                        // ── Drop target overlay ──────────────────
+                                        // Accepts window card drags when draggingWindow is active.
+                                        DropArea {
+                                            anchors.fill: parent
+                                            // Only active while a window is being dragged
+                                            enabled: root.draggingWindow
+
+                                            onEntered: drag => {
+                                                root.hoveredWorkspaceId = modelData.id;
+                                            }
+                                            onExited: {
+                                                if (root.hoveredWorkspaceId === modelData.id)
+                                                    root.hoveredWorkspaceId = -1;
+                                            }
+                                        }
 
                                         // Click on empty workspace area → switch workspace
                                         MouseArea {
                                             id: wsHoverArea
                                             anchors.fill: parent
                                             hoverEnabled: true
-                                            // Only activate when no window cards are present
-                                            enabled: workspaceClients.length === 0
+                                            // Only activate when no window cards are present and not dragging
+                                            enabled: workspaceClients.length === 0 && !root.draggingWindow
                                             cursorShape: workspaceClients.length === 0
                                                          ? Qt.PointingHandCursor
                                                          : Qt.ArrowCursor
@@ -488,9 +570,10 @@ Scope {
 
                             Repeater {
                                 model: [
-                                    { key: "Click",  label: "focus window"    },
-                                    { key: "Empty",  label: "switch workspace" },
-                                    { key: "Esc",    label: "close"           }
+                                    { key: "Click",  label: "focus window"      },
+                                    { key: "Drag",   label: "move to workspace" },
+                                    { key: "Empty",  label: "switch workspace"  },
+                                    { key: "Esc",    label: "close"             }
                                 ]
 
                                 Row {
