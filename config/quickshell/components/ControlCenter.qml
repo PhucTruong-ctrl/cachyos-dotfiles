@@ -22,14 +22,13 @@ import "../services"
 PanelWindow {
     id: root
 
-    // ── Position: top-right, below the Bar (exclusive zone respected) ─────────
+    // ── Position: full screen so backdrop can dismiss on click-outside ─────────
     anchors {
-        top:   true
-        right: true
+        top:    true
+        bottom: true
+        left:   true
+        right:  true
     }
-
-    implicitWidth:  400
-    implicitHeight: contentRect.height + 12
 
     WlrLayershell.layer:         WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
@@ -317,18 +316,26 @@ PanelWindow {
         }
     }
 
+    // ── Backdrop — click outside content closes the panel ────────────────────
+    MouseArea {
+        anchors.fill: parent
+        onClicked:    root.open = false
+    }
+
     // ── Main content rectangle ────────────────────────────────────────────────
     Rectangle {
-        id:     contentRect
-        x:      12
-        y:      0
-        width:  parent.width - 24
-        height: mainColumn.implicitHeight + 24
+        id:            contentRect
+        anchors.right: parent.right
+        y:             0
+        width:         400
+        height:        mainColumn.implicitHeight + 24
         color:  GlobalState.base
         radius: 12
         border.color: GlobalState.matugenPrimary
         border.width: 1
         clip:   true
+
+        MouseArea { anchors.fill: parent } // absorb clicks — prevent backdrop from firing
 
         ColumnLayout {
             id:      mainColumn

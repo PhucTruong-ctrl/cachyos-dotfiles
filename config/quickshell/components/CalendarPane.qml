@@ -19,8 +19,6 @@ Scope {
 
     PanelWindow {
         id: calendarWindow
-        implicitWidth: 320
-        implicitHeight: 320
         visible: false
         color: "transparent"
 
@@ -29,21 +27,32 @@ Scope {
         exclusionMode: ExclusionMode.Ignore
 
         anchors {
-            top: true
-            right: true
+            top:    true
+            bottom: true
+            left:   true
+            right:  true
         }
 
-        margins {
-            top: 45
-            right: 12
-        }
-
-        Rectangle {
+        // Backdrop — click outside calendar closes it
+        MouseArea {
             anchors.fill: parent
+            onClicked:    calendarWindow.visible = false
+        }
+
+        // Calendar panel — positioned at top-right
+        Rectangle {
+            anchors.right:       parent.right
+            anchors.top:         parent.top
+            anchors.rightMargin: 12
+            anchors.topMargin:   45
+            width:  320
+            height: 320
             color: GlobalState.base
             radius: 12
             border.color: GlobalState.mauve
             border.width: 1
+
+            MouseArea { anchors.fill: parent } // absorb clicks
 
             ColumnLayout {
                 anchors.fill: parent

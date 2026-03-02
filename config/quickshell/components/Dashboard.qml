@@ -15,14 +15,13 @@ import "../services"
 PanelWindow {
     id: root
 
-    // Position on the right side of the screen
+    // Full screen so backdrop can dismiss on click-outside
     anchors {
-        top: true
+        top:    true
         bottom: true
-        right: true
+        left:   true
+        right:  true
     }
-
-    width: 450
 
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
@@ -41,13 +40,24 @@ PanelWindow {
     // Keep track of active tab (0 = SysMon/Notifs, 1 = Wallpapers)
     property int currentTab: 0
 
-    Rectangle {
+    // Backdrop — click outside closes the panel
+    MouseArea {
         anchors.fill: parent
-        anchors.margins: 12
+        onClicked:    root.visible = false
+    }
+
+    // Panel content — right-side strip, absorbs clicks inside
+    Rectangle {
+        anchors.right:  parent.right
+        anchors.top:    parent.top
+        anchors.bottom: parent.bottom
+        width: 450
         color: GlobalState.base
         radius: 12
         border.color: GlobalState.mauve
         border.width: 1
+
+        MouseArea { anchors.fill: parent } // absorb clicks
 
         ColumnLayout {
             anchors.fill: parent

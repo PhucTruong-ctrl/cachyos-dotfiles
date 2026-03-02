@@ -9,12 +9,12 @@ PanelWindow {
     id: root
 
     anchors {
-        top: true
-        right: true
+        top:    true
+        right:  true
         bottom: true
+        left:   true
     }
 
-    implicitWidth: 450
     color: "transparent"
     visible: false
 
@@ -29,20 +29,37 @@ PanelWindow {
         function hide(): void { root.visible = false }
     }
 
-    Rectangle {
+    // Backdrop — click outside closes the panel
+    MouseArea {
         anchors.fill: parent
-        anchors.margins: 12
-        color: "#1e1e2e"
-        radius: 12
-        border.color: "#cba6f7"
-        border.width: 1
-        
-        ThemeMatrix {
+        onClicked:    root.visible = false
+    }
+
+    // Panel content — right-side strip, absorbs clicks inside
+    Rectangle {
+        anchors.right:  parent.right
+        anchors.top:    parent.top
+        anchors.bottom: parent.bottom
+        width:  450
+        color:  "transparent"
+
+        MouseArea { anchors.fill: parent } // absorb clicks
+
+        Rectangle {
             anchors.fill: parent
             anchors.margins: 12
-            cellWidth: 194
-            cellHeight: 120
-            clip: true
+            color: "#1e1e2e"
+            radius: 12
+            border.color: "#cba6f7"
+            border.width: 1
+            
+            ThemeMatrix {
+                anchors.fill: parent
+                anchors.margins: 12
+                cellWidth: 194
+                cellHeight: 120
+                clip: true
+            }
         }
     }
 }
