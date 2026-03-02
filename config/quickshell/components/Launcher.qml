@@ -12,6 +12,8 @@
 //   - DesktopEntries provides live .desktop file enumeration (no subprocess).
 //   - ScriptModel filters by name / genericName / comment as the user types.
 //   - Arrow keys + Enter/Return navigate and launch.
+//   - Tab bar at the top switches between "Apps" and "Clipboard" modes.
+//   - In Clipboard mode, ClipboardService provides cliphist-backed history.
 //   - MUST NOT take focus when not explicitly toggled (visible: false at start).
 
 import Quickshell
@@ -40,6 +42,10 @@ Scope {
                 console.log("[Launcher] opening — resetting search and focusing input");
                 searchInput.text = "";
                 root.selectedIndex = 0;
+                // If clipboard mode is active, refresh history on open
+                if (root.clipboardMode) {
+                    ClipboardService.refresh();
+                }
                 searchInput.forceActiveFocus();
             } else {
                 console.log("[Launcher] closing");
@@ -50,8 +56,9 @@ Scope {
     // ──────────────────────────────────────────────────────────────────────────
     // State
     // ──────────────────────────────────────────────────────────────────────────
-    property int selectedIndex: 0
+    property int  selectedIndex: 0
     property bool usingKeyboard: false   // true while navigating via arrow keys
+    property bool clipboardMode: false   // true when Clipboard tab is active
 
     // ──────────────────────────────────────────────────────────────────────────
     // Filtered application list
@@ -91,12 +98,43 @@ Scope {
     }
 
     // ──────────────────────────────────────────────────────────────────────────
+    // Filtered clipboard list
+    // A ScriptModel that filters ClipboardService.clipboardItems by search text.
+    // ──────────────────────────────────────────────────────────────────────────
+    ScriptModel {
+        id: filteredClipboard
+        objectProp: "id"
+
+        values: {
+            const q = searchInput.text.trim().toLowerCase();
+            const count = ClipboardService.clipboardItems.count;
+            const items = [];
+            for (let i = 0; i < count; i++) {
+                const item = ClipboardService.clipboardItems.get(i);
+                if (q === "" || item.text.toLowerCase().includes(q)) {
+                    items.push({ id: item.id, text: item.text });
+                }
+            }
+            return items;
+        }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
     // Helper: launch an app and close the launcher
     // ──────────────────────────────────────────────────────────────────────────
     function launchApp(entry) {
         console.log("[Launcher] launching app: name=" + (entry.name ?? "(unknown)") +
             " exec=" + (entry.exec ?? "(unknown)"));
         entry.execute();
+        launcherWindow.visible = false;
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // Helper: paste a clipboard entry and close the launcher
+    // ──────────────────────────────────────────────────────────────────────────
+    function pasteClipboardItem(item) {
+        console.log("[Launcher] pasting clipboard item id=" + item.id);
+        ClipboardService.paste(item.id);
         launcherWindow.visible = false;
     }
 
@@ -170,12 +208,65 @@ Scope {
                 anchors.margins: 18
                 spacing: 12
 
-                // ── Header ────────────────────────────────────────────────────
-                Text {
-                    text: " App Launcher"
-                    color: GlobalState.matugenPrimary       // Catppuccin Mocha mauve
-                    font.pixelSize: 15
-                    font.bold: true
+                // ── Mode tab bar: "Apps" | "Clipboard" ───────────────────────
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 0
+
+                    Repeater {
+                        model: [
+                            { label: " Apps",       isClipboard: false },
+                            { label: " Clipboard",  isClipboard: true  }
+                        ]
+
+                        Rectangle {
+                            required property var modelData
+                            required property int index
+
+                            Layout.fillWidth: true
+                            height: 32
+                            radius: 8
+                            // Only round corners on the relevant side
+                            // We use a simpler approach: full radius, overlap via spacing=0
+                            color: (root.clipboardMode === modelData.isClipboard)
+                                   ? GlobalState.surface1
+                                   : "transparent"
+
+                            Behavior on color {
+                                ColorAnimation { duration: Appearance.popupFade }
+                            }
+
+                            Text {
+                                anchors.centerIn: parent
+                                text:  modelData.label
+                                color: (root.clipboardMode === modelData.isClipboard)
+                                       ? GlobalState.matugenPrimary
+                                       : GlobalState.overlay1
+                                font.pixelSize: 13
+                                font.bold: root.clipboardMode === modelData.isClipboard
+
+                                Behavior on color {
+                                    ColorAnimation { duration: Appearance.popupFade }
+                                }
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape:  Qt.PointingHandCursor
+                                onClicked: {
+                                    const wasClipboard = root.clipboardMode;
+                                    root.clipboardMode = modelData.isClipboard;
+                                    root.selectedIndex = 0;
+                                    searchInput.text = "";
+                                    // Refresh clipboard history when switching to clipboard mode
+                                    if (!wasClipboard && root.clipboardMode) {
+                                        ClipboardService.refresh();
+                                    }
+                                    searchInput.forceActiveFocus();
+                                }
+                            }
+                        }
+                    }
                 }
 
                 // ── Search box ────────────────────────────────────────────────
@@ -215,10 +306,12 @@ Scope {
                             font.pixelSize:   15
                             clip:             true
 
-                            // Placeholder
+                            // Placeholder text changes by mode
                             Text {
                                 anchors.fill:       parent
-                                text:               "Type to search applications…"
+                                text:               root.clipboardMode
+                                                    ? "Search clipboard history…"
+                                                    : "Type to search applications…"
                                 color:              GlobalState.overlay1   // overlay0
                                 font:               parent.font
                                 visible:            !parent.text && !parent.activeFocus
@@ -270,29 +363,76 @@ Scope {
 
                             Keys.onReturnPressed: {
                                 if (resultsList.count > 0) {
-                                    const entry =
-                                        filteredApps.values[root.selectedIndex];
-                                    if (entry) root.launchApp(entry);
+                                    if (root.clipboardMode) {
+                                        const item = filteredClipboard.values[root.selectedIndex];
+                                        if (item) root.pasteClipboardItem(item);
+                                    } else {
+                                        const entry = filteredApps.values[root.selectedIndex];
+                                        if (entry) root.launchApp(entry);
+                                    }
                                 }
                             }
 
                             Keys.onEnterPressed: {
                                 if (resultsList.count > 0) {
-                                    const entry =
-                                        filteredApps.values[root.selectedIndex];
-                                    if (entry) root.launchApp(entry);
+                                    if (root.clipboardMode) {
+                                        const item = filteredClipboard.values[root.selectedIndex];
+                                        if (item) root.pasteClipboardItem(item);
+                                    } else {
+                                        const entry = filteredApps.values[root.selectedIndex];
+                                        if (entry) root.launchApp(entry);
+                                    }
                                 }
                             }
                         }
                     }
                 }
 
-                // ── Result count hint ─────────────────────────────────────────
-                Text {
-                    text: resultsList.count + " result" +
-                          (resultsList.count !== 1 ? "s" : "")
-                    color:          GlobalState.overlay1   // overlay0
-                    font.pixelSize: 11
+                // ── Result count hint + Clear All (clipboard mode only) ───────
+                RowLayout {
+                    Layout.fillWidth: true
+
+                    Text {
+                        text: resultsList.count + " result" +
+                              (resultsList.count !== 1 ? "s" : "")
+                        color:          GlobalState.overlay1
+                        font.pixelSize: 11
+                        Layout.fillWidth: true
+                    }
+
+                    // Clear All button — only shown in clipboard mode
+                    Rectangle {
+                        visible: root.clipboardMode
+                        width:   clearAllLabel.implicitWidth + 20
+                        height:  22
+                        radius:  6
+                        color:   clearAllArea.containsMouse
+                                 ? GlobalState.surface1
+                                 : "transparent"
+
+                        Behavior on color {
+                            ColorAnimation { duration: Appearance.popupFade }
+                        }
+
+                        Text {
+                            id: clearAllLabel
+                            anchors.centerIn: parent
+                            text:             " Clear All"
+                            color:            GlobalState.red ?? "#F38BA8"
+                            font.pixelSize:   11
+                        }
+
+                        MouseArea {
+                            id: clearAllArea
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape:  Qt.PointingHandCursor
+                            onClicked: {
+                                console.log("[Launcher] Clear All clipboard history");
+                                ClipboardService.clear();
+                            }
+                        }
+                    }
                 }
 
                 // ── Results list ──────────────────────────────────────────────
@@ -300,7 +440,8 @@ Scope {
                     id: resultsList
                     Layout.fillWidth:  true
                     Layout.fillHeight: true
-                    model:             filteredApps
+                    // Switch model between apps and clipboard depending on mode
+                    model:             root.clipboardMode ? filteredClipboard : filteredApps
                     clip:              true
                     spacing:           2
                     boundsBehavior:    Flickable.StopAtBounds
@@ -325,6 +466,7 @@ Scope {
                         }
                     }
 
+                    // ── App delegate (shown in Apps mode) ────────────────────
                     delegate: Rectangle {
                         id: delegateRoot
                         required property var modelData
@@ -337,18 +479,21 @@ Scope {
                                 root.selectedIndex !== index
                                 ? GlobalState.mantle   // mantle — subtle hover tint
                                 : "transparent"
+                        visible: true
 
                         Behavior on color {
                             ColorAnimation { duration: Appearance.popupFade }
                         }
 
+                        // ── App mode row ──────────────────────────────────────
                         RowLayout {
                             anchors.fill:        parent
                             anchors.leftMargin:  12
                             anchors.rightMargin: 12
                             spacing: 12
+                            visible: !root.clipboardMode
 
-                            // ── App icon ─────────────────────────────────────
+                            // ── App icon ──────────────────────────────────────
                             Item {
                                 width:  28
                                 height: 28
@@ -357,7 +502,7 @@ Scope {
                                 IconImage {
                                     anchors.fill: parent
                                     source: Quickshell.iconPath(
-                                        delegateRoot.modelData.icon ?? "", true
+                                        (delegateRoot.modelData.icon ?? ""), true
                                     )
                                     visible: (delegateRoot.modelData.icon ?? "") !== ""
                                 }
@@ -372,7 +517,7 @@ Scope {
                                 }
                             }
 
-                            // ── Text info ────────────────────────────────────
+                            // ── Text info ─────────────────────────────────────
                             ColumnLayout {
                                 Layout.fillWidth:  true
                                 Layout.alignment:  Qt.AlignVCenter
@@ -381,8 +526,8 @@ Scope {
                                 Text {
                                     text:  delegateRoot.modelData.name ?? ""
                                     color: root.selectedIndex === delegateRoot.index
-                                           ? GlobalState.text   // text (bright when selected)
-                                           : GlobalState.subtext0   // subtext1
+                                           ? GlobalState.text
+                                           : GlobalState.subtext0
                                     font.pixelSize: 13
                                     font.bold: root.selectedIndex === delegateRoot.index
                                     elide: Text.ElideRight
@@ -392,12 +537,44 @@ Scope {
                                 Text {
                                     text: delegateRoot.modelData.genericName ??
                                           delegateRoot.modelData.comment ?? ""
-                                    color:          GlobalState.overlay1   // overlay0
+                                    color:          GlobalState.overlay1
                                     font.pixelSize: 11
                                     elide:          Text.ElideRight
                                     Layout.fillWidth: true
                                     visible: text !== ""
                                 }
+                            }
+                        }
+
+                        // ── Clipboard mode row ────────────────────────────────
+                        RowLayout {
+                            anchors.fill:        parent
+                            anchors.leftMargin:  12
+                            anchors.rightMargin: 12
+                            spacing: 12
+                            visible: root.clipboardMode
+
+                            // Clipboard icon
+                            Text {
+                                text:             ""   // Nerd Font clipboard glyph
+                                color:            root.selectedIndex === delegateRoot.index
+                                                  ? GlobalState.matugenPrimary
+                                                  : GlobalState.overlay1
+                                font.pixelSize:   18
+                                Layout.alignment: Qt.AlignVCenter
+                            }
+
+                            // Clipboard text content (truncated)
+                            Text {
+                                text:  delegateRoot.modelData.text ?? ""
+                                color: root.selectedIndex === delegateRoot.index
+                                       ? GlobalState.text
+                                       : GlobalState.subtext0
+                                font.pixelSize:  13
+                                font.bold:       root.selectedIndex === delegateRoot.index
+                                elide:           Text.ElideRight
+                                Layout.fillWidth: true
+                                Layout.alignment: Qt.AlignVCenter
                             }
                         }
 
@@ -407,9 +584,15 @@ Scope {
                             hoverEnabled:  true
                             cursorShape:   Qt.PointingHandCursor
                             onClicked: {
-                                console.log("[Launcher] app item clicked: name=" +
-                                    (delegateRoot.modelData.name ?? "(unknown)"));
-                                root.launchApp(delegateRoot.modelData);
+                                if (root.clipboardMode) {
+                                    console.log("[Launcher] clipboard item clicked: id=" +
+                                        (delegateRoot.modelData.id ?? "(unknown)"));
+                                    root.pasteClipboardItem(delegateRoot.modelData);
+                                } else {
+                                    console.log("[Launcher] app item clicked: name=" +
+                                        (delegateRoot.modelData.name ?? "(unknown)"));
+                                    root.launchApp(delegateRoot.modelData);
+                                }
                             }
                             onPositionChanged: {
                                 // Mouse moved — switch back to mouse-driven selection
@@ -422,10 +605,12 @@ Scope {
                     // ── Empty state ───────────────────────────────────────────
                     Text {
                         anchors.centerIn: parent
-                        text:  "No applications found"
+                        text: root.clipboardMode
+                              ? "No clipboard history"
+                              : "No applications found"
                         color: GlobalState.overlay1
                         font.pixelSize: 14
-                        visible: resultsList.count === 0 && searchInput.text !== ""
+                        visible: resultsList.count === 0
                     }
                 }
 
@@ -435,11 +620,17 @@ Scope {
                     spacing: 14
 
                     Repeater {
-                        model: [
-                            { key: "↑↓",    label: "navigate" },
-                            { key: "⏎",     label: "launch"   },
-                            { key: "Esc",   label: "close"    }
-                        ]
+                        model: root.clipboardMode
+                            ? [
+                                { key: "↑↓",    label: "navigate" },
+                                { key: "⏎",     label: "paste"    },
+                                { key: "Esc",   label: "close"    }
+                              ]
+                            : [
+                                { key: "↑↓",    label: "navigate" },
+                                { key: "⏎",     label: "launch"   },
+                                { key: "Esc",   label: "close"    }
+                              ]
 
                         Row {
                             required property var modelData

@@ -1,4 +1,6 @@
 
+cliphist
 grim
 slurp
 swappy
+wl-clipboard
