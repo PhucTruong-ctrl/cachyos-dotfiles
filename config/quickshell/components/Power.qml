@@ -14,6 +14,7 @@
 //   - MUST NOT take focus when not visible (visible: false at start).
 
 import Quickshell
+import "../services"
 import Quickshell.Io
 import Quickshell.Wayland
 import QtQuick
@@ -104,7 +105,7 @@ Scope {
 
                 Rectangle {
                     anchors.fill: parent
-                    color: "#cc000000"   // semi-transparent dark overlay
+                    color: Qt.rgba(0,0,0, 0.8)   // semi-transparent dark overlay
                 }
             }
 
@@ -120,8 +121,8 @@ Scope {
                 radius: 18
 
                 // Catppuccin Mocha palette (matches Bar.qml / Launcher.qml)
-                color:        "#1e1e2e"   // base
-                border.color: "#313244"   // surface0
+                color:        GlobalState.base   // base
+                border.color: GlobalState.surface0   // surface0
                 border.width: 1
 
                 // Swallow backdrop clicks so they don't close the menu
@@ -147,7 +148,7 @@ Scope {
 
                         Text {
                             text: " Power"
-                            color: "#cba6f7"       // Catppuccin Mocha mauve
+                            color: GlobalState.matugenPrimary       // Catppuccin Mocha mauve
                             font.pixelSize: 18
                             font.bold: true
                             Layout.alignment: Qt.AlignHCenter
@@ -155,7 +156,7 @@ Scope {
 
                         Text {
                             text: "Choose an action"
-                            color: "#6c7086"       // overlay0
+                            color: GlobalState.overlay1       // overlay0
                             font.pixelSize: 12
                             Layout.alignment: Qt.AlignHCenter
                         }
@@ -165,7 +166,7 @@ Scope {
                     Rectangle {
                         Layout.fillWidth: true
                         height: 1
-                        color:  "#313244"   // surface0
+                        color:  GlobalState.surface0   // surface0
                     }
 
                     // ── Action buttons grid (3 columns × 2 rows) ──────────────
@@ -198,18 +199,18 @@ Scope {
 
                                 // Highlight colours per category
                                 readonly property color accentColor: {
-                                    if (modelData.label === "Cancel")   return "#6c7086"  // overlay0 (neutral)
-                                    if (modelData.label === "Lock")     return "#89dceb"  // sky
-                                    if (modelData.label === "Suspend")  return "#89b4fa"  // blue
-                                    if (modelData.label === "Logout")   return "#fab387"  // peach
-                                    if (modelData.label === "Reboot")   return "#f9e2af"  // yellow
-                                    if (modelData.label === "Shutdown") return "#f38ba8"  // red
-                                    return "#cdd6f4"
+                                    if (modelData.label === "Cancel")   return GlobalState.overlay1  // overlay0 (neutral)
+                                    if (modelData.label === "Lock")     return GlobalState.sky  // sky
+                                    if (modelData.label === "Suspend")  return GlobalState.blue  // blue
+                                    if (modelData.label === "Logout")   return GlobalState.peach  // peach
+                                    if (modelData.label === "Reboot")   return GlobalState.warning  // yellow
+                                    if (modelData.label === "Shutdown") return GlobalState.matugenError  // red
+                                    return GlobalState.text
                                 }
 
-                                color: btnArea.containsMouse ? Qt.darker(accentColor, 4.5) : "#181825"
+                                color: btnArea.containsMouse ? Qt.darker(accentColor, 4.5) : GlobalState.mantle
 
-                                border.color: btnArea.containsMouse ? accentColor : "#313244"
+                                border.color: btnArea.containsMouse ? accentColor : GlobalState.surface0
                                 border.width: 1
 
                                 Behavior on color {
@@ -233,8 +234,8 @@ Scope {
                                     Text {
                                         text:  modelData.label
                                         color: btnArea.containsMouse
-                                               ? "#cdd6f4"    // bright when hovered
-                                               : "#a6adc8"    // subtext1 otherwise
+                                               ? GlobalState.text    // bright when hovered
+                                               : GlobalState.subtext0    // subtext1 otherwise
                                         font.pixelSize: 12
                                         font.bold: btnArea.containsMouse
                                         Layout.alignment: Qt.AlignHCenter

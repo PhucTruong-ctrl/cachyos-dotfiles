@@ -2,6 +2,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import "../services"
 import Quickshell.Wayland
 import Quickshell.Io
 
@@ -48,7 +49,7 @@ PanelWindow {
         NotifCenter {
             anchors.fill: parent
             anchors.margins: 12
-            border.color: "#cba6f7"
+            border.color: GlobalState.matugenPrimary
             border.width: 1
         }
     }
