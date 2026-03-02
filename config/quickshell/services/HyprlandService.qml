@@ -131,6 +131,12 @@ QtObject {
         running: false
     }
 
+    // ── hyprctl dispatch movetoworkspacesilent ────────────────────────────────
+    property Process _moveWindowProc: Process {
+        id: moveWindowProc
+        running: false
+    }
+
     // ── Public API ────────────────────────────────────────────────────────────
 
     /// Refresh clientModel from hyprctl clients -j
@@ -163,5 +169,17 @@ QtObject {
         workspaceProc.command = ["hyprctl", "dispatch", "workspace", String(id)];
         workspaceProc.running = false;
         workspaceProc.running = true;
+    }
+
+    /// Silently move a window to a workspace (drag-and-drop use case).
+    /// Dispatches: hyprctl dispatch movetoworkspacesilent <workspaceId>,address:<address>
+    function moveWindowToWorkspace(address, workspaceId) {
+        console.log("[HyprlandService] moveWindowToWorkspace: address=" + address + " ws=" + workspaceId);
+        moveWindowProc.command = [
+            "hyprctl", "dispatch", "movetoworkspacesilent",
+            String(workspaceId) + ",address:" + address
+        ];
+        moveWindowProc.running = false;
+        moveWindowProc.running = true;
     }
 }
