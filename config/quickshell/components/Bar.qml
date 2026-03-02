@@ -320,6 +320,11 @@ Scope {
                         }
                     }
 
+                    // Media Widget: compact MPRIS controls (hidden when no player)
+                    MediaWidget {
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+
                     // Battery: icon swaps between charging/discharging sets; color signals level
                     Row {
                         spacing: 4
