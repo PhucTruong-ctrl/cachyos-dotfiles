@@ -64,13 +64,8 @@ Scope {
     }
 
     Process {
-        id: wifiProcess
-        command: ["alacritty", "-e", "nmtui"]
-    }
-
-    Process {
-        id: btProcess
-        command: ["overskride"]
+        id: controlCenterIpc
+        command: ["qs", "ipc", "call", "control-center", "toggle"]
     }
 
     Process {
@@ -217,8 +212,8 @@ Scope {
                             
                             Text {
                                 anchors.centerIn: parent
-                                text: "󰖩" // nf-md-wifi (nerd font)
-                                color: GlobalState.matugenOnSurface
+                                text: NetworkService.wifiEnabled ? "󰖩" : "󰤭"
+                                color: NetworkService.wifiEnabled ? GlobalState.matugenPrimary : GlobalState.overlay1
                                 font.pixelSize: 16
                                 font.family: "monospace"
                             }
@@ -226,9 +221,14 @@ Scope {
                             MouseArea {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    wifiProcess.running = false
-                                    wifiProcess.running = true
+                                acceptedButtons: Qt.LeftButton | Qt.RightButton
+                                onClicked: mouse => {
+                                    if (mouse.button === Qt.RightButton) {
+                                        controlCenterIpc.running = false
+                                        controlCenterIpc.running = true
+                                    } else {
+                                        NetworkService.toggleWifi()
+                                    }
                                 }
                             }
                         }
@@ -240,8 +240,8 @@ Scope {
                             
                             Text {
                                 anchors.centerIn: parent
-                                text: "󰂯" // nf-md-bluetooth (nerd font)
-                                color: GlobalState.matugenOnSurface
+                                text: BluetoothService.enabled ? "󰂯" : "󰂲"
+                                color: BluetoothService.enabled ? GlobalState.matugenPrimary : GlobalState.overlay1
                                 font.pixelSize: 16
                                 font.family: "monospace"
                             }
@@ -249,9 +249,14 @@ Scope {
                             MouseArea {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    btProcess.running = false
-                                    btProcess.running = true
+                                acceptedButtons: Qt.LeftButton | Qt.RightButton
+                                onClicked: mouse => {
+                                    if (mouse.button === Qt.RightButton) {
+                                        controlCenterIpc.running = false
+                                        controlCenterIpc.running = true
+                                    } else {
+                                        BluetoothService.togglePower()
+                                    }
                                 }
                             }
                         }

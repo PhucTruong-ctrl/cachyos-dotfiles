@@ -50,6 +50,7 @@ Scope {
     // State
     // ──────────────────────────────────────────────────────────────────────────
     property int selectedIndex: 0
+    property bool usingKeyboard: false   // true while navigating via arrow keys
 
     // ──────────────────────────────────────────────────────────────────────────
     // Filtered application list
@@ -232,36 +233,53 @@ Scope {
                                 launcherWindow.visible = false;
                             }
 
-                            Keys.onPressed: event => {
-                                if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab) {
-                                    event.accepted = true;
-                                    root.selectedIndex = Math.min(
-                                        root.selectedIndex + 1,
-                                        resultsList.count - 1
-                                    );
-                                    console.log("[Launcher] key Down/Tab — selectedIndex=" + root.selectedIndex);
-                                    resultsList.positionViewAtIndex(
-                                        root.selectedIndex, ListView.Contain
-                                    );
-                                } else if (event.key === Qt.Key_Up) {
-                                    event.accepted = true;
-                                    root.selectedIndex = Math.max(
-                                        root.selectedIndex - 1, 0
-                                    );
-                                    console.log("[Launcher] key Up — selectedIndex=" + root.selectedIndex);
-                                    resultsList.positionViewAtIndex(
-                                        root.selectedIndex, ListView.Contain
-                                    );
-                                } else if (
-                                    event.key === Qt.Key_Return ||
-                                    event.key === Qt.Key_Enter
-                                ) {
-                                    event.accepted = true;
-                                    if (resultsList.count > 0) {
-                                        const entry =
-                                            filteredApps.values[root.selectedIndex];
-                                        if (entry) root.launchApp(entry);
-                                    }
+                            Keys.onDownPressed: {
+                                root.usingKeyboard = true;
+                                root.selectedIndex = Math.min(
+                                    root.selectedIndex + 1,
+                                    resultsList.count - 1
+                                );
+                                console.log("[Launcher] key Down — selectedIndex=" + root.selectedIndex);
+                                resultsList.positionViewAtIndex(
+                                    root.selectedIndex, ListView.Contain
+                                );
+                            }
+
+                            Keys.onUpPressed: {
+                                root.usingKeyboard = true;
+                                root.selectedIndex = Math.max(
+                                    root.selectedIndex - 1, 0
+                                );
+                                console.log("[Launcher] key Up — selectedIndex=" + root.selectedIndex);
+                                resultsList.positionViewAtIndex(
+                                    root.selectedIndex, ListView.Contain
+                                );
+                            }
+
+                            Keys.onTabPressed: {
+                                root.usingKeyboard = true;
+                                root.selectedIndex = Math.min(
+                                    root.selectedIndex + 1,
+                                    resultsList.count - 1
+                                );
+                                resultsList.positionViewAtIndex(
+                                    root.selectedIndex, ListView.Contain
+                                );
+                            }
+
+                            Keys.onReturnPressed: {
+                                if (resultsList.count > 0) {
+                                    const entry =
+                                        filteredApps.values[root.selectedIndex];
+                                    if (entry) root.launchApp(entry);
+                                }
+                            }
+
+                            Keys.onEnterPressed: {
+                                if (resultsList.count > 0) {
+                                    const entry =
+                                        filteredApps.values[root.selectedIndex];
+                                    if (entry) root.launchApp(entry);
                                 }
                             }
                         }
@@ -392,7 +410,11 @@ Scope {
                                     (delegateRoot.modelData.name ?? "(unknown)"));
                                 root.launchApp(delegateRoot.modelData);
                             }
-                            onEntered:     root.selectedIndex = delegateRoot.index
+                            onPositionChanged: {
+                                // Mouse moved — switch back to mouse-driven selection
+                                root.usingKeyboard = false;
+                                root.selectedIndex = delegateRoot.index;
+                            }
                         }
                     }
 

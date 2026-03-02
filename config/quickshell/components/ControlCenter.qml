@@ -105,11 +105,13 @@ PanelWindow {
         id:      pamixerGetVolume
         command: ["pamixer", "--get-volume"]
         running: true
-        onStdout: (data) => {
-            const v = parseInt(data.trim())
-            if (!isNaN(v)) {
-                root.currentVolume = v
-                if (!volSlider.pressed) volSlider.value = v
+        stdout: SplitParser {
+            onRead: data => {
+                const v = parseInt(data.trim())
+                if (!isNaN(v)) {
+                    root.currentVolume = v
+                    if (!volSlider.pressed) volSlider.value = v
+                }
             }
         }
     }
@@ -118,8 +120,10 @@ PanelWindow {
         id:      pamixerGetMute
         command: ["pamixer", "--get-mute"]
         running: true
-        onStdout: (data) => {
-            root.isMuted = (data.trim() === "true")
+        stdout: SplitParser {
+            onRead: data => {
+                root.isMuted = (data.trim() === "true")
+            }
         }
     }
 
@@ -144,11 +148,13 @@ PanelWindow {
         id:      brightnessGetMax
         command: ["brightnessctl", "m"]
         running: true
-        onStdout: (data) => {
-            const max = parseInt(data.trim())
-            if (!isNaN(max) && max > 0) {
-                root.maxBrightness = max
-                brightnessGet.running = true
+        stdout: SplitParser {
+            onRead: data => {
+                const max = parseInt(data.trim())
+                if (!isNaN(max) && max > 0) {
+                    root.maxBrightness = max
+                    brightnessGet.running = true
+                }
             }
         }
     }
@@ -157,12 +163,14 @@ PanelWindow {
         id:      brightnessGet
         command: ["brightnessctl", "g"]
         running: false
-        onStdout: (data) => {
-            const val = parseInt(data.trim())
-            if (!isNaN(val) && root.maxBrightness > 0) {
-                const pct = Math.round((val / root.maxBrightness) * 100)
-                root.currentBrightness = pct
-                if (!brightSlider.pressed) brightSlider.value = pct
+        stdout: SplitParser {
+            onRead: data => {
+                const val = parseInt(data.trim())
+                if (!isNaN(val) && root.maxBrightness > 0) {
+                    const pct = Math.round((val / root.maxBrightness) * 100)
+                    root.currentBrightness = pct
+                    if (!brightSlider.pressed) brightSlider.value = pct
+                }
             }
         }
     }
