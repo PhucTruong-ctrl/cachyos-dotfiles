@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import "."
 
 QtObject {
     id: root
@@ -57,9 +58,13 @@ QtObject {
     property bool nightModeActive: false
     property bool dndActive: false
 
-    // System Status
-    property bool isBatteryCharging: false
-    property int batteryRemaining: 100
+    // System Status — forwarding aliases to BatteryService singleton
+    // batteryLevel: canonical name for downstream tasks / Task 11 lock screen
+    readonly property int  batteryLevel:      BatteryService.percentage
+    // Legacy aliases kept so existing Bar.qml bindings continue working
+    // without change — Bar will be updated separately in this task.
+    readonly property int  batteryRemaining:  BatteryService.percentage
+    readonly property bool isBatteryCharging: BatteryService.isCharging
 
     // Path to matugen colors (kept for reference / future use)
     property string colorsPath: Quickshell.env("HOME") + "/.cache/matugen/colors.json"
@@ -103,36 +108,6 @@ QtObject {
         // Force-restart: stop first so the false→true transition is always detected
         colorReader.running = false;
         colorReader.running = true;
-    }
-
-    // ── Battery polling ──────────────────────────────────────────────────────
-    property Process batteryReader: Process {
-        command: ["bash", "-c",
-            "echo \"$(cat /sys/class/power_supply/BAT0/capacity 2>/dev/null || echo 100)" +
-            " $(cat /sys/class/power_supply/BAT0/status 2>/dev/null || echo Unknown)\""]
-        running: false
-        stdout: SplitParser {
-            onRead: data => {
-                const parts = data.trim().split(" ");
-                if (parts.length >= 2) {
-                    const pct = parseInt(parts[0]);
-                    const st  = parts[1];
-                    if (!isNaN(pct)) root.batteryRemaining  = pct;
-                    root.isBatteryCharging = (st === "Charging" || st === "Full");
-                }
-            }
-        }
-    }
-
-    property Timer batteryTimer: Timer {
-        interval: 30000
-        running: true
-        repeat: true
-        triggeredOnStart: true
-        onTriggered: {
-            root.batteryReader.running = false;
-            root.batteryReader.running = true;
-        }
     }
 
     Component.onCompleted: {
