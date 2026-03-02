@@ -30,8 +30,8 @@ Scope {
 
     // Battery icon: level-accurate nerd font glyph, swaps set based on charge state
     readonly property string batteryIcon: {
-        var p = GlobalState.batteryRemaining
-        if (GlobalState.isBatteryCharging) {
+        var p = BatteryService.percentage
+        if (BatteryService.isCharging) {
             if (p <= 10) return "󰢜"
             if (p <= 20) return "󰂆"
             if (p <= 30) return "󰂇"
@@ -56,11 +56,11 @@ Scope {
         }
     }
 
-    // Battery color: green=charging, red=critical(≤20%), yellow=low(≤50%), normal otherwise
+    // Battery color: green=charging, red=critical(isLow ≤14%), yellow=low(≤50%), normal otherwise
     readonly property color batteryColor: {
-        if (GlobalState.isBatteryCharging)        return GlobalState.success
-        if (GlobalState.batteryRemaining <= 20)   return GlobalState.matugenError
-        if (GlobalState.batteryRemaining <= 50)   return GlobalState.warning
+        if (BatteryService.isCharging)  return GlobalState.success
+        if (BatteryService.isLow)       return GlobalState.matugenError
+        if (BatteryService.percentage <= 50) return GlobalState.warning
         return GlobalState.matugenOnSurface
     }
 
@@ -333,7 +333,7 @@ Scope {
                             anchors.verticalCenter: parent.verticalCenter
                         }
                         Text {
-                            text: GlobalState.batteryRemaining + "%"
+                            text: BatteryService.percentage + "%"
                             color: barRoot.batteryColor
                             font.family: "monospace"
                             font.pixelSize: 13
