@@ -50,27 +50,21 @@ log_info "Generating Matugen palette from: $wallpaper"
 matugen image "$wallpaper" --json hex \
     | jq '{
         colors: {
-            primary: .colors.dark.primary,
-            onPrimary: .colors.dark.on_primary,
-            background: .colors.dark.background,
-            onBackground: .colors.dark.on_background,
-            surface: .colors.dark.surface,
-            onSurface: .colors.dark.on_surface,
-            surfaceVariant: .colors.dark.surface_variant,
-            onSurfaceVariant: .colors.dark.on_surface_variant,
-            error: .colors.dark.error
+            primary: .colors.primary.dark,
+            onPrimary: .colors.on_primary.dark,
+            background: .colors.background.dark,
+            onBackground: .colors.on_background.dark,
+            surface: .colors.surface.dark,
+            onSurface: .colors.on_surface.dark,
+            surfaceVariant: .colors.surface_variant.dark,
+            onSurfaceVariant: .colors.on_surface_variant.dark,
+            error: .colors.error.dark
         }
     }' > "$tmp_file"
 
 mv "$tmp_file" "$colors_file"
 log_info "Wrote $colors_file"
 
-if command -v qs > /dev/null; then
-    if qs ipc call global-state reload-colors > /dev/null 2>&1; then
-        log_info "Triggered Quickshell color reload"
-    else
-        log_warn "Quickshell IPC reload failed (shell may not be running)"
-    fi
-else
-    log_warn "qs not found; skipped Quickshell color reload"
-fi
+# No IPC needed — GlobalState.qml uses a FileWatcher on colors.json
+# which detects this write and triggers reloadColors() automatically.
+log_info "FileWatcher will pick up the change automatically"

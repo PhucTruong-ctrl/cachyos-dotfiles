@@ -3,6 +3,7 @@ import QtQuick
 import Qt.labs.folderlistmodel
 import Quickshell
 import Quickshell.Io
+import "../services"
 
 GridView {
     id: root
@@ -53,8 +54,12 @@ GridView {
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
-                    console.log("[ThemeMatrix] Activating wallpaper:", filePath);
-                    wpProcess.command = ["bash", Quickshell.env("HOME") + "/cachyos-dotfiles/scripts/wallpaper-engine.sh", filePath];
+                    // Derive absolute path from fileUrl (known-good) instead of filePath
+                    var wallpaperPath = fileUrl.toString().replace("file://", "");
+                    var scriptPath = Qt.resolvedUrl("../scripts/wallpaper-engine.sh").toString().replace("file://", "");
+                    console.log("[ThemeMatrix] wallpaperPath:", wallpaperPath);
+                    console.log("[ThemeMatrix] scriptPath:", scriptPath);
+                    wpProcess.command = ["bash", scriptPath, wallpaperPath];
                     wpProcess.running = true;
                 }
             }
@@ -63,5 +68,23 @@ GridView {
 
     Process {
         id: wpProcess
+
+        stdout: SplitParser {
+            onRead: data => console.log("[ThemeMatrix] stdout:", data)
+        }
+
+        stderr: SplitParser {
+            onRead: data => console.warn("[ThemeMatrix] stderr:", data)
+        }
+
+        onExited: (exitCode, exitStatus) => {
+            if (exitCode !== 0) {
+                console.warn("[ThemeMatrix] wallpaper-engine.sh failed with exit code:", exitCode);
+            } else {
+                console.log("[ThemeMatrix] wallpaper-engine.sh completed successfully. Triggering color reload directly.");
+                // Ambxst approach: Direct invocation, no IPC needed.
+                GlobalState.reloadColors();
+            }
+        }
     }
 }

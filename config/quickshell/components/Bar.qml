@@ -62,7 +62,7 @@ Scope {
 
             // Bar geometry & background
             implicitHeight: 40
-            color: "#1e1e2e"    // Catppuccin Mocha base
+            color: GlobalState.matugenBackground
 
             exclusiveZone: 40
 
@@ -92,7 +92,7 @@ Scope {
                             height: 22
                             radius: 4
 
-                            color: modelData.focused ? "#cba6f7" : "#313244"
+                            color: modelData.focused ? GlobalState.matugenPrimary : GlobalState.matugenSurface
 
                             Behavior on color {
                                 ColorAnimation { duration: 120 }
@@ -101,7 +101,7 @@ Scope {
                             Text {
                                 anchors.centerIn: parent
                                 text:  modelData.id > 0 ? modelData.id : modelData.name
-                                color: wsPill.modelData.focused ? "#1e1e2e" : "#cdd6f4"
+                                color: wsPill.modelData.focused ? GlobalState.matugenOnPrimary : GlobalState.matugenOnSurface
                                 font.pixelSize: 11
                                 font.bold: wsPill.modelData.focused
                             }
@@ -111,7 +111,7 @@ Scope {
                                 width:  6
                                 height: 6
                                 radius: 3
-                                color:  "#f38ba8"   // Catppuccin Mocha red
+                                color: GlobalState.matugenError
                                 anchors {
                                     top:        parent.top
                                     right:      parent.right
@@ -142,22 +142,22 @@ Scope {
                     // CPU
                     Row {
                         spacing: 4
-                        Text { text: "󰻠"; color: "#cba6f7"; font.family: "monospace"; font.pixelSize: 14; anchors.verticalCenter: parent.verticalCenter }
-                        Text { text: Performance.cpuUsage.toFixed(1) + "%"; color: "#cdd6f4"; font.family: "monospace"; font.pixelSize: 13; anchors.verticalCenter: parent.verticalCenter }
+                        Text { text: "󰻠"; color: GlobalState.matugenPrimary; font.family: "monospace"; font.pixelSize: 14; anchors.verticalCenter: parent.verticalCenter }
+                        Text { text: Performance.cpuUsage.toFixed(1) + "%"; color: GlobalState.matugenOnSurface; font.family: "monospace"; font.pixelSize: 13; anchors.verticalCenter: parent.verticalCenter }
                     }
                     
                     // RAM
                     Row {
                         spacing: 4
-                        Text { text: "󰍛"; color: "#89b4fa"; font.family: "monospace"; font.pixelSize: 14; anchors.verticalCenter: parent.verticalCenter }
-                        Text { text: Performance.ramUsage.toFixed(1) + "%"; color: "#cdd6f4"; font.family: "monospace"; font.pixelSize: 13; anchors.verticalCenter: parent.verticalCenter }
+                        Text { text: "󰍛"; color: GlobalState.blue; font.family: "monospace"; font.pixelSize: 14; anchors.verticalCenter: parent.verticalCenter }
+                        Text { text: Performance.ramUsage.toFixed(1) + "%"; color: GlobalState.matugenOnSurface; font.family: "monospace"; font.pixelSize: 13; anchors.verticalCenter: parent.verticalCenter }
                     }
                     
                     // CPU Temp
                     Row {
                         spacing: 4
-                        Text { text: "󰔏"; color: "#f38ba8"; font.family: "monospace"; font.pixelSize: 14; anchors.verticalCenter: parent.verticalCenter }
-                        Text { text: Performance.cpuTemp.toFixed(1) + "°C"; color: "#cdd6f4"; font.family: "monospace"; font.pixelSize: 13; anchors.verticalCenter: parent.verticalCenter }
+                        Text { text: "󰔏"; color: GlobalState.matugenError; font.family: "monospace"; font.pixelSize: 14; anchors.verticalCenter: parent.verticalCenter }
+                        Text { text: Performance.cpuTemp.toFixed(1) + "°C"; color: GlobalState.matugenOnSurface; font.family: "monospace"; font.pixelSize: 13; anchors.verticalCenter: parent.verticalCenter }
                     }
                 }
 
@@ -177,7 +177,7 @@ Scope {
                         // Wifi Icon
                         Text {
                             text: "󰖩" // nf-md-wifi (nerd font)
-                            color: "#cdd6f4"
+                            color: GlobalState.matugenOnSurface
                             font.pixelSize: 16
                             font.family: "monospace"
                             
@@ -191,7 +191,7 @@ Scope {
                         // Bluetooth Icon
                         Text {
                             text: "󰂯" // nf-md-bluetooth (nerd font)
-                            color: "#cdd6f4"
+                            color: GlobalState.matugenOnSurface
                             font.pixelSize: 16
                             font.family: "monospace"
                             
@@ -206,7 +206,7 @@ Scope {
                     // Theme Icon
                     Text {
                         text: "󰸉" // nf-md-wallpaper
-                        color: "#cdd6f4"
+                        color: GlobalState.matugenOnSurface
                         font.pixelSize: 16
                         font.family: "monospace"
                         
@@ -225,7 +225,7 @@ Scope {
                     // Notification Icon
                     Text {
                         text: "󰂚" // nf-md-bell
-                        color: "#cdd6f4"
+                        color: GlobalState.matugenOnSurface
                         font.pixelSize: 16
                         font.family: "monospace"
                         
@@ -245,7 +245,7 @@ Scope {
                     Text {
                         id: clockLabel
                         text: barRoot.clockText
-                        color: "#cdd6f4"    // Catppuccin Mocha text
+                        color: GlobalState.matugenOnBackground
                         font.pixelSize: 13
                         font.family: "monospace"
                         

@@ -1,6 +1,6 @@
-[config]
-reload_apps = true
-# Use matugen to generate Quickshell color configs
+[config.colors]
+mode = "dark"
+
 [templates.quickshell]
-input_path = "~/.config/quickshell/assets/matugen/qs_colors.json.tpl"
+input_path = "~/.config/matugen/colors.json.template"
 output_path = "~/.cache/matugen/colors.json"

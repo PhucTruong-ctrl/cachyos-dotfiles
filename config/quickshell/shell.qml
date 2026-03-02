@@ -16,6 +16,7 @@
 
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import "components"
 import "services"
 
@@ -26,6 +27,21 @@ ShellRoot {
     settings {
         // Reload the shell automatically whenever any .qml source file is saved.
         watchFiles: true
+    }
+
+    // ------------------------------------------------------------------
+    // GlobalState IPC bridge
+    //
+    // Allows external scripts to force a color reload after matugen writes
+    // ~/.cache/matugen/colors.json:
+    //   qs ipc call global-state reload-colors
+    // ------------------------------------------------------------------
+    IpcHandler {
+        target: "global-state"
+        function reloadColors(): void {
+            console.log("[shell] IPC received: global-state reload-colors");
+            GlobalState.reloadColors();
+        }
     }
 
     // ------------------------------------------------------------------
@@ -91,4 +107,40 @@ ShellRoot {
     // Toggle via: qs ipc call toggle-theme toggle
     // ------------------------------------------------------------------
     ThemePane {}
+
+    // ------------------------------------------------------------------
+    // Wallpaper restore on startup
+    //
+    // Reads the persisted wallpaper path from
+    // ~/.cache/quickshell/current_wallpaper and re-applies it via
+    // wallpaper-engine.sh (which also re-runs matugen color generation).
+    // Runs asynchronously so it never blocks shell startup.
+    // ------------------------------------------------------------------
+    Process {
+        id: wpRestoreReader
+        command: ["cat", Quickshell.env("HOME") + "/.cache/quickshell/current_wallpaper"]
+        running: true
+
+        stdout: SplitParser {
+            onRead: data => {
+                var savedPath = data.trim();
+                if (savedPath.length > 0) {
+                    console.log("[shell] Restoring wallpaper:", savedPath);
+                    var scriptPath = Qt.resolvedUrl("scripts/wallpaper-engine.sh").toString().replace("file://", "");
+                    wpRestoreProcess.command = ["bash", scriptPath, savedPath];
+                    wpRestoreProcess.running = true;
+                }
+            }
+        }
+    }
+
+    Process {
+        id: wpRestoreProcess
+        onExited: (exitCode) => {
+            if (exitCode === 0) {
+                console.log("[shell] Wallpaper restored, reloading colors");
+                GlobalState.reloadColors();
+            }
+        }
+    }
 }
