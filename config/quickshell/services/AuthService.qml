@@ -13,7 +13,7 @@
 //   authSuccess  signal     — Emitted on success
 //   authFailed   signal     — Emitted on failure
 //
-// Must NOT use onStdout — always use stdout: SplitParser { onRead: ... }
+// PAM signal: use onPamMessage + check this.responseRequired (NOT onResponseRequired).
 // Must NOT log or persist password material.
 
 pragma Singleton
@@ -51,10 +51,10 @@ QtObject {
         // Use the same PAM service as hyprlock
         config: "hyprlock"
 
-        onResponseRequired: {
-            // When PAM requests a response, supply the queued password
-            // (only if we have one queued from authenticate())
-            if (root._queuedPassword.length > 0) {
+        onPamMessage: {
+            // pamMessage fires after message/responseRequired properties are updated.
+            // Respond only when PAM is waiting for input and we have a queued password.
+            if (this.responseRequired && root._queuedPassword.length > 0) {
                 pamCtx.respond(root._queuedPassword);
                 root._queuedPassword = "";
             }
@@ -85,7 +85,7 @@ QtObject {
 
     // ── Internal: temporary password store (cleared immediately after use) ───
     // Held only for the brief async window between authenticate() and the
-    // first onResponseRequired callback. Cleared right after respond() is called.
+    // first onPamMessage callback. Cleared right after respond() is called.
     property string _queuedPassword: ""
 
     // ── Public API ────────────────────────────────────────────────────────────
