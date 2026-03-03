@@ -1,12 +1,15 @@
-// MediaWidget.qml — Compact MPRIS media widget for the Bar
+// MediaWidget.qml — End4-style compact MPRIS media widget for the Bar
 //
-// Shows: music icon + scrolling "title — artist" text + play/pause button
-// Only visible when MediaService.hasPlayer is true.
-// Click on text → opens MediaPane via IPC, anchored below this widget.
-// Play/pause button toggles playback directly.
+// Always visible on the bar (never hidden, even without an active player).
 //
-// Geometry wiring: setAnchor("media", ...) is called before toggling MediaPane
-// so PopupAnchorService can position the pane directly below this widget.
+// States:
+//   No player active → greyed music icon + "No media" label
+//   Player active (paused) → music icon + scrolling title/artist + play button
+//   Player active (playing) → mini visualizer strip + scrolling title/artist + pause button
+//
+// Clicking the title/artist area opens MediaPane via PopupStateService ("media" id),
+// anchored directly below this widget via PopupAnchorService.
+// Play/pause button toggles playback directly via MediaService.
 //
 // Colors: all from GlobalState
 // Animations: all durations/curves from Appearance
@@ -19,86 +22,159 @@ import "../services"
 Item {
     id: root
 
-    // Only show widget when a player is active
-    visible: MediaService.hasPlayer
-    width:   visible ? contentRow.implicitWidth + 8 : 0
-    height:  40
+    // Always on the bar — width adapts between "no media" and "active" states
+    width:  contentRow.implicitWidth + 8
+    height: 40
 
     Row {
         id: contentRow
         anchors.verticalCenter: parent.verticalCenter
         spacing: 6
 
-        // Music icon
-        Text {
-            text:             "󰎇"   // nf-md-music_note
-            color:            GlobalState.matugenPrimary
-            font.pixelSize:   15
-            font.family:      "monospace"
-            anchors.verticalCenter: parent.verticalCenter
-        }
-
-        // Scrolling title — artist text
-        Item {
-            id: mediaTextTrigger
-            width:  120
-            height: 20
-            clip:   true
+        // ── No-player fallback: greyed icon + "No media" ──────────────────────
+        Row {
+            id: noMediaRow
+            visible: !MediaService.hasPlayer
+            spacing: 4
             anchors.verticalCenter: parent.verticalCenter
 
             Text {
-                id: mediaText
-                text:           MediaService.title.length > 0
-                                    ? MediaService.title + " — " + MediaService.artist
-                                    : MediaService.playerName
-                color:          GlobalState.matugenOnSurface
-                font.pixelSize: 12
+                text:           "󰎇"   // nf-md-music_note
+                color:          GlobalState.overlay1
+                font.pixelSize: 13
                 font.family:    "monospace"
-                elide:          Text.NoElide
-                x:              scrollAnim.running ? scrollAnim.from : 0
-
-                // Scroll animation: slide left when text is wider than container
-                NumberAnimation {
-                    id:       scrollAnim
-                    target:   mediaText
-                    property: "x"
-                    from:     0
-                    to:       -(mediaText.implicitWidth - 120 + 8)
-                    duration: Math.max(3000, (mediaText.implicitWidth - 120) * 30)
-                    running:  mediaText.implicitWidth > 120
-                    loops:    Animation.Infinite
-                    onStopped: { mediaText.x = 0 }
-                }
+                anchors.verticalCenter: parent.verticalCenter
             }
 
-            MouseArea {
-                anchors.fill:  parent
-                cursorShape:   Qt.PointingHandCursor
-                onClicked: {
-                    // Capture trigger geometry so MediaPane can anchor below this widget
-                    var pos = mediaTextTrigger.mapToItem(null, 0, 0)
-                    PopupAnchorService.setAnchor("media", pos.x, mediaTextTrigger.width, 40)
-                    PopupStateService.toggleExclusive("media")
-                }
+            Text {
+                text:           "No media"
+                color:          GlobalState.overlay1
+                font.pixelSize: 12
+                font.family:    "monospace"
+                anchors.verticalCenter: parent.verticalCenter
             }
         }
 
-        // Play/pause button
-        Text {
-            text:             MediaService.playbackStatus === "Playing" ? "󰏤" : "󰐊"
-            color:            GlobalState.matugenOnSurface
-            font.pixelSize:   15
-            font.family:      "monospace"
+        // ── Active player state ───────────────────────────────────────────────
+        Row {
+            id: activeRow
+            visible: MediaService.hasPlayer
+            spacing: 6
             anchors.verticalCenter: parent.verticalCenter
 
-            Behavior on color {
-                ColorAnimation { duration: Appearance.popupFade }
+            // Mini visualizer strip: 8 bars mapped from CavaService (shown when Playing)
+            Row {
+                id: visualizerStrip
+                visible: MediaService.playbackStatus === "Playing"
+                spacing: 1
+                anchors.verticalCenter: parent.verticalCenter
+
+                Repeater {
+                    // Use every 2nd cava bar (stride=2) to sample 8 bars from 20
+                    model: 8
+
+                    delegate: Item {
+                        width:  3
+                        height: 16
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        Rectangle {
+                            readonly property real barVal: {
+                                const idx = index * 2;
+                                return (CavaService.bars && CavaService.bars.length > idx)
+                                    ? CavaService.bars[idx]
+                                    : 0.0;
+                            }
+
+                            width:          parent.width
+                            height:         Math.max(2, parent.height * barVal)
+                            anchors.bottom: parent.bottom
+                            radius:         1
+                            color:          GlobalState.matugenPrimary
+
+                            Behavior on height {
+                                NumberAnimation {
+                                    duration:    80
+                                    easing.type: Easing.OutQuad
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
-            MouseArea {
-                anchors.fill:  parent
-                cursorShape:   Qt.PointingHandCursor
-                onClicked:     MediaService.playPause()
+            // Music icon — shown when paused (replaces visualizer)
+            Text {
+                visible:        MediaService.playbackStatus !== "Playing"
+                text:           "󰎇"   // nf-md-music_note
+                color:          GlobalState.matugenPrimary
+                font.pixelSize: 13
+                font.family:    "monospace"
+                anchors.verticalCenter: parent.verticalCenter
+            }
+
+            // Scrolling title — artist text; click opens MediaPane
+            Item {
+                id: mediaTextTrigger
+                width:  120
+                height: 20
+                clip:   true
+                anchors.verticalCenter: parent.verticalCenter
+
+                Text {
+                    id: mediaText
+                    text:           MediaService.title.length > 0
+                                        ? MediaService.title + " — " + MediaService.artist
+                                        : MediaService.playerName
+                    color:          GlobalState.matugenOnSurface
+                    font.pixelSize: 12
+                    font.family:    "monospace"
+                    elide:          Text.ElideNone
+                    x:              scrollAnim.running ? scrollAnim.from : 0
+
+                    // Scroll animation: slide left when text overflows container
+                    NumberAnimation {
+                        id:       scrollAnim
+                        target:   mediaText
+                        property: "x"
+                        from:     0
+                        to:       -(mediaText.implicitWidth - 120 + 8)
+                        duration: Math.max(3000, (mediaText.implicitWidth - 120) * 30)
+                        running:  mediaText.implicitWidth > 120
+                        loops:    Animation.Infinite
+                        onStopped: { mediaText.x = 0 }
+                    }
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape:  Qt.PointingHandCursor
+                    onClicked: {
+                        // Capture trigger geometry so MediaPane anchors below this widget
+                        var pos = mediaTextTrigger.mapToItem(null, 0, 0)
+                        PopupAnchorService.setAnchor("media", pos.x, mediaTextTrigger.width, 40)
+                        PopupStateService.toggleExclusive("media")
+                    }
+                }
+            }
+
+            // Play/pause toggle button
+            Text {
+                text:           MediaService.playbackStatus === "Playing" ? "󰏤" : "󰐊"
+                color:          GlobalState.matugenOnSurface
+                font.pixelSize: 15
+                font.family:    "monospace"
+                anchors.verticalCenter: parent.verticalCenter
+
+                Behavior on color {
+                    ColorAnimation { duration: Appearance.popupFade }
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape:  Qt.PointingHandCursor
+                    onClicked:    MediaService.playPause()
+                }
             }
         }
     }

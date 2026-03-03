@@ -275,19 +275,63 @@ PanelWindow {
                     visible:          MediaService.playerName.length > 0
                 }
 
-                // Progress bar (visual only — no position tracking)
-                Rectangle {
+                // Visualizer / progress area — live cava bars when Playing,
+                // dim placeholder row when Paused/Stopped.
+                Item {
                     Layout.fillWidth:       true
-                    Layout.preferredHeight: 4
-                    radius:                 2
-                    color:                  GlobalState.surface1
+                    Layout.preferredHeight: 40
 
+                    // Cava visualizer: 20 bars (one per CavaService.bars entry)
+                    Row {
+                        id: cavaVisualizer
+                        visible:         MediaService.playbackStatus === "Playing"
+                        anchors.bottom:  parent.bottom
+                        anchors.left:    parent.left
+                        anchors.right:   parent.right
+                        spacing:         2
+
+                        Repeater {
+                            model: CavaService.barCount
+
+                            delegate: Item {
+                                // Distribute bars evenly across available width
+                                width:  (cavaVisualizer.width - (CavaService.barCount - 1) * 2) / CavaService.barCount
+                                height: 40
+                                anchors.bottom: parent ? parent.bottom : undefined
+
+                                Rectangle {
+                                    readonly property real barVal: {
+                                        return (CavaService.bars && CavaService.bars.length > index)
+                                            ? CavaService.bars[index]
+                                            : 0.0;
+                                    }
+
+                                    width:          parent.width
+                                    height:         Math.max(2, parent.height * barVal)
+                                    anchors.bottom: parent.bottom
+                                    radius:         2
+                                    color:          GlobalState.matugenPrimary
+
+                                    Behavior on height {
+                                        NumberAnimation {
+                                            duration:    80
+                                            easing.type: Easing.OutQuad
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Dim flat bar shown when Paused (visualizer hidden)
                     Rectangle {
-                        width:   parent.width * 0.4   // static placeholder
-                        height:  parent.height
-                        radius:  2
-                        color:   GlobalState.matugenPrimary
-                        visible: MediaService.playbackStatus === "Playing"
+                        visible:                MediaService.playbackStatus !== "Playing"
+                        anchors.bottom:         parent.bottom
+                        anchors.left:           parent.left
+                        anchors.right:          parent.right
+                        height:                 4
+                        radius:                 2
+                        color:                  GlobalState.surface1
                     }
                 }
 
