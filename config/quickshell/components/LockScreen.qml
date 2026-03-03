@@ -237,40 +237,42 @@ Scope {
                 }
 
                 // ── Password container (input + shake) ────────────────────────
-                Item {
-                    id: passwordContainer
-                    Layout.alignment: Qt.AlignHCenter
-                    width:  320
-                    height: 52
+                    Item {
+                        id: passwordContainer
+                        Layout.alignment: Qt.AlignHCenter
+                        width:  320
+                        height: 52
+
+                        // Shake amplitude in pixels
+                        readonly property int shakeOffset: 12
 
                     // Shake animation on failure
                     SequentialAnimation {
                         id: shakeAnim
-                        property int shakeOffset: 12
 
                         NumberAnimation {
                             target: passwordContainer; property: "x"
-                            from: 0; to: shakeOffset
+                            from: 0; to: passwordContainer.shakeOffset
                             duration: 50; easing.type: Easing.OutQuad
                         }
                         NumberAnimation {
                             target: passwordContainer; property: "x"
-                            from: shakeOffset; to: -shakeOffset
+                            from: passwordContainer.shakeOffset; to: -passwordContainer.shakeOffset
                             duration: 80; easing.type: Easing.InOutQuad
                         }
                         NumberAnimation {
                             target: passwordContainer; property: "x"
-                            from: -shakeOffset; to: shakeOffset
+                            from: -passwordContainer.shakeOffset; to: passwordContainer.shakeOffset
                             duration: 80; easing.type: Easing.InOutQuad
                         }
                         NumberAnimation {
                             target: passwordContainer; property: "x"
-                            from: shakeOffset; to: -shakeOffset
+                            from: passwordContainer.shakeOffset; to: -passwordContainer.shakeOffset
                             duration: 80; easing.type: Easing.InOutQuad
                         }
                         NumberAnimation {
                             target: passwordContainer; property: "x"
-                            from: -shakeOffset; to: 0
+                            from: -passwordContainer.shakeOffset; to: 0
                             duration: 50; easing.type: Easing.OutQuad
                         }
                     }
