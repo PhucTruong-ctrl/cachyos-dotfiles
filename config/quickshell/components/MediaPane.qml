@@ -39,8 +39,16 @@ PanelWindow {
     color:   "transparent"
     visible: false
 
-    // ── Open / close state ────────────────────────────────────────────────────
+    // ── Open / close state (driven by PopupStateService) ─────────────────────
     property bool open: false
+
+    // Sync open state from PopupStateService (single-open coordination)
+    Connections {
+        target: PopupStateService
+        function onOpenPopupIdChanged() {
+            root.open = (PopupStateService.openPopupId === "media")
+        }
+    }
 
     onOpenChanged: {
         if (open) {
@@ -59,7 +67,7 @@ PanelWindow {
     IpcHandler {
         target: "toggle-media"
         function toggle(): void {
-            root.open = !root.open
+            PopupStateService.toggleExclusive("media")
         }
     }
 
@@ -109,7 +117,7 @@ PanelWindow {
     // ── Backdrop: click outside closes the panel ──────────────────────────────
     MouseArea {
         anchors.fill: parent
-        onClicked:    root.open = false
+        onClicked:    PopupStateService.closeAll()
     }
 
     // ── Main content rectangle ────────────────────────────────────────────────
@@ -118,8 +126,9 @@ PanelWindow {
         width:  300
         height: mediaColumn.implicitHeight + 32
 
-        // Centered on screen
-        anchors.centerIn: parent
+        // Anchor-driven position: center over trigger icon, just below bar
+        x: PopupAnchorService.popupXFor(width, parent.width)
+        y: PopupAnchorService.barY + 4
 
         color:        Qt.rgba(GlobalState.base.r, GlobalState.base.g, GlobalState.base.b, Appearance.panelOpacity)
         radius:       Appearance.panelRadius
@@ -171,7 +180,7 @@ PanelWindow {
                     MouseArea {
                         anchors.fill:  parent
                         cursorShape:   Qt.PointingHandCursor
-                        onClicked:     root.open = false
+                        onClicked:     PopupStateService.closeAll()
                     }
                 }
             }

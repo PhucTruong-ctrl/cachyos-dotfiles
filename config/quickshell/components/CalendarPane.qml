@@ -10,10 +10,18 @@ import "../services"
 Scope {
     id: calendarRoot
 
+    // Sync visibility from PopupStateService (single-open coordination)
+    Connections {
+        target: PopupStateService
+        function onOpenPopupIdChanged() {
+            calendarWindow.visible = (PopupStateService.openPopupId === "calendar")
+        }
+    }
+
     IpcHandler {
         target: "toggle-calendar"
         function toggle(): void {
-            calendarWindow.visible = !calendarWindow.visible
+            PopupStateService.toggleExclusive("calendar")
         }
     }
 
@@ -37,15 +45,13 @@ Scope {
         // Backdrop — click outside calendar closes it
         MouseArea {
             anchors.fill: parent
-            onClicked:    calendarWindow.visible = false
+            onClicked:    PopupStateService.closeAll()
         }
 
-        // Calendar panel — positioned at top-right
+        // Calendar panel — positioned below trigger icon
         Rectangle {
-            anchors.right:       parent.right
-            anchors.top:         parent.top
-            anchors.rightMargin: 12
-            anchors.topMargin:   45
+            x:      PopupAnchorService.popupXFor(320, parent.width)
+            y:      PopupAnchorService.barY + 4
             width:  320
             height: 320
             color: Qt.rgba(GlobalState.base.r, GlobalState.base.g, GlobalState.base.b, Appearance.panelOpacity)

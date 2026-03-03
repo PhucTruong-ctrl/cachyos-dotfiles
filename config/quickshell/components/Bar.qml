@@ -64,16 +64,6 @@ Scope {
         return GlobalState.matugenOnSurface
     }
 
-    Process {
-        id: controlCenterIpc
-        command: ["qs", "ipc", "call", "control-center", "toggle"]
-    }
-
-    Process {
-        id: calProc
-        command: ["qs", "ipc", "call", "toggle-calendar", "toggle"]
-    }
-
     // ---------------------------------------------------------------------------
     // One PanelWindow per monitor (handles hotplug correctly via Variants)
     // ---------------------------------------------------------------------------
@@ -287,8 +277,6 @@ Scope {
                                         var pos = wifiTrigger.mapToItem(null, 0, 0)
                                         PopupAnchorService.setAnchor("control-center", pos.x, wifiTrigger.width, barWindow.height)
                                         PopupStateService.toggleExclusive("control-center")
-                                        controlCenterIpc.running = false
-                                        controlCenterIpc.running = true
                                     } else {
                                         NetworkService.toggleWifi()
                                     }
@@ -320,8 +308,6 @@ Scope {
                                         var pos = bluetoothTrigger.mapToItem(null, 0, 0)
                                         PopupAnchorService.setAnchor("control-center", pos.x, bluetoothTrigger.width, barWindow.height)
                                         PopupStateService.toggleExclusive("control-center")
-                                        controlCenterIpc.running = false
-                                        controlCenterIpc.running = true
                                     } else {
                                         BluetoothService.togglePower()
                                     }
@@ -377,14 +363,7 @@ Scope {
                                 var pos = themeTrigger.mapToItem(null, 0, 0)
                                 PopupAnchorService.setAnchor("theme", pos.x, themeTrigger.width, barWindow.height)
                                 PopupStateService.toggleExclusive("theme")
-                                themeIpc.running = false
-                                themeIpc.running = true
                             }
-                        }
-
-                        Process {
-                            id: themeIpc
-                            command: ["qs", "ipc", "call", "toggle-theme", "toggle"]
                         }
                     }
 
@@ -409,14 +388,7 @@ Scope {
                                 var pos = notifTrigger.mapToItem(null, 0, 0)
                                 PopupAnchorService.setAnchor("notifs", pos.x, notifTrigger.width, barWindow.height)
                                 PopupStateService.toggleExclusive("notifs")
-                                notifIpc.running = false
-                                notifIpc.running = true
                             }
-                        }
-
-                        Process {
-                            id: notifIpc
-                            command: ["qs", "ipc", "call", "toggle-notifs", "toggle"]
                         }
                     }
 
@@ -435,8 +407,6 @@ Scope {
                                 var pos = clockLabel.mapToItem(null, 0, 0)
                                 PopupAnchorService.setAnchor("calendar", pos.x, clockLabel.width, barWindow.height)
                                 PopupStateService.toggleExclusive("calendar")
-                                calProc.running = false
-                                calProc.running = true
                             }
                         }
                     }

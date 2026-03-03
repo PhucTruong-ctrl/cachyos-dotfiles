@@ -37,18 +37,35 @@ Scope {
 
         function toggle(): void {
             console.log("[Launcher] IPC toggle called — visible was: " + launcherWindow.visible);
-            launcherWindow.visible = !launcherWindow.visible;
             if (launcherWindow.visible) {
-                console.log("[Launcher] opening — resetting search and focusing input");
-                searchInput.text = "";
-                root.selectedIndex = 0;
-                // If clipboard mode is active, refresh history on open
-                if (root.clipboardMode) {
-                    ClipboardService.refresh();
-                }
-                searchInput.forceActiveFocus();
+                PopupStateService.closeAll()
             } else {
-                console.log("[Launcher] closing");
+                PopupStateService.openExclusive("launcher")
+            }
+        }
+    }
+
+    // Close launcher when another popup opens (single-open coordination)
+    Connections {
+        target: PopupStateService
+        function onOpenPopupIdChanged() {
+            if (PopupStateService.openPopupId !== "launcher") {
+                if (launcherWindow.visible) {
+                    launcherWindow.visible = false
+                    console.log("[Launcher] closed by PopupStateService — another popup opened")
+                }
+            } else {
+                // "launcher" became active — open it
+                if (!launcherWindow.visible) {
+                    launcherWindow.visible = true
+                    console.log("[Launcher] opening — resetting search and focusing input")
+                    searchInput.text = ""
+                    root.selectedIndex = 0
+                    if (root.clipboardMode) {
+                        ClipboardService.refresh()
+                    }
+                    searchInput.forceActiveFocus()
+                }
             }
         }
     }
@@ -126,7 +143,7 @@ Scope {
         console.log("[Launcher] launching app: name=" + (entry.name ?? "(unknown)") +
             " exec=" + (entry.exec ?? "(unknown)"));
         entry.execute();
-        launcherWindow.visible = false;
+        PopupStateService.closeAll();
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -135,7 +152,7 @@ Scope {
     function pasteClipboardItem(item) {
         console.log("[Launcher] pasting clipboard item id=" + item.id);
         ClipboardService.paste(item.id);
-        launcherWindow.visible = false;
+        PopupStateService.closeAll();
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -175,7 +192,7 @@ Scope {
             // Only close when clicking the backdrop, not the launcher box itself
             onClicked: {
                 console.log("[Launcher] backdrop clicked — closing launcher");
-                launcherWindow.visible = false;
+                PopupStateService.closeAll();
             }
 
             Rectangle {
@@ -324,7 +341,7 @@ Scope {
                             // ── Keyboard navigation ───────────────────────────
                             Keys.onEscapePressed: {
                                 console.log("[Launcher] Escape pressed — closing launcher");
-                                launcherWindow.visible = false;
+                                PopupStateService.closeAll();
                             }
 
                             Keys.onDownPressed: {
