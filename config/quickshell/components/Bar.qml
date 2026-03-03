@@ -316,9 +316,10 @@ Scope {
                         }
                     }
 
-                    // Media Widget: compact MPRIS controls (hidden when no player)
+                    // Media Widget: always-visible compact MPRIS controls
+                    // Shows "No media" when no player, mini visualizer + controls when active.
                     MediaWidget {
-                        anchors.verticalCenter: parent.verticalCenter
+                        Layout.alignment: Qt.AlignVCenter
                     }
 
                     // Battery: icon swaps between charging/discharging sets; color signals level

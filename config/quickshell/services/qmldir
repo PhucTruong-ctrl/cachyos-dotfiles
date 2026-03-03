@@ -1,5 +1,6 @@
 singleton Appearance 1.0 Appearance.qml
 singleton AuthService 1.0 AuthService.qml
+singleton CavaService 1.0 CavaService.qml
 singleton BatteryService 1.0 BatteryService.qml
 singleton ClipboardService 1.0 ClipboardService.qml
 singleton BluetoothService 1.0 BluetoothService.qml
