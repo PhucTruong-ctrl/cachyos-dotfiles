@@ -26,23 +26,20 @@ QtObject {
     id: root
 
     // ── Current anchor state ──────────────────────────────────────────────────
-    // triggerId:    string identifier of the last trigger item (e.g. "calendar")
     // anchorX:      left edge of the trigger item in screen coordinates
     // anchorWidth:  width of the trigger item in screen pixels
     // barY:         bottom edge of the bar (= bar height), popup appears below this
-    property string triggerId:   ""
     property real   anchorX:     0
     property real   anchorWidth: 0
     property real   barY:        40    // default: bar exclusiveZone height
 
     // ── setAnchor — called by bar trigger items before opening a popup ────────
     //
-    // triggerId:  string id matching the popup's popupId
+    // id:         string id matching the popup (used by PopupStateService; ignored here)
     // x:          global x position of the trigger item's left edge
     // width:      trigger item width in pixels
     // barBottomY: y coordinate of the bar's bottom edge (usually barHeight)
     function setAnchor(id, x, width, barBottomY) {
-        triggerId   = id
         anchorX     = x
         anchorWidth = width
         barY        = barBottomY
