@@ -256,24 +256,33 @@ Scope {
                         // Wifi Icon
                         Item {
                             id: wifiTrigger
-                            width: 24
-                            height: 24
-                            
+                            width: 28
+                            height: 28
+
+                            Rectangle {
+                                anchors.fill: parent
+                                radius: Appearance.barItemRadius
+                                color: wifiHover.containsMouse ? GlobalState.matugenSurface : "transparent"
+                                Behavior on color { ColorAnimation { duration: Appearance.barHoverDuration } }
+                            }
+
+                            HoverHandler { id: wifiHover }
+
                             Text {
                                 anchors.centerIn: parent
                                 text: NetworkService.wifiEnabled ? "󰖩" : "󰤭"
                                 color: NetworkService.wifiEnabled ? GlobalState.matugenPrimary : GlobalState.overlay1
                                 font.pixelSize: 16
                                 font.family: "monospace"
+                                Behavior on color { ColorAnimation { duration: Appearance.popupFade } }
                             }
-                            
+
                             MouseArea {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
                                 acceptedButtons: Qt.LeftButton | Qt.RightButton
                                 onClicked: mouse => {
                                     if (mouse.button === Qt.RightButton) {
-                                        // Capture geometry before opening control center
                                         var pos = wifiTrigger.mapToItem(null, 0, 0)
                                         PopupAnchorService.setAnchor("control-center", pos.x, wifiTrigger.width, barWindow.height)
                                         PopupStateService.toggleExclusive("control-center")
@@ -287,24 +296,33 @@ Scope {
                         // Bluetooth Icon
                         Item {
                             id: bluetoothTrigger
-                            width: 24
-                            height: 24
-                            
+                            width: 28
+                            height: 28
+
+                            Rectangle {
+                                anchors.fill: parent
+                                radius: Appearance.barItemRadius
+                                color: btHover.containsMouse ? GlobalState.matugenSurface : "transparent"
+                                Behavior on color { ColorAnimation { duration: Appearance.barHoverDuration } }
+                            }
+
+                            HoverHandler { id: btHover }
+
                             Text {
                                 anchors.centerIn: parent
                                 text: BluetoothService.enabled ? "󰂯" : "󰂲"
                                 color: BluetoothService.enabled ? GlobalState.matugenPrimary : GlobalState.overlay1
                                 font.pixelSize: 16
                                 font.family: "monospace"
+                                Behavior on color { ColorAnimation { duration: Appearance.popupFade } }
                             }
-                            
+
                             MouseArea {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
                                 acceptedButtons: Qt.LeftButton | Qt.RightButton
                                 onClicked: mouse => {
                                     if (mouse.button === Qt.RightButton) {
-                                        // Capture geometry before opening control center
                                         var pos = bluetoothTrigger.mapToItem(null, 0, 0)
                                         PopupAnchorService.setAnchor("control-center", pos.x, bluetoothTrigger.width, barWindow.height)
                                         PopupStateService.toggleExclusive("control-center")
@@ -333,6 +351,7 @@ Scope {
                             font.pixelSize: 16
                             font.family: "monospace"
                             anchors.verticalCenter: parent.verticalCenter
+                            Behavior on color { ColorAnimation { duration: Appearance.popupFade } }
                         }
                         Text {
                             text: BatteryService.percentage + "%"
@@ -340,21 +359,32 @@ Scope {
                             font.family: "monospace"
                             font.pixelSize: 13
                             anchors.verticalCenter: parent.verticalCenter
+                            Behavior on color { ColorAnimation { duration: Appearance.popupFade } }
                         }
                     }
 
                     // Theme Icon
                     Item {
                         id: themeTrigger
-                        width: 20
-                        height: 20
+                        width: 28
+                        height: 28
+
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: Appearance.barItemRadius
+                            color: themeHover.containsMouse ? GlobalState.matugenSurface : "transparent"
+                            Behavior on color { ColorAnimation { duration: Appearance.barHoverDuration } }
+                        }
+
+                        HoverHandler { id: themeHover }
 
                         Text {
                             anchors.centerIn: parent
                             text: "󰸉" // nf-md-wallpaper
-                            color: GlobalState.matugenOnSurface
+                            color: themeHover.containsMouse ? GlobalState.matugenPrimary : GlobalState.matugenOnSurface
                             font.pixelSize: 16
                             font.family: "monospace"
+                            Behavior on color { ColorAnimation { duration: Appearance.barHoverDuration } }
                         }
 
                         MouseArea {
@@ -371,15 +401,25 @@ Scope {
                     // Notification Icon
                     Item {
                         id: notifTrigger
-                        width: 20
-                        height: 20
+                        width: 28
+                        height: 28
+
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: Appearance.barItemRadius
+                            color: notifHover.containsMouse ? GlobalState.matugenSurface : "transparent"
+                            Behavior on color { ColorAnimation { duration: Appearance.barHoverDuration } }
+                        }
+
+                        HoverHandler { id: notifHover }
 
                         Text {
                             anchors.centerIn: parent
                             text: "󰂚" // nf-md-bell
-                            color: GlobalState.matugenOnSurface
+                            color: notifHover.containsMouse ? GlobalState.matugenPrimary : GlobalState.matugenOnSurface
                             font.pixelSize: 16
                             font.family: "monospace"
+                            Behavior on color { ColorAnimation { duration: Appearance.barHoverDuration } }
                         }
 
                         MouseArea {
@@ -393,20 +433,37 @@ Scope {
                         }
                     }
 
-                    // Clock
-                    Text {
-                        id: clockLabel
-                        text: barRoot.clockText
-                        color: GlobalState.matugenOnBackground
-                        font.pixelSize: 13
-                        font.family: "monospace"
-                        
+                    // Clock — wrapped in hover pill item
+                    Item {
+                        id: clockTrigger
+                        implicitWidth: clockLabel.implicitWidth + 16
+                        height: 28
+                        Layout.alignment: Qt.AlignVCenter
+
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: Appearance.barItemRadius
+                            color: clockHover.containsMouse ? GlobalState.matugenSurface : "transparent"
+                            Behavior on color { ColorAnimation { duration: Appearance.barHoverDuration } }
+                        }
+
+                        HoverHandler { id: clockHover }
+
+                        Text {
+                            id: clockLabel
+                            anchors.centerIn: parent
+                            text: barRoot.clockText
+                            color: GlobalState.matugenOnBackground
+                            font.pixelSize: 13
+                            font.family: "monospace"
+                        }
+
                         MouseArea {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
-                                var pos = clockLabel.mapToItem(null, 0, 0)
-                                PopupAnchorService.setAnchor("calendar", pos.x, clockLabel.width, barWindow.height)
+                                var pos = clockTrigger.mapToItem(null, 0, 0)
+                                PopupAnchorService.setAnchor("calendar", pos.x, clockTrigger.width, barWindow.height)
                                 PopupStateService.toggleExclusive("calendar")
                             }
                         }

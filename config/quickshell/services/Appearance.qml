@@ -31,4 +31,9 @@ QtObject {
     // ── Common opacity values ─────────────────────────────────────────────────
     readonly property real panelOpacity:    0.85   // semi-transparent panel backgrounds
     readonly property real backdropOpacity: 0.3    // dim backdrop overlays
+
+    // ── Bar item interactive styles ───────────────────────────────────────────
+    readonly property int barItemRadius:    6    // pill/rounded-rect radius for bar item hover bg
+    readonly property int barHoverDuration: 80   // hover enter/exit speed (ms) — fast for snap feel
+    readonly property int mediaReveal:      200  // media widget state cross-fade duration (ms)
 }

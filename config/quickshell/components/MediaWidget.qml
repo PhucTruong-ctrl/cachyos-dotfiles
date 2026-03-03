@@ -23,20 +23,61 @@ Item {
     id: root
 
     // Always on the bar — width adapts between "no media" and "active" states
-    width:  contentRow.implicitWidth + 8
+    // Extra padding (16 vs 8) gives the hover pill comfortable breathing room
+    width:  contentRow.implicitWidth + 16
     height: 40
+
+    // ── Hover pill background ─────────────────────────────────────────────────
+    Rectangle {
+        anchors.verticalCenter: parent.verticalCenter
+        width:  parent.width
+        height: 28
+        radius: Appearance.barItemRadius
+        color:  mediaWidgetHover.containsMouse ? GlobalState.matugenSurface : "transparent"
+        Behavior on color { ColorAnimation { duration: Appearance.barHoverDuration } }
+    }
+
+    HoverHandler { id: mediaWidgetHover }
 
     Row {
         id: contentRow
-        anchors.verticalCenter: parent.verticalCenter
+        anchors.centerIn: parent
         spacing: 6
 
         // ── No-player fallback: greyed icon + "No media" ──────────────────────
         Row {
             id: noMediaRow
-            visible: !MediaService.hasPlayer
             spacing: 4
             anchors.verticalCenter: parent.verticalCenter
+
+            // Smooth cross-fade: fade out then hide; show then fade in
+            state: MediaService.hasPlayer ? "hidden" : "shown"
+            states: [
+                State {
+                    name: "shown"
+                    PropertyChanges { target: noMediaRow; opacity: 1.0; visible: true }
+                },
+                State {
+                    name: "hidden"
+                    PropertyChanges { target: noMediaRow; opacity: 0.0; visible: false }
+                }
+            ]
+            transitions: [
+                Transition {
+                    from: "shown"; to: "hidden"
+                    SequentialAnimation {
+                        NumberAnimation { property: "opacity"; duration: Appearance.mediaReveal; easing.type: Easing.OutQuad }
+                        PropertyAction  { property: "visible"; value: false }
+                    }
+                },
+                Transition {
+                    from: "hidden"; to: "shown"
+                    SequentialAnimation {
+                        PropertyAction  { property: "visible"; value: true }
+                        NumberAnimation { property: "opacity"; duration: Appearance.mediaReveal; easing.type: Easing.OutQuad }
+                    }
+                }
+            ]
 
             Text {
                 text:           "󰎇"   // nf-md-music_note
@@ -58,9 +99,37 @@ Item {
         // ── Active player state ───────────────────────────────────────────────
         Row {
             id: activeRow
-            visible: MediaService.hasPlayer
             spacing: 6
             anchors.verticalCenter: parent.verticalCenter
+
+            // Smooth cross-fade: show then fade in; fade out then hide
+            state: MediaService.hasPlayer ? "shown" : "hidden"
+            states: [
+                State {
+                    name: "shown"
+                    PropertyChanges { target: activeRow; opacity: 1.0; visible: true }
+                },
+                State {
+                    name: "hidden"
+                    PropertyChanges { target: activeRow; opacity: 0.0; visible: false }
+                }
+            ]
+            transitions: [
+                Transition {
+                    from: "hidden"; to: "shown"
+                    SequentialAnimation {
+                        PropertyAction  { property: "visible"; value: true }
+                        NumberAnimation { property: "opacity"; duration: Appearance.mediaReveal; easing.type: Easing.OutQuad }
+                    }
+                },
+                Transition {
+                    from: "shown"; to: "hidden"
+                    SequentialAnimation {
+                        NumberAnimation { property: "opacity"; duration: Appearance.mediaReveal; easing.type: Easing.OutQuad }
+                        PropertyAction  { property: "visible"; value: false }
+                    }
+                }
+            ]
 
             // Mini visualizer strip: 8 bars mapped from CavaService (shown when Playing)
             Row {
