@@ -3,12 +3,12 @@
 // Always visible on the bar (never hidden, even without an active player).
 //
 // States:
-//   No player active → greyed music icon + "No media" label
+//   No player active → greyed music icon + "No media" label (entire widget clickable)
 //   Player active (paused) → music icon + scrolling title/artist + play button
 //   Player active (playing) → mini visualizer strip + scrolling title/artist + pause button
 //
-// Clicking the title/artist area opens MediaPane via PopupStateService ("media" id),
-// anchored directly below this widget via PopupAnchorService.
+// Clicking the title/artist area (or anywhere when no player) opens MediaPane via
+// PopupStateService ("media" id), anchored directly below this widget via PopupAnchorService.
 // Play/pause button toggles playback directly via MediaService.
 //
 // Colors: all from GlobalState
@@ -38,6 +38,21 @@ Item {
     }
 
     HoverHandler { id: mediaWidgetHover }
+
+    // ── No-player click target ────────────────────────────────────────────────
+    // When no media player is active, the active-player MouseArea is hidden.
+    // This root-level handler makes the entire widget clickable to open MediaPane
+    // so the user can still inspect/connect without a running player.
+    MouseArea {
+        anchors.fill: parent
+        enabled:      !MediaService.hasPlayer
+        cursorShape:  Qt.PointingHandCursor
+        onClicked: {
+            var pos = root.mapToItem(null, 0, 0)
+            PopupAnchorService.setAnchor("media", pos.x, root.width, 40)
+            PopupStateService.toggleExclusive("media")
+        }
+    }
 
     Row {
         id: contentRow
