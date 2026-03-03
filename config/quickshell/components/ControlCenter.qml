@@ -41,10 +41,18 @@ PanelWindow {
     // ── Open / close state ────────────────────────────────────────────────────
     property bool open: false
 
+    // Sync open state from PopupStateService (single-open coordination)
+    Connections {
+        target: PopupStateService
+        function onOpenPopupIdChanged() {
+            root.open = (PopupStateService.openPopupId === "control-center")
+        }
+    }
+
     onOpenChanged: {
         if (open) {
             // Reset content to off-screen starting position before revealing
-            contentRect.y = -(contentRect.height + 12)
+            contentRect.y = PopupAnchorService.barY - contentRect.height - 12
             visible = true
             slideInAnim.restart()
         } else {
@@ -56,39 +64,36 @@ PanelWindow {
     IpcHandler {
         target: "control-center"
         function toggle(): void {
-            root.open = !root.open
-            console.log("ControlCenter: visible=" + root.open)
+            PopupStateService.toggleExclusive("control-center")
+            console.log("ControlCenter: toggle → openPopupId=" + PopupStateService.openPopupId)
         }
         function show(): void {
-            if (!root.open) {
-                root.open = true
-                console.log("ControlCenter: visible=true")
-            }
+            PopupStateService.openExclusive("control-center")
+            console.log("ControlCenter: show")
         }
         function hide(): void {
-            if (root.open) {
-                root.open = false
-                console.log("ControlCenter: visible=false")
-            }
+            if (PopupStateService.openPopupId === "control-center")
+                PopupStateService.closeAll()
+            console.log("ControlCenter: hide")
         }
     }
 
-    // ── Slide-in: off-screen → y=0, Appearance.standardDecel ────────────────
+    // ── Slide-in: off-screen → barY+4, Appearance.standardDecel ────────────────
     NumberAnimation {
         id:           slideInAnim
         target:       contentRect
         property:     "y"
-        to:           0
+        to:           PopupAnchorService.barY + 4
         duration:     Appearance.panelSlide
         easing.type:  Appearance.standardDecel
     }
 
-    // ── Slide-out: y=0 → off-screen, Appearance.standardAccel ────────────────
+    // ── Slide-out: barY+4 → off-screen, Appearance.standardAccel ────────────────
     NumberAnimation {
         id:           slideOutAnim
         target:       contentRect
         property:     "y"
-        to:           -(contentRect.height + 12)
+        to:           PopupAnchorService.barY - contentRect.height - 12
         duration:     Appearance.contentSwitch
         easing.type:  Appearance.standardAccel
         onStopped:    root.visible = false
@@ -320,15 +325,15 @@ PanelWindow {
     // ── Backdrop — click outside content closes the panel ────────────────────
     MouseArea {
         anchors.fill: parent
-        onClicked:    root.open = false
+        onClicked:    PopupStateService.closeAll()
     }
 
     // ── Main content rectangle ────────────────────────────────────────────────
     Rectangle {
-        id:            contentRect
-        anchors.right: parent.right
-        y:             0
-        width:         400
+        id:    contentRect
+        x:     PopupAnchorService.popupXFor(400, parent.width)
+        y:     0
+        width: 400
         height:        mainColumn.implicitHeight + 24
         color:  Qt.rgba(GlobalState.base.r, GlobalState.base.g, GlobalState.base.b, Appearance.panelOpacity)
         radius: Appearance.panelRadius
@@ -376,7 +381,7 @@ PanelWindow {
                     MouseArea {
                         anchors.fill:  parent
                         cursorShape:   Qt.PointingHandCursor
-                        onClicked:     root.open = false
+                        onClicked:     PopupStateService.closeAll()
                     }
                 }
             }

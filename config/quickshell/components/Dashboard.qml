@@ -31,11 +31,21 @@ PanelWindow {
     color: "transparent"
     visible: false
 
+    // Sync visibility from PopupStateService (single-open coordination)
+    Connections {
+        target: PopupStateService
+        function onOpenPopupIdChanged() {
+            root.visible = (PopupStateService.openPopupId === "dashboard")
+        }
+    }
+
     IpcHandler {
         target: "toggle-dashboard"
-        function toggle(): void { root.visible = !root.visible }
-        function show(): void { root.visible = true }
-        function hide(): void { root.visible = false }
+        function toggle(): void { PopupStateService.toggleExclusive("dashboard") }
+        function show(): void   { PopupStateService.openExclusive("dashboard") }
+        function hide(): void   {
+            if (PopupStateService.openPopupId === "dashboard") PopupStateService.closeAll()
+        }
     }
 
     // Keep track of active tab (0 = SysMon/Notifs, 1 = Wallpapers)
@@ -44,15 +54,15 @@ PanelWindow {
     // Backdrop — click outside closes the panel
     MouseArea {
         anchors.fill: parent
-        onClicked:    root.visible = false
+        onClicked:    PopupStateService.closeAll()
     }
 
-    // Panel content — right-side strip, absorbs clicks inside
+    // Panel content — anchored below trigger icon, full height strip
     Rectangle {
-        anchors.right:  parent.right
-        anchors.top:    parent.top
-        anchors.bottom: parent.bottom
-        width: 450
+        x:      PopupAnchorService.popupXFor(450, parent.width)
+        y:      PopupAnchorService.barY + 4
+        width:  450
+        height: parent.height - PopupAnchorService.barY - 12
         color: Qt.rgba(GlobalState.base.r, GlobalState.base.g, GlobalState.base.b, Appearance.panelOpacity)
         radius: 12
         border.color: GlobalState.mauve

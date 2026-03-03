@@ -119,10 +119,8 @@ Scope {
         // Do not push other windows aside
         exclusionMode: ExclusionMode.Ignore
 
-        // Fade-out animation (on auth success)
-        Behavior on opacity {
-            NumberAnimation { duration: Appearance.animDuration; easing.type: Easing.OutQuad }
-        }
+        // Note: PanelWindow does not expose opacity as a QML property;
+        // fade-out is driven by the explicit NumberAnimation below.
 
         NumberAnimation {
             id: fadeOutAnim

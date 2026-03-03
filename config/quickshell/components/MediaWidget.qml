@@ -24,12 +24,6 @@ Item {
     width:   visible ? contentRow.implicitWidth + 8 : 0
     height:  40
 
-    // IPC process to open the media pane
-    Process {
-        id: mediaPaneIpc
-        command: ["qs", "ipc", "call", "toggle-media", "toggle"]
-    }
-
     Row {
         id: contentRow
         anchors.verticalCenter: parent.verticalCenter
@@ -85,8 +79,6 @@ Item {
                     var pos = mediaTextTrigger.mapToItem(null, 0, 0)
                     PopupAnchorService.setAnchor("media", pos.x, mediaTextTrigger.width, 40)
                     PopupStateService.toggleExclusive("media")
-                    mediaPaneIpc.running = false
-                    mediaPaneIpc.running = true
                 }
             }
         }
