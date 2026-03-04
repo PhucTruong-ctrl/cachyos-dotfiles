@@ -16,7 +16,7 @@ Rectangle {
     id: root
 
     // Catppuccin Mocha base color
-    color: "#1e1e2e"
+    color: GlobalState.base
     radius: 12
 
     ColumnLayout {
@@ -30,7 +30,7 @@ Rectangle {
 
             Text {
                 text: "Notification Center"
-                color: "#cdd6f4" // text
+                color: GlobalState.text // text
                 font.pixelSize: 18
                 font.bold: true
                 Layout.fillWidth: true
@@ -40,8 +40,8 @@ Rectangle {
                 width: clearLabel.implicitWidth + 24
                 height: 32
                 radius: 6
-                color: clearArea.containsMouse ? "#313244" : "#181825"
-                border.color: "#45475a"
+                color: clearArea.containsMouse ? GlobalState.surface0 : GlobalState.mantle
+                border.color: GlobalState.surface1
                 border.width: 1
 
                 Behavior on color {
@@ -52,7 +52,7 @@ Rectangle {
                     id: clearLabel
                     anchors.centerIn: parent
                     text: "Clear All"
-                    color: "#f38ba8" // red
+                    color: GlobalState.red // red
                     font.pixelSize: 13
                     font.bold: true
                 }
@@ -73,7 +73,7 @@ Rectangle {
         Rectangle {
             Layout.fillWidth: true
             height: 1
-            color: "#313244" // surface0
+            color: GlobalState.surface0 // surface0
         }
 
         // Notification List
@@ -92,7 +92,7 @@ Rectangle {
             Text {
                 anchors.centerIn: parent
                 text: "No notifications"
-                color: "#6c7086" // overlay0
+                color: GlobalState.overlay0 // overlay0
                 font.pixelSize: 14
                 visible: notifList.count === 0
             }
@@ -101,15 +101,15 @@ Rectangle {
                 width: notifList.width
                 height: contentCol.implicitHeight + 16
                 radius: 8
-                color: "#181825" // mantle
-                border.color: "#313244" // surface0
+                color: GlobalState.mantle // mantle
+                border.color: GlobalState.surface0 // surface0
                 border.width: 1
 
                 readonly property color urgencyColor: {
                     const u = model.urgency;
-                    if (u === NotificationUrgency.Critical) return "#f38ba8"  // red
-                    if (u === NotificationUrgency.Low)      return "#6c7086"  // overlay0
-                    return "#cba6f7"   // mauve
+                    if (u === NotificationUrgency.Critical) return GlobalState.red       // red
+                    if (u === NotificationUrgency.Low)      return GlobalState.overlay0  // overlay0
+                    return GlobalState.mauve   // mauve
                 }
 
                 Rectangle {
@@ -160,7 +160,7 @@ Rectangle {
 
                         Text {
                             text: model.appName ?? "Unknown"
-                            color: "#a6adc8" // subtext1
+                            color: GlobalState.subtext0 // subtext0
                             font.pixelSize: 11
                             elide: Text.ElideRight
                             Layout.fillWidth: true
@@ -173,7 +173,7 @@ Rectangle {
                                 return d.getHours().toString().padStart(2, '0') + ":" + 
                                        d.getMinutes().toString().padStart(2, '0');
                             }
-                            color: "#6c7086" // overlay0
+                            color: GlobalState.overlay0 // overlay0
                             font.pixelSize: 10
                             Layout.alignment: Qt.AlignVCenter
                         }
@@ -181,7 +181,7 @@ Rectangle {
 
                     Text {
                         text: model.summary ?? ""
-                        color: "#cdd6f4" // text
+                        color: GlobalState.text // text
                         font.pixelSize: 13
                         font.bold: true
                         wrapMode: Text.WordWrap
@@ -192,7 +192,7 @@ Rectangle {
 
                     Text {
                         text: model.body ?? ""
-                        color: "#bac2de" // subtext0
+                        color: GlobalState.subtext1 // subtext1
                         font.pixelSize: 12
                         wrapMode: Text.WordWrap
                         textFormat: Text.PlainText

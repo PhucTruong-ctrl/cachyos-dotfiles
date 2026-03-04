@@ -11,8 +11,10 @@ import Quickshell.Io
 // Must NOT import any UI components or create windows.
 // Must NOT handle VPN, ethernet, or hotspot (out of scope).
 //
-// Note: SSID names containing ':' will be truncated at the first colon.
-//       nmcli -t uses ':' as delimiter; full escape handling is deferred.
+// nmcli -t escapes literal colons in field values as '\:'.
+// The helper splitNmcliTerse() splits on unescaped ':' only and
+// unescapes each field, so SSIDs/security strings containing ':' are
+// preserved correctly.
 //
 // Polling intervals:
 //   - Status (wifiEnabled, activeConnection, signalStrength): 10 s
@@ -52,6 +54,36 @@ QtObject {
     // True while a wifi rescan is in progress.
     readonly property bool scanning: _scanning
 
+    // ── nmcli terse parser ────────────────────────────────────────────────────
+    // nmcli -t escapes ':' inside field values as '\:'.
+    // splitNmcliTerse(line) returns an array of unescaped field strings, splitting
+    // only on colons that are NOT preceded by a backslash.
+    //
+    // Algorithm:
+    //   Walk the string character by character; collect chars into the current
+    //   field.  A ':' preceded by '\' is a literal colon — strip the backslash
+    //   and keep the colon.  A bare ':' is a field delimiter.
+    function splitNmcliTerse(line) {
+        const fields = [];
+        let current = "";
+        for (let i = 0; i < line.length; i++) {
+            const ch = line[i];
+            if (ch === "\\" && i + 1 < line.length && line[i + 1] === ":") {
+                // Escaped colon: emit literal ':' and skip the next char
+                current += ":";
+                i++;
+            } else if (ch === ":") {
+                // Unescaped colon: field boundary
+                fields.push(current);
+                current = "";
+            } else {
+                current += ch;
+            }
+        }
+        fields.push(current);
+        return fields;
+    }
+
     // ── Status reader ─────────────────────────────────────────────────────────
     // Combines wifi radio state + active connection into two output lines.
     //
@@ -71,10 +103,11 @@ QtObject {
                     root._wifiEnabled = line.slice(5).trim() === "enabled";
                 } else if (line.startsWith("yes:")) {
                     // Format: yes:<ssid>:<signal>
-                    const parts = line.split(":");
-                    // parts[0]="yes", parts[1]=ssid, parts[2]=signal
-                    root._activeConnection = parts[1] || "";
-                    root._signalStrength   = parseInt(parts[2]) || 0;
+                    // Use escaped-colon-safe parser; fields: [active, ssid, signal]
+                    const parts = root.splitNmcliTerse(line);
+                    // parts[0]="yes", parts[1]=ssid (may contain literal ':'), parts[2]=signal
+                    root._activeConnection = parts.length > 1 ? parts[1] : "";
+                    root._signalStrength   = parts.length > 2 ? (parseInt(parts[2]) || 0) : 0;
                 }
             }
         }
@@ -117,7 +150,8 @@ QtObject {
 
     // ── Network list reader ───────────────────────────────────────────────────
     // Runs nmcli rescan (triggers a full radio sweep) then lists results.
-    // Format per line:  <ssid>:<signal>:<security>:<active>
+    // Format per line (nmcli -t):  <ssid>:<signal>:<security>:<active>
+    // Literal colons in any field are escaped as '\:' by nmcli.
     property Process networkListReader: Process {
         command: ["bash", "-c",
             "nmcli device wifi rescan 2>/dev/null; " +
@@ -129,9 +163,10 @@ QtObject {
             onRead: data => {
                 const line = data.trim();
                 if (line.length === 0) return;
-                // Split on first 3 colons only to tolerate ':' in security strings.
-                // Format: ssid:signal:security:active
-                const parts = line.split(":");
+                // Use escaped-colon-safe parser so SSIDs and security strings
+                // containing literal ':' characters are handled correctly.
+                // Format: ssid:signal:security:active  (4 fields minimum)
+                const parts = root.splitNmcliTerse(line);
                 if (parts.length < 4) return;
                 // ssid may itself be empty (hidden network) — allow it.
                 root._networkListBuf.push({
