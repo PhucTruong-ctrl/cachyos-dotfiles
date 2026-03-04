@@ -38,6 +38,28 @@ Scope {
     property int  hoveredWorkspaceId: -1
 
     // ──────────────────────────────────────────────────────────────────────────
+    // Post-drop refresh — triggered by HyprlandService.windowMoved signal.
+    // A short single-shot timer debounces rapid consecutive moves so we issue
+    // only one fetch pair even if multiple signals fire quickly.
+    // ──────────────────────────────────────────────────────────────────────────
+    Timer {
+        id: dragDropRefreshTimer
+        interval: 50
+        repeat:   false
+        onTriggered: {
+            HyprlandService.fetchWorkspaces();
+            HyprlandService.fetchClients();
+        }
+    }
+
+    Connections {
+        target: HyprlandService
+        function onWindowMoved() {
+            dragDropRefreshTimer.restart();
+        }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
     // IPC Handler — target: "toggle-overview"
     // Invoke: qs ipc call toggle-overview toggle
     // ──────────────────────────────────────────────────────────────────────────
@@ -507,12 +529,9 @@ Scope {
                                                                         if (targetWs !== -1 && targetWs !== srcWs) {
                                                                             const addr = windowCard.modelData.address;
                                                                             console.log("[Overview] drag-drop: move " + addr + " → ws " + targetWs);
+                                                                            // Dispatch move; HyprlandService.windowMoved signal
+                                                                            // triggers dragDropRefreshTimer via Connections.
                                                                             HyprlandService.moveWindowToWorkspace(addr, targetWs);
-                                                                            // Refresh models after hyprland has time to process
-                                                                            Qt.callLater(function() {
-                                                                                HyprlandService.fetchWorkspaces();
-                                                                                HyprlandService.fetchClients();
-                                                                            });
                                                                         }
                                                                     }
                                                                 }
