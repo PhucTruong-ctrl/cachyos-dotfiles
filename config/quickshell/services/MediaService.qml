@@ -42,14 +42,21 @@ QtObject {
     property bool   _hasPlayer:      false
 
     // ── Metadata polling process ──────────────────────────────────────────────
-    // Reads title, artist, album art, status, and player name in one call.
-    // Re-run on startup and after control commands.
+    // Reads title, artist, album art, status, and player name using a tab-
+    // delimited format instead of JSON. This avoids parse failures when track
+    // metadata contains quotes, backslashes, or other JSON-special characters.
+    //
+    // Output format (one line, fields separated by ASCII US \x1F unit separator):
+    //   <title>\x1F<artist>\x1F<artUrl>\x1F<status>\x1F<playerName>
+    //
+    // The unit separator (0x1F) is unlikely to appear in track metadata and
+    // provides a safe delimiter that playerctl passes through verbatim.
     property Process _metadataProc: Process {
         id: metadataProc
         command: [
             "playerctl", "metadata",
             "--format",
-            '{"title":"{{title}}","artist":"{{artist}}","artUrl":"{{mpris:artUrl}}","status":"{{status}}","player":"{{playerName}}"}'
+            "{{title}}\x1f{{artist}}\x1f{{mpris:artUrl}}\x1f{{status}}\x1f{{playerName}}"
         ]
         running: false
 
@@ -65,23 +72,24 @@ QtObject {
                     root._playerName     = "";
                     return;
                 }
-                try {
-                    const parsed = JSON.parse(trimmed);
-                    root._hasPlayer      = true;
-                    root._title          = parsed.title  || "";
-                    root._artist         = parsed.artist || "";
-                    root._albumArtUrl    = parsed.artUrl || "";
-                    root._playbackStatus = parsed.status || "Stopped";
-                    root._playerName     = parsed.player || "";
-                } catch(e) {
-                    // playerctl not running or no player → clear state
+                // Split on ASCII unit separator (0x1F)
+                const parts = trimmed.split("\x1f");
+                if (parts.length < 5) {
+                    // Unexpected format — clear state defensively
                     root._hasPlayer      = false;
                     root._title          = "";
                     root._artist         = "";
                     root._albumArtUrl    = "";
                     root._playbackStatus = "Stopped";
                     root._playerName     = "";
+                    return;
                 }
+                root._hasPlayer      = true;
+                root._title          = parts[0];
+                root._artist         = parts[1];
+                root._albumArtUrl    = parts[2];
+                root._playbackStatus = parts[3] || "Stopped";
+                root._playerName     = parts[4];
             }
         }
 

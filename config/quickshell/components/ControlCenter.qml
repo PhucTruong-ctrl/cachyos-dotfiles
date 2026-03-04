@@ -51,11 +51,15 @@ PanelWindow {
 
     onOpenChanged: {
         if (open) {
+            // Stop any in-progress slide-out before opening
+            slideOutAnim.stop()
             // Reset content to off-screen starting position before revealing
             contentRect.y = PopupAnchorService.barY - contentRect.height - 12
             visible = true
             slideInAnim.restart()
         } else {
+            // Stop any in-progress slide-in before closing
+            slideInAnim.stop()
             slideOutAnim.restart()
         }
     }
@@ -96,7 +100,12 @@ PanelWindow {
         to:           PopupAnchorService.barY - contentRect.height - 12
         duration:     Appearance.contentSwitch
         easing.type:  Appearance.standardAccel
-        onStopped:    root.visible = false
+        onStopped: {
+            // Only hide if we're actually in the closed (not-open) state,
+            // so a rapid re-open does not incorrectly hide the panel.
+            if (!root.open)
+                root.visible = false
+        }
     }
 
     // ── Sub-panel expansion state ─────────────────────────────────────────────

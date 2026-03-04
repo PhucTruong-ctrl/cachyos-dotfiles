@@ -81,6 +81,10 @@ Scope {
     // We create one Qt.createQmlObject Timer per notification so timeouts are
     // independent.  On trigger the notification is expired (hints to the app it
     // timed out) and removed from the tracked list automatically.
+    //
+    // Guard: if the notification was already dismissed before the timer fires
+    // (tracked becomes false), skip the expire call to avoid an invalid/
+    // double-expire path.
     // ──────────────────────────────────────────────────────────────────────────
     QtObject {
         id: expireTimer
@@ -93,7 +97,11 @@ Scope {
                     running: true
                     repeat: false
                     onTriggered: {
-                        notifRef.expire();
+                        // Only expire if the notification is still tracked
+                        // (i.e. not yet dismissed manually by the user).
+                        if (notifRef.tracked) {
+                            notifRef.expire();
+                        }
                         destroy();
                     }
                     property var notifRef

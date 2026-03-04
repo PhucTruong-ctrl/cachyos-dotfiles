@@ -7,6 +7,9 @@ pragma Singleton
 //   focusWindow(addr)  — dispatches focuswindow address:<addr>
 //   moveToWorkspace(id)— dispatches workspace <id>
 //
+// Signals:
+//   windowMoved()      — emitted when moveWindowToWorkspace dispatch completes
+//
 // Models use ListModel for reactive consumption by Overview.qml.
 // Processes use stdout: SplitParser { onRead: ... } — never onStdout.
 
@@ -26,6 +29,12 @@ QtObject {
     /// Populated by fetchWorkspaces().
     /// Each element: { id, name, windows }
     property ListModel workspaceModel: ListModel {}
+
+    // ── Signals ───────────────────────────────────────────────────────────────
+    /// Emitted after moveWindowToWorkspace dispatch exits successfully.
+    /// Consumers (e.g. Overview) should use this to refresh state rather than
+    /// relying on a fixed-duration timer.
+    signal windowMoved()
 
     // ── Internal JSON accumulator ─────────────────────────────────────────────
     property string _clientsBuf:    ""
@@ -135,6 +144,14 @@ QtObject {
     property Process _moveWindowProc: Process {
         id: moveWindowProc
         running: false
+        onExited: (exitCode) => {
+            if (exitCode === 0) {
+                // Notify listeners (e.g. Overview) that the move is complete
+                root.windowMoved();
+            } else {
+                console.warn("[HyprlandService] movetoworkspacesilent failed (exit " + exitCode + ")");
+            }
+        }
     }
 
     // ── Public API ────────────────────────────────────────────────────────────
