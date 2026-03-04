@@ -7,61 +7,102 @@
 //     Each pill is clickable — calls workspace.activate() to switch.
 //     The focused workspace is highlighted in Catppuccin Mocha mauve.
 
+import "../services"
+import QtQuick
+import QtQuick.Layouts
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
-import QtQuick
-import QtQuick.Layouts
 import Quickshell.Services.SystemTray
-import "../services"
 
 Scope {
     id: barRoot
+
+    readonly property string clockText: Qt.formatDateTime(clock.date, "hh:mm:ss  ddd d MMM")
+    // Battery icon: level-accurate nerd font glyph, swaps set based on charge state
+    readonly property string batteryIcon: {
+        var p = BatteryService.percentage;
+        if (BatteryService.isCharging) {
+            if (p <= 10)
+                return "󰢜";
+
+            if (p <= 20)
+                return "󰂆";
+
+            if (p <= 30)
+                return "󰂇";
+
+            if (p <= 40)
+                return "󰂈";
+
+            if (p <= 50)
+                return "󰢝";
+
+            if (p <= 60)
+                return "󰂉";
+
+            if (p <= 70)
+                return "󰢞";
+
+            if (p <= 80)
+                return "󰂊";
+
+            if (p <= 90)
+                return "󰂋";
+
+            return "󰂅";
+        } else {
+            if (p <= 10)
+                return "󰁺";
+
+            if (p <= 20)
+                return "󰁻";
+
+            if (p <= 30)
+                return "󰁼";
+
+            if (p <= 40)
+                return "󰁽";
+
+            if (p <= 50)
+                return "󰁾";
+
+            if (p <= 60)
+                return "󰁿";
+
+            if (p <= 70)
+                return "󰂀";
+
+            if (p <= 80)
+                return "󰂁";
+
+            if (p <= 90)
+                return "󰂂";
+
+            return "󰁹";
+        }
+    }
+    // Battery color: green=charging, red=critical(isLow ≤14%), yellow=low(≤50%), normal otherwise
+    readonly property color batteryColor: {
+        if (BatteryService.isCharging)
+            return GlobalState.success;
+
+        if (BatteryService.isLow)
+            return GlobalState.matugenError;
+
+        if (BatteryService.percentage <= 50)
+            return GlobalState.warning;
+
+        return GlobalState.matugenOnSurface;
+    }
 
     // ---------------------------------------------------------------------------
     // Clock string — single SystemClock instance shared across all bar windows
     // ---------------------------------------------------------------------------
     SystemClock {
         id: clock
+
         precision: SystemClock.Seconds
-    }
-
-    readonly property string clockText: Qt.formatDateTime(clock.date, "hh:mm:ss  ddd d MMM")
-
-    // Battery icon: level-accurate nerd font glyph, swaps set based on charge state
-    readonly property string batteryIcon: {
-        var p = BatteryService.percentage
-        if (BatteryService.isCharging) {
-            if (p <= 10) return "󰢜"
-            if (p <= 20) return "󰂆"
-            if (p <= 30) return "󰂇"
-            if (p <= 40) return "󰂈"
-            if (p <= 50) return "󰢝"
-            if (p <= 60) return "󰂉"
-            if (p <= 70) return "󰢞"
-            if (p <= 80) return "󰂊"
-            if (p <= 90) return "󰂋"
-            return "󰂅"
-        } else {
-            if (p <= 10) return "󰁺"
-            if (p <= 20) return "󰁻"
-            if (p <= 30) return "󰁼"
-            if (p <= 40) return "󰁽"
-            if (p <= 50) return "󰁾"
-            if (p <= 60) return "󰁿"
-            if (p <= 70) return "󰂀"
-            if (p <= 80) return "󰂁"
-            if (p <= 90) return "󰂂"
-            return "󰁹"
-        }
-    }
-
-    // Battery color: green=charging, red=critical(isLow ≤14%), yellow=low(≤50%), normal otherwise
-    readonly property color batteryColor: {
-        if (BatteryService.isCharging)  return GlobalState.success
-        if (BatteryService.isLow)       return GlobalState.matugenError
-        if (BatteryService.percentage <= 50) return GlobalState.warning
-        return GlobalState.matugenOnSurface
     }
 
     // ---------------------------------------------------------------------------
@@ -72,35 +113,36 @@ Scope {
 
         PanelWindow {
             id: barWindow
+
             // Quickshell injects the ShellScreen for this instance
             required property var modelData
+
             screen: modelData
-
-            // Anchor to the full top edge of the screen
-            anchors {
-                top:   true
-                left:  true
-                right: true
-            }
-
             // Bar geometry & background
             implicitHeight: 40
             color: GlobalState.matugenBackground
-
             exclusiveZone: 40
+
+            // Anchor to the full top edge of the screen
+            anchors {
+                top: true
+                left: true
+                right: true
+            }
 
             // ------------------------------------------------------------------
             // Layout: [Workspaces] ——— [System Monitor] ——— [Tray | Icons | Clock]
             // ------------------------------------------------------------------
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin:  12
+                anchors.leftMargin: 12
                 anchors.rightMargin: 12
                 spacing: 0
 
                 // ── Left section: live workspace pills ────────────────────────
                 Row {
                     id: workspacesRow
+
                     spacing: 6
                     Layout.alignment: Qt.AlignVCenter
 
@@ -109,21 +151,17 @@ Scope {
 
                         delegate: Rectangle {
                             id: wsPill
-                            required property var modelData   // HyprlandWorkspace
 
-                            width:  22
+                            required property var modelData // HyprlandWorkspace
+
+                            width: 22
                             height: 22
                             radius: 4
-
                             color: modelData.focused ? GlobalState.matugenPrimary : GlobalState.matugenSurface
-
-                            Behavior on color {
-                                ColorAnimation { duration: Appearance.popupFade }
-                            }
 
                             Text {
                                 anchors.centerIn: parent
-                                text:  modelData.id > 0 ? modelData.id : modelData.name
+                                text: modelData.id > 0 ? modelData.id : modelData.name
                                 color: wsPill.modelData.focused ? GlobalState.matugenOnPrimary : GlobalState.matugenOnSurface
                                 font.pixelSize: 11
                                 font.bold: wsPill.modelData.focused
@@ -131,67 +169,135 @@ Scope {
 
                             Rectangle {
                                 visible: wsPill.modelData.urgent
-                                width:  6
+                                width: 6
                                 height: 6
                                 radius: 3
                                 color: GlobalState.matugenError
+
                                 anchors {
-                                    top:        parent.top
-                                    right:      parent.right
-                                    topMargin:  2
+                                    top: parent.top
+                                    right: parent.right
+                                    topMargin: 2
                                     rightMargin: 2
                                 }
+
                             }
 
                             MouseArea {
                                 anchors.fill: parent
-                                cursorShape:  Qt.PointingHandCursor
+                                cursorShape: Qt.PointingHandCursor
                                 onClicked: {
                                     wsPill.modelData.activate();
                                 }
                             }
+
+                            Behavior on color {
+                                ColorAnimation {
+                                    duration: Appearance.popupFade
+                                }
+
+                            }
+
                         }
+
                     }
+
+                }
+
+                // Media Widget: always-visible compact MPRIS controls
+                // Shows "No media" when no player, mini visualizer + controls when active.
+                MediaWidget {
+                    Layout.alignment: Qt.AlignVCenter
                 }
 
                 // ── Left spacer ───────────────────────────────────────────────
-                Item { Layout.fillWidth: true }
+                Item {
+                    Layout.fillWidth: true
+                }
 
                 // ── Middle section: System Monitor ────────────────────────────
                 Row {
                     Layout.alignment: Qt.AlignVCenter
                     spacing: 16
-                    
+
                     // CPU
                     Row {
                         spacing: 4
-                        Text { text: "󰻠"; color: GlobalState.matugenPrimary; font.family: "monospace"; font.pixelSize: 14; anchors.verticalCenter: parent.verticalCenter }
-                        Text { text: Performance.cpuUsage.toFixed(1) + "%"; color: GlobalState.matugenOnSurface; font.family: "monospace"; font.pixelSize: 13; anchors.verticalCenter: parent.verticalCenter }
+
+                        Text {
+                            text: "󰻠"
+                            color: GlobalState.matugenPrimary
+                            font.family: "monospace"
+                            font.pixelSize: 14
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+
+                        Text {
+                            text: Performance.cpuUsage.toFixed(1) + "%"
+                            color: GlobalState.matugenOnSurface
+                            font.family: "monospace"
+                            font.pixelSize: 13
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+
                     }
-                    
+
                     // RAM
                     Row {
                         spacing: 4
-                        Text { text: "󰍛"; color: GlobalState.blue; font.family: "monospace"; font.pixelSize: 14; anchors.verticalCenter: parent.verticalCenter }
-                        Text { text: Performance.ramUsage.toFixed(1) + "%"; color: GlobalState.matugenOnSurface; font.family: "monospace"; font.pixelSize: 13; anchors.verticalCenter: parent.verticalCenter }
+
+                        Text {
+                            text: "󰍛"
+                            color: GlobalState.blue
+                            font.family: "monospace"
+                            font.pixelSize: 14
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+
+                        Text {
+                            text: Performance.ramUsage.toFixed(1) + "%"
+                            color: GlobalState.matugenOnSurface
+                            font.family: "monospace"
+                            font.pixelSize: 13
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+
                     }
-                    
+
                     // CPU Temp
                     Row {
                         spacing: 4
-                        Text { text: "󰔏"; color: GlobalState.matugenError; font.family: "monospace"; font.pixelSize: 14; anchors.verticalCenter: parent.verticalCenter }
-                        Text { text: Performance.cpuTemp.toFixed(1) + "°C"; color: GlobalState.matugenOnSurface; font.family: "monospace"; font.pixelSize: 13; anchors.verticalCenter: parent.verticalCenter }
+
+                        Text {
+                            text: "󰔏"
+                            color: GlobalState.matugenError
+                            font.family: "monospace"
+                            font.pixelSize: 14
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+
+                        Text {
+                            text: Performance.cpuTemp.toFixed(1) + "°C"
+                            color: GlobalState.matugenOnSurface
+                            font.family: "monospace"
+                            font.pixelSize: 13
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+
                     }
+
                 }
 
                 // ── Right spacer ──────────────────────────────────────────────
-                Item { Layout.fillWidth: true }
+                Item {
+                    Layout.fillWidth: true
+                }
 
                 // ── Right section: sys tray & icons & clock ───────────────────
                 RowLayout {
                     Layout.alignment: Qt.AlignVCenter
                     spacing: 12
-                    
+
                     // Static App Tray
                     Row {
                         spacing: 8
@@ -200,8 +306,10 @@ Scope {
                         // System Tray
                         Repeater {
                             model: SystemTray.items
+
                             delegate: Item {
                                 required property var modelData
+
                                 visible: modelData.status !== SystemTrayItem.Passive
                                 width: visible ? 24 : 0
                                 height: 24
@@ -219,31 +327,34 @@ Scope {
                                     height: 6
                                     radius: 3
                                     color: GlobalState.matugenError
+
                                     anchors {
                                         top: parent.top
                                         right: parent.right
                                         topMargin: 2
                                         rightMargin: 2
                                     }
+
                                 }
 
                                 MouseArea {
                                     anchors.fill: parent
                                     cursorShape: Qt.PointingHandCursor
                                     acceptedButtons: Qt.LeftButton | Qt.RightButton
-                                    onClicked: mouse => {
+                                    onClicked: (mouse) => {
                                         if (mouse.button === Qt.RightButton) {
-                                            modelData.display(barWindow, mouse.x, mouse.y)
+                                            modelData.display(barWindow, mouse.x, mouse.y);
                                         } else {
-                                            if (modelData.onlyMenu) {
-                                                modelData.display(barWindow, mouse.x, mouse.y)
-                                            } else {
-                                                modelData.activate()
-                                            }
+                                            if (modelData.onlyMenu)
+                                                modelData.display(barWindow, mouse.x, mouse.y);
+                                            else
+                                                modelData.activate();
                                         }
                                     }
                                 }
+
                             }
+
                         }
 
                         Rectangle {
@@ -256,6 +367,7 @@ Scope {
                         // Wifi Icon
                         Item {
                             id: wifiTrigger
+
                             width: 28
                             height: 28
 
@@ -263,10 +375,19 @@ Scope {
                                 anchors.fill: parent
                                 radius: Appearance.barItemRadius
                                 color: wifiHover.containsMouse ? GlobalState.matugenSurface : "transparent"
-                                Behavior on color { ColorAnimation { duration: Appearance.barHoverDuration } }
+
+                                Behavior on color {
+                                    ColorAnimation {
+                                        duration: Appearance.barHoverDuration
+                                    }
+
+                                }
+
                             }
 
-                            HoverHandler { id: wifiHover }
+                            HoverHandler {
+                                id: wifiHover
+                            }
 
                             Text {
                                 anchors.centerIn: parent
@@ -274,28 +395,37 @@ Scope {
                                 color: NetworkService.wifiEnabled ? GlobalState.matugenPrimary : GlobalState.overlay1
                                 font.pixelSize: 16
                                 font.family: "monospace"
-                                Behavior on color { ColorAnimation { duration: Appearance.popupFade } }
+
+                                Behavior on color {
+                                    ColorAnimation {
+                                        duration: Appearance.popupFade
+                                    }
+
+                                }
+
                             }
 
                             MouseArea {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
                                 acceptedButtons: Qt.LeftButton | Qt.RightButton
-                                onClicked: mouse => {
+                                onClicked: (mouse) => {
                                     if (mouse.button === Qt.RightButton) {
-                                        var pos = wifiTrigger.mapToItem(null, 0, 0)
-                                        PopupAnchorService.setAnchor("control-center", pos.x, wifiTrigger.width, barWindow.height)
-                                        PopupStateService.toggleExclusive("control-center")
+                                        var pos = wifiTrigger.mapToItem(null, 0, 0);
+                                        PopupAnchorService.setAnchor("control-center", pos.x, wifiTrigger.width, barWindow.height);
+                                        PopupStateService.toggleExclusive("control-center");
                                     } else {
-                                        NetworkService.toggleWifi()
+                                        NetworkService.toggleWifi();
                                     }
                                 }
                             }
+
                         }
 
                         // Bluetooth Icon
                         Item {
                             id: bluetoothTrigger
+
                             width: 28
                             height: 28
 
@@ -303,10 +433,19 @@ Scope {
                                 anchors.fill: parent
                                 radius: Appearance.barItemRadius
                                 color: btHover.containsMouse ? GlobalState.matugenSurface : "transparent"
-                                Behavior on color { ColorAnimation { duration: Appearance.barHoverDuration } }
+
+                                Behavior on color {
+                                    ColorAnimation {
+                                        duration: Appearance.barHoverDuration
+                                    }
+
+                                }
+
                             }
 
-                            HoverHandler { id: btHover }
+                            HoverHandler {
+                                id: btHover
+                            }
 
                             Text {
                                 anchors.centerIn: parent
@@ -314,30 +453,33 @@ Scope {
                                 color: BluetoothService.enabled ? GlobalState.matugenPrimary : GlobalState.overlay1
                                 font.pixelSize: 16
                                 font.family: "monospace"
-                                Behavior on color { ColorAnimation { duration: Appearance.popupFade } }
+
+                                Behavior on color {
+                                    ColorAnimation {
+                                        duration: Appearance.popupFade
+                                    }
+
+                                }
+
                             }
 
                             MouseArea {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
                                 acceptedButtons: Qt.LeftButton | Qt.RightButton
-                                onClicked: mouse => {
+                                onClicked: (mouse) => {
                                     if (mouse.button === Qt.RightButton) {
-                                        var pos = bluetoothTrigger.mapToItem(null, 0, 0)
-                                        PopupAnchorService.setAnchor("control-center", pos.x, bluetoothTrigger.width, barWindow.height)
-                                        PopupStateService.toggleExclusive("control-center")
+                                        var pos = bluetoothTrigger.mapToItem(null, 0, 0);
+                                        PopupAnchorService.setAnchor("control-center", pos.x, bluetoothTrigger.width, barWindow.height);
+                                        PopupStateService.toggleExclusive("control-center");
                                     } else {
-                                        BluetoothService.togglePower()
+                                        BluetoothService.togglePower();
                                     }
                                 }
                             }
-                        }
-                    }
 
-                    // Media Widget: always-visible compact MPRIS controls
-                    // Shows "No media" when no player, mini visualizer + controls when active.
-                    MediaWidget {
-                        Layout.alignment: Qt.AlignVCenter
+                        }
+
                     }
 
                     // Battery: icon swaps between charging/discharging sets; color signals level
@@ -351,21 +493,38 @@ Scope {
                             font.pixelSize: 16
                             font.family: "monospace"
                             anchors.verticalCenter: parent.verticalCenter
-                            Behavior on color { ColorAnimation { duration: Appearance.popupFade } }
+
+                            Behavior on color {
+                                ColorAnimation {
+                                    duration: Appearance.popupFade
+                                }
+
+                            }
+
                         }
+
                         Text {
                             text: BatteryService.percentage + "%"
                             color: barRoot.batteryColor
                             font.family: "monospace"
                             font.pixelSize: 13
                             anchors.verticalCenter: parent.verticalCenter
-                            Behavior on color { ColorAnimation { duration: Appearance.popupFade } }
+
+                            Behavior on color {
+                                ColorAnimation {
+                                    duration: Appearance.popupFade
+                                }
+
+                            }
+
                         }
+
                     }
 
                     // Theme Icon
                     Item {
                         id: themeTrigger
+
                         width: 28
                         height: 28
 
@@ -373,10 +532,19 @@ Scope {
                             anchors.fill: parent
                             radius: Appearance.barItemRadius
                             color: themeHover.containsMouse ? GlobalState.matugenSurface : "transparent"
-                            Behavior on color { ColorAnimation { duration: Appearance.barHoverDuration } }
+
+                            Behavior on color {
+                                ColorAnimation {
+                                    duration: Appearance.barHoverDuration
+                                }
+
+                            }
+
                         }
 
-                        HoverHandler { id: themeHover }
+                        HoverHandler {
+                            id: themeHover
+                        }
 
                         Text {
                             anchors.centerIn: parent
@@ -384,23 +552,32 @@ Scope {
                             color: themeHover.containsMouse ? GlobalState.matugenPrimary : GlobalState.matugenOnSurface
                             font.pixelSize: 16
                             font.family: "monospace"
-                            Behavior on color { ColorAnimation { duration: Appearance.barHoverDuration } }
+
+                            Behavior on color {
+                                ColorAnimation {
+                                    duration: Appearance.barHoverDuration
+                                }
+
+                            }
+
                         }
 
                         MouseArea {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
-                                var pos = themeTrigger.mapToItem(null, 0, 0)
-                                PopupAnchorService.setAnchor("theme", pos.x, themeTrigger.width, barWindow.height)
-                                PopupStateService.toggleExclusive("theme")
+                                var pos = themeTrigger.mapToItem(null, 0, 0);
+                                PopupAnchorService.setAnchor("theme", pos.x, themeTrigger.width, barWindow.height);
+                                PopupStateService.toggleExclusive("theme");
                             }
                         }
+
                     }
 
                     // Notification Icon
                     Item {
                         id: notifTrigger
+
                         width: 28
                         height: 28
 
@@ -408,10 +585,19 @@ Scope {
                             anchors.fill: parent
                             radius: Appearance.barItemRadius
                             color: notifHover.containsMouse ? GlobalState.matugenSurface : "transparent"
-                            Behavior on color { ColorAnimation { duration: Appearance.barHoverDuration } }
+
+                            Behavior on color {
+                                ColorAnimation {
+                                    duration: Appearance.barHoverDuration
+                                }
+
+                            }
+
                         }
 
-                        HoverHandler { id: notifHover }
+                        HoverHandler {
+                            id: notifHover
+                        }
 
                         Text {
                             anchors.centerIn: parent
@@ -419,23 +605,32 @@ Scope {
                             color: notifHover.containsMouse ? GlobalState.matugenPrimary : GlobalState.matugenOnSurface
                             font.pixelSize: 16
                             font.family: "monospace"
-                            Behavior on color { ColorAnimation { duration: Appearance.barHoverDuration } }
+
+                            Behavior on color {
+                                ColorAnimation {
+                                    duration: Appearance.barHoverDuration
+                                }
+
+                            }
+
                         }
 
                         MouseArea {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
-                                var pos = notifTrigger.mapToItem(null, 0, 0)
-                                PopupAnchorService.setAnchor("notifs", pos.x, notifTrigger.width, barWindow.height)
-                                PopupStateService.toggleExclusive("notifs")
+                                var pos = notifTrigger.mapToItem(null, 0, 0);
+                                PopupAnchorService.setAnchor("notifs", pos.x, notifTrigger.width, barWindow.height);
+                                PopupStateService.toggleExclusive("notifs");
                             }
                         }
+
                     }
 
                     // Clock — wrapped in hover pill item
                     Item {
                         id: clockTrigger
+
                         implicitWidth: clockLabel.implicitWidth + 16
                         height: 28
                         Layout.alignment: Qt.AlignVCenter
@@ -444,13 +639,23 @@ Scope {
                             anchors.fill: parent
                             radius: Appearance.barItemRadius
                             color: clockHover.containsMouse ? GlobalState.matugenSurface : "transparent"
-                            Behavior on color { ColorAnimation { duration: Appearance.barHoverDuration } }
+
+                            Behavior on color {
+                                ColorAnimation {
+                                    duration: Appearance.barHoverDuration
+                                }
+
+                            }
+
                         }
 
-                        HoverHandler { id: clockHover }
+                        HoverHandler {
+                            id: clockHover
+                        }
 
                         Text {
                             id: clockLabel
+
                             anchors.centerIn: parent
                             text: barRoot.clockText
                             color: GlobalState.matugenOnBackground
@@ -462,14 +667,20 @@ Scope {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
-                                var pos = clockTrigger.mapToItem(null, 0, 0)
-                                PopupAnchorService.setAnchor("calendar", pos.x, clockTrigger.width, barWindow.height)
-                                PopupStateService.toggleExclusive("calendar")
+                                var pos = clockTrigger.mapToItem(null, 0, 0);
+                                PopupAnchorService.setAnchor("calendar", pos.x, clockTrigger.width, barWindow.height);
+                                PopupStateService.toggleExclusive("calendar");
                             }
                         }
+
                     }
+
                 }
+
             }
+
         }
+
     }
+
 }

@@ -122,15 +122,6 @@ ShellRoot {
     ThemePane {}
 
     // ------------------------------------------------------------------
-    // Load Dashboard here
-    //
-    // Dashboard.qml is a PanelWindow showing system stats + wallpaper grid
-    // docked to the right edge.
-    // Toggle via: qs ipc call toggle-dashboard toggle
-    // ------------------------------------------------------------------
-    Dashboard {}
-
-    // ------------------------------------------------------------------
     // Load ControlCenter here
     //
     // ControlCenter.qml is a slide-down panel anchored top-right.

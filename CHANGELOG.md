@@ -1,0 +1,119 @@
+# Changelog
+
+All notable changes to this repository are documented in this file.
+
+This changelog was rebuilt from scratch by auditing the full git history (`111` commits) from `2026-02-26` onward.
+
+## Full History (Chronological)
+
+- `6fea6d3` 2026-02-26 init: create cachyos-dotfiles repo structure
+- `55540d4` 2026-02-26 feat: fix limine boot params (nmi_watchdog=0, intel_pstate=passive) and track intel-undervolt config
+- `56a3b90` 2026-02-26 feat: track system configs (sysctl, udev/via-keyboard, tlp)
+- `490b43b` 2026-02-26 feat: configure fcitx5 bamboo as default Vietnamese input method
+- `7d9924d` 2026-02-26 feat: add tailscale autoheal timer and nvidia clock cap systemd services
+- `65e1fb1` 2026-02-26 feat: add package lists (official + AUR) and install script
+- `05570b9` 2026-02-26 feat: configure fish shell with aliases, direnv, and starship prompt
+- `fffa6b4` 2026-02-26 fix: update AUR package list with correct names (prismlauncher-offline-bin, the-honkers-railway-launcher-bin, skip caprine nodejs conflict)
+- `1ef1767` 2026-02-26 feat: add install.sh restore script and finalize dotfiles setup
+- `f08ff55` 2026-02-26 perf: rewrite TLP for performance-first (100% CPU, performance governor, full turbo)
+- `fbb1817` 2026-02-26 feat: add tmux config, fcitx5 config and bamboo.conf (cleaned NixOS dangling symlinks)
+- `1be66b6` 2026-02-26 feat: add missing packages (vlc, gamescope, gemini-cli, gale-bin, spotify), export GITHUB_TOKEN in fish, update package lists
+- `6a17aff` 2026-02-26 feat: rice ghostty (catppuccin mocha), add git config, rewrite README with full documentation
+- `5984e77` 2026-02-26 feat: switch to zsh + oh-my-zsh, add CLI tools (zoxide, eza, bat, fzf, fd)
+- `99c6e72` 2026-02-26 fix: set ghostty command to /bin/zsh (was launching fish)
+- `2b704f4` 2026-02-26 feat: migrate from KDE Plasma to Hyprland (JaKooLit)
+- `0c8d91b` 2026-02-26 fix: convert circular waybar symlinks to relative paths
+- `ccfae07` 2026-02-26 fix: kill cava on waybar restart, remove redundant double-restarts
+- `dd81cfe` 2026-02-26 feat: full dotfiles overhaul — productivity, visual tuning, script hardening and bug fixes
+- `134f116` 2026-02-26 fix: sync wallpaper to SDDM login screen after SUPER+W selection
+- `c985d72` 2026-02-28 feat: update color schemes across various configurations and improve wallpaper settings
+- `3d891fc` 2026-02-28 feat: migrate to CachyOS default Hyprland baseline
+- `67ed0c4` 2026-02-28 refactor: update README with config directory reference and remove unused fish configurations
+- `a4eec38` 2026-02-28 docs: add AGENTS.md for AI coding agents rules
+- `cad607e` 2026-02-28 chore: remove orphaned JaKooLit UserScripts and UserConfigs
+- `cfc4c38` 2026-02-28 feat: adopt missing CachyOS UI/theme configs (GTK/Kvantum/QT)
+- `d8a92eb` 2026-02-28 feat: add default browser configuration and keybind for launching it; create initial Quickshell UI
+- `7c4f325` 2026-03-01 feat: replace Waybar/Mako/Wlogout/Wofi stack with unified Quickshell UI
+- `2973fc7` 2026-03-01 feat: update Bar.qml to use exclusiveZone for reliable window management on Hyprland
+- `053aa37` 2026-03-01 feat: add Polish Slavistic Phonetic Alphabet keyboard layout; update music player keybind in Hyprland config; modify Power.qml commands for lock and logout
+- `ab22c45` 2026-03-01 feat: update README.md with detailed project structure and Quickshell UI information; add AGENTS.md files for config, etc., and packages directories
+- `c38b346` 2026-03-01 feat: integrate Agent Hive for GitHub Copilot
+- `c852700` 2026-03-01 docs(agents): optimize for ETH Zurich research standards
+- `d76ebc2` 2026-03-01 fix: swap order of hidden notifications in fcitx5 config
+- `6dc2411` 2026-03-01 feat(quickshell): add QuickSettings panel with volume and brightness sliders
+- `aeb8af7` 2026-03-01 feat(quickshell): add Night Mode, Game Mode, Caffeine action toggles to QuickSettings panel
+- `af474b6` 2026-03-01 feat(quickshell): add Wallpaper Control Center (Task 6)
+- `b6f8fc2` 2026-03-01 feat(quickshell): add CalendarPopup and wire clock click toggle
+- `69f7f0c` 2026-03-02 feat(quickshell): add sideright dashboard, matugen engine, notif center, sliders, keybinds
+- `36f9f0c` 2026-03-02 feat(quickshell): enhance dashboard with notification center, system monitoring, and wallpaper management
+- `339a3fb` 2026-03-02 feat(performance): update process commands to use bash and add logging for CPU, RAM, and temperature readings
+- `d2d93a1` 2026-03-02 feat(keybinds): update screenshot keybindings and add sys-screenshot script
+- `3d9e179` 2026-03-02 track matugen-sync.sh (previously untracked)
+- `69000cf` 2026-03-02 feat(colors): enhance color management with dynamic Matugen integration and templates
+- `3cd7b59` 2026-03-02 feat(battery): add battery status monitoring and dynamic icon updates in Quickshell
+- `330ab42` 2026-03-02 hive(01-create-bluetoothservice-singleton): Created `config/quickshell/services/BluetoothServi
+- `6effd33` 2026-03-02 hive: merge 01-create-bluetoothservice-singleton
+- `6cb2e4b` 2026-03-02 hive(02-create-networkservice-singleton): Created `config/quickshell/services/NetworkService
+- `3dd4dff` 2026-03-02 hive: merge 02-create-networkservice-singleton
+- `cf138f2` 2026-03-02 hive(03-create-controlcenter-panel-component): Created config/quickshell/components/ControlCenter
+- `369102d` 2026-03-02 hive: merge 03-create-controlcenter-panel-component
+- `95d1349` 2026-03-02 hive(01-fix-pane-layering--add-exclusionmodeignore-to-all-overlay-panels): Added `exclusionMode: ExclusionMode.Ignore` to all
+- `584c1a3` 2026-03-02 fix: ControlCenter onStdout→SplitParser, Bar.qml smart BT/WiFi toggles, Launcher keyboard nav
+- `f87f586` 2026-03-02 hive: merge 01-fix-pane-layering--add-exclusionmodeignore-to-all-overlay-panels
+- `d1bb40f` 2026-03-02 hive(02-add-click-outside-to-close-backdrop-to-all-popup-panels): Added transparent full-screen backdrop + click-abs
+- `d5e38b0` 2026-03-02 hive: merge 02-add-click-outside-to-close-backdrop-to-all-popup-panels
+- `b38c9db` 2026-03-02 hive(03-replace-all-hardcoded-catppuccin-hex-with-globalstate-bindings): Replaced all hardcoded Catppuccin hex values in La
+- `59069ce` 2026-03-02 hive: merge 03-replace-all-hardcoded-catppuccin-hex-with-globalstate-bindings
+- `c8c192c` 2026-03-02 feat(quickshell): comprehensive polish, control center and rice overhaul
+- `1ee3db3` 2026-03-02 feat(bar): add native system tray with StatusNotifier icons
+- `e905f94` 2026-03-02 feat: add Appearance singleton and refactor all animation constants
+- `86b9dc6` 2026-03-02 hive: merge 04-quickshell-animation-polish--appearance-singleton
+- `e3d145b` 2026-03-02 feat: add frosted glass layerrules and panel namespaces
+- `c3bfb64` 2026-03-02 feat: add BatteryService singleton with upower + /sys/ fallback
+- `a804ffb` 2026-03-02 hive: merge 01-frosted-glass-layer-rules
+- `826e5b0` 2026-03-02 hive: merge 05-upower-battery-service
+- `022e788` 2026-03-03 feat(gtk-qt): dynamic GTK/QT theme alignment via matugen
+- `186b800` 2026-03-03 hive: merge 08-gtkqt-dynamic-theme-alignment
+- `c95a224` 2026-03-03 hive(02-hyprland-material-3-animation-upgrade): Replaced animations.conf with Material 3 motion cu
+- `4c06721` 2026-03-03 hive: merge 02-hyprland-material-3-animation-upgrade
+- `ea31aa1` 2026-03-03 feat: remove legacy waybar/mako/wofi/wlogout configs
+- `1960dc4` 2026-03-03 hive: merge 03-legacy-config-cleanup
+- `ab45249` 2026-03-03 feat: add ClipboardService + clipboard mode in Launcher
+- `566c566` 2026-03-03 hive: merge 07-clipboard-history-in-launcher
+- `081735e` 2026-03-03 fix: migrate layerrule syntax to Hyprland 0.53+ format
+- `f7cf473` 2026-03-03 fix: add missing layerrule entries for quickshell-notifications and quickshell-screenshot
+- `743f2f0` 2026-03-03 hive: merge 02-00-hotfix-hyprland-layerrule-syntax
+- `95f9559` 2026-03-03 feat(hyprlock): Material 3 redesign with matugen dynamic colors
+- `341e38d` 2026-03-03 hive(10-overview--window-switcher): Created HyprlandService.qml (pragma Singleton: fet
+- `19db4bf` 2026-03-03 hive: merge 09-hyprlock-theme-enhancement
+- `137d548` 2026-03-03 hive: merge 10-overview--window-switcher
+- `c13beae` 2026-03-03 feat: integrate LockScreen + MPRIS media controls (post-conflict)
+- `3c671c1` 2026-03-03 hive: merge 15-15-integrate-lockscreen-media-after-merge-conflicts
+- `f34b74a` 2026-03-03 chore: remove dead PAM fallback scripts (pam-helper.sh + pam_auth.py)
+- `97ff228` 2026-03-03 hive: merge 16-16-cleanup-dead-pam-fallback-scripts
+- `4158388` 2026-03-03 hive(01-popup-anchor-infrastructure): Created PopupAnchorService.qml and PopupStateServi
+- `0fce99d` 2026-03-03 feat(overview): add drag-and-drop workspace moves
+- `2d01949` 2026-03-03 hive: merge 01-popup-anchor-infrastructure
+- `3f57509` 2026-03-03 hive: merge 05-overview-drag-and-drop-workspace-moves
+- `664a179` 2026-03-03 hive(02-wire-bar-trigger-geometry): Wired trigger geometry into Bar.qml and MediaWidge
+- `8ecadb9` 2026-03-03 hive: merge 02-wire-bar-trigger-geometry
+- `61e0dcf` 2026-03-03 fix(AuthService): replace invalid onResponseRequired with onPamMessage handler
+- `167e42c` 2026-03-03 hive: merge 00-00-fix-authservice-pam-signal-handler
+- `e27e3b8` 2026-03-03 feat(popups): reposition all popup panes below trigger icons via PopupAnchorService
+- `2b0aa51` 2026-03-03 hive: merge 03-reposition-popup-panes-under-trigger-icons
+- `506089e` 2026-03-03 feat(media): end4-style collapsed+expanded media module with cava visualizer
+- `0cab19d` 2026-03-03 hive: merge 04-end4-style-media-module-collapsed--expanded
+- `b483dd1` 2026-03-03 feat(bar): polish bar to end4 style direction — hover pills, color transitions, media cross-fade
+- `67c6b65` 2026-03-03 hive: merge 06-main-bar-polish-to-end4-style-direction
+- `1e93c4a` 2026-03-03 fix(LockScreen): resolve shakeOffset ReferenceError warnings
+- `aded964` 2026-03-03 hive: merge 07-verification-and-stability-pass
+- `29e9b76` 2026-03-03 fix: media no-player clickable, cava restart guard, remove dead triggerId
+- `02bd3b7` 2026-03-03 hive: merge 08-08-hygienic-followup-media-click-and-cava-guard
+- `bbad83b` 2026-03-04 hive(01-polling-and-service-hotpath-fixes): Fixed three hotpath issues: (1) OSD.qml — replaced
+- `f21cc0a` 2026-03-04 fix: stability and race condition fixes for Quickshell components
+- `2e52cfd` 2026-03-04 fix: replace hardcoded hex colors with GlobalState refs and add nmcli colon-safe parser
+- `309dce8` 2026-03-04 hive: merge 01-polling-and-service-hotpath-fixes
+- `a76925d` 2026-03-04 hive: merge 02-stability-and-race-condition-fixes
+- `ebc6d75` 2026-03-04 hive: merge 03-theming-compliance-and-network-parser-fixes
+- `b93c15a` 2026-03-04 fix(ThemeMatrix): remove pragma ComponentBehavior: Bound; use GridView.view for delegate sizing
+- `76f88b9` 2026-03-04 hive: merge 04-final-verification-and-regression-pass
