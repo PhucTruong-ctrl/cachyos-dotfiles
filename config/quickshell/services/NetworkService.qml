@@ -1,3 +1,6 @@
+// NetworkService.qml — nmcli-based Wi-Fi helper used by the ControlCenter.
+// Provides scan/toggle/connect helpers and tracks active SSID state.
+
 pragma Singleton
 import QtQuick
 import Quickshell

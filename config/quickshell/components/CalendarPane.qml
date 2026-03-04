@@ -1,3 +1,7 @@
+// CalendarPane.qml — Clock-driven popup that shows current month/day info beneath the bar.
+// Visibility follows PopupStateService; placement uses PopupAnchorService coordinates.
+// IPC: qs ipc call toggle-calendar toggle.
+
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls

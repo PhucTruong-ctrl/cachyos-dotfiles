@@ -1,3 +1,6 @@
+// BatteryService.qml — Singleton that polls upower or /sys for battery metrics.
+// Provides percentage/state/time info to GlobalState and bar widgets.
+
 pragma Singleton
 import QtQuick
 import Quickshell

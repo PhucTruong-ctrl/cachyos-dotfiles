@@ -1,3 +1,6 @@
+// NotifStore.qml — Central notification model consumed by toast + history components.
+// Stores queued notifications and exposes CRUD helpers.
+
 pragma Singleton
 
 import QtQuick

@@ -1,3 +1,7 @@
+// ScreenshotTool.qml — Interactive screenshot UI (grimblast backend) for region/window capture.
+// Provides annotations for screenshot options and emits notifications on completion.
+// Triggered via screenshot keybind wiring in Hyprland.
+
 import Quickshell
 import "../services"
 import Quickshell.Io

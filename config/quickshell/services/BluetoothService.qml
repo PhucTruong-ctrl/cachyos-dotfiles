@@ -1,3 +1,6 @@
+// BluetoothService.qml — Wraps bluetoothctl commands for device state and toggle actions.
+// Used by ControlCenter and status indicators.
+
 pragma Singleton
 import QtQuick
 import Quickshell

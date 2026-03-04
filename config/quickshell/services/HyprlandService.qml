@@ -1,3 +1,6 @@
+// HyprlandService.qml — Utility layer for `hyprctl clients/workspaces/dispatch` commands.
+// Overview and workspace widgets consume its JSON data + helpers.
+
 pragma Singleton
 // HyprlandService.qml — Hyprland IPC client singleton
 //

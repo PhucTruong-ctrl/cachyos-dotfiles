@@ -1,3 +1,7 @@
+// ThemeMatrix.qml — Wallpaper grid selector driving Matugen/GlobalState colors.
+// Reads wallpapers via Io.DirectoryModel and updates GlobalState on selection.
+// Used by ThemePane + Dashboard for wallpaper/theme management.
+
 import QtQuick
 import Qt.labs.folderlistmodel
 import Quickshell

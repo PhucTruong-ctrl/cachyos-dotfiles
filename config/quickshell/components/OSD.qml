@@ -1,3 +1,7 @@
+// OSD.qml — Volume/brightness on-screen display spawned by hardware key events.
+// Uses hardware listeners + timers to show transient overlays near the bar.
+// Colors + blur align with GlobalState and Appearance.
+
 import QtQuick
 import QtQuick.Layouts
 import Quickshell

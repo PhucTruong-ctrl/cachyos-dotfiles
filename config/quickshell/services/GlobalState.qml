@@ -1,3 +1,6 @@
+// GlobalState.qml — Master state singleton for Matugen colors, toggles, and battery info.
+// All components/services read palette + feature flags from here.
+
 pragma Singleton
 import QtQuick
 import Quickshell

@@ -1,3 +1,6 @@
+// Performance.qml — Polls CPU/RAM/temperature data for the bar/popup monitors.
+// Timers run in the background and emit properties used in widgets.
+
 pragma Singleton
 import QtQuick
 import Quickshell.Io
