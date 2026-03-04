@@ -197,14 +197,14 @@ Scope {
                 radius:  12
 
                 // Base background
-                color:  "#1e1e2e"    // Catppuccin Mocha base
+                color:  GlobalState.base
 
                 // Urgency-aware left-border accent
                 readonly property color urgencyColor: {
                     const u = card.modelData.urgency;
-                    if (u === NotificationUrgency.Critical) return "#f38ba8"  // red
-                    if (u === NotificationUrgency.Low)      return "#6c7086"  // overlay0
-                    return "#cba6f7"   // mauve (Normal)
+                    if (u === NotificationUrgency.Critical) return GlobalState.red       // red
+                    if (u === NotificationUrgency.Low)      return GlobalState.overlay0  // overlay0
+                    return GlobalState.mauve   // mauve (Normal)
                 }
 
                 border.color: card.urgencyColor
@@ -268,7 +268,7 @@ Scope {
                         // App name
                         Text {
                             text:  card.modelData.appName ?? ""
-                            color: "#6c7086"    // overlay0 — de-emphasised
+                            color: GlobalState.overlay0    // overlay0 — de-emphasised
                             font.pixelSize: 11
                             elide: Text.ElideRight
                             Layout.fillWidth: true
@@ -278,7 +278,7 @@ Scope {
                         // Dismiss (×) button
                         Text {
                             text:  "󰅖"    // Nerd Font close circle
-                            color: closeArea.containsMouse ? "#f38ba8" : "#6c7086"
+                            color: closeArea.containsMouse ? GlobalState.red : GlobalState.overlay0
                             font.pixelSize: 14
                             Layout.alignment: Qt.AlignVCenter
 
@@ -304,7 +304,7 @@ Scope {
                     // ── Summary (title) ───────────────────────────────────────
                     Text {
                         text:  card.modelData.summary ?? ""
-                        color: "#cdd6f4"    // Catppuccin text
+                        color: GlobalState.text    // text
                         font.pixelSize: 13
                         font.bold:      true
                         wrapMode:       Text.WordWrap
@@ -316,7 +316,7 @@ Scope {
                     // ── Body ─────────────────────────────────────────────────
                     Text {
                         text:  card.modelData.body ?? ""
-                        color: "#a6adc8"    // subtext1
+                        color: GlobalState.subtext0    // subtext0
                         font.pixelSize: 12
                         wrapMode:       Text.WordWrap
                         textFormat:     Text.PlainText
@@ -341,8 +341,8 @@ Scope {
                                 height: 24
                                 width:  actionLabel.implicitWidth + 16
                                 radius: 6
-                                color:  actionArea.containsMouse ? "#313244" : "#181825"
-                                border.color: "#45475a"
+                                color:  actionArea.containsMouse ? GlobalState.surface0 : GlobalState.mantle
+                                border.color: GlobalState.surface1
                                 border.width: 1
 
                                 Behavior on color {
@@ -353,7 +353,7 @@ Scope {
                                     id: actionLabel
                                     anchors.centerIn: parent
                                     text:  modelData.text ?? ""
-                                    color: "#cdd6f4"
+                                    color: GlobalState.text
                                     font.pixelSize: 11
                                 }
 

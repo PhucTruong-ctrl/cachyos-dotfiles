@@ -30,9 +30,9 @@ GridView {
             id: bgRect
             anchors.fill: parent
             anchors.margins: 4
-            color: "#1e1e2e"
+            color: GlobalState.base
             radius: 8
-            border.color: hoverArea.containsMouse ? "#cba6f7" : "transparent"
+            border.color: hoverArea.containsMouse ? GlobalState.mauve : "transparent"
             border.width: 1
             clip: true
 
