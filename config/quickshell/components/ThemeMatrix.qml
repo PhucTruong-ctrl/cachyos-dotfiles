@@ -1,4 +1,3 @@
-pragma ComponentBehavior: Bound
 import QtQuick
 import Qt.labs.folderlistmodel
 import Quickshell
@@ -23,8 +22,8 @@ GridView {
         required property url fileUrl
         required property string filePath
 
-        width: root.cellWidth
-        height: root.cellHeight
+        width:  GridView.view.cellWidth
+        height: GridView.view.cellHeight
 
         Rectangle {
             id: bgRect
