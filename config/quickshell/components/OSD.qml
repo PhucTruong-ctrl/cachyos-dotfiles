@@ -95,47 +95,45 @@ PanelWindow {
         }
     }
 
-    // Brightness Detection (Polling — no inotifywait available)
+    // Brightness Detection — event-driven watcher (no inotifywait; uses a
+    // long-running bash loop that reads the sysfs brightness file and only
+    // emits a line when the value changes).  This replaces the previous
+    // 500 ms polling timer + two forked brightnessctl processes that ran
+    // unconditionally 24/7 even while the OSD was hidden.
+    //
+    // Output format: "<current_raw> <max_raw>" on each brightness change.
     property int lastBrightness: -1
 
-    Timer {
-        interval: 500
+    Process {
+        id: brightnessWatcher
+        command: [
+            "bash", "-c",
+            "BDEV=/sys/class/backlight/$(ls /sys/class/backlight | head -n1);" +
+            "MAX=$(cat \"$BDEV/max_brightness\");" +
+            "PREV=-1;" +
+            "while true; do" +
+            "  CUR=$(cat \"$BDEV/brightness\");" +
+            "  if [ \"$CUR\" != \"$PREV\" ]; then" +
+            "    echo \"$CUR $MAX\";" +
+            "    PREV=$CUR;" +
+            "  fi;" +
+            "  sleep 0.25;" +
+            "done"
+        ]
         running: true
-        repeat: true
-        onTriggered: {
-            brightnessFetcher.running = false
-            brightnessFetcher.running = true
-        }
-    }
-
-    Process {
-        id: brightnessFetcher
-        command: ["brightnessctl", "g"]
         stdout: SplitParser {
             onRead: data => {
-                const val = parseInt(data.trim())
-                if (!isNaN(val)) {
-                    brightnessMaxFetcher.targetVal = val
-                    brightnessMaxFetcher.running = false
-                    brightnessMaxFetcher.running = true
-                }
-            }
-        }
-    }
-
-    Process {
-        id: brightnessMaxFetcher
-        property int targetVal: 0
-        command: ["brightnessctl", "m"]
-        stdout: SplitParser {
-            onRead: data => {
-                const max = parseInt(data.trim())
-                if (max > 0) {
-                    const pct = Math.round((brightnessMaxFetcher.targetVal / max) * 100)
-                    if (pct !== root.lastBrightness && root.lastBrightness !== -1) {
-                        root.show("brightness", pct, "󰃠")
+                const parts = data.trim().split(" ")
+                if (parts.length === 2) {
+                    const cur = parseInt(parts[0])
+                    const max = parseInt(parts[1])
+                    if (!isNaN(cur) && !isNaN(max) && max > 0) {
+                        const pct = Math.round((cur / max) * 100)
+                        if (pct !== root.lastBrightness && root.lastBrightness !== -1) {
+                            root.show("brightness", pct, "󰃠")
+                        }
+                        root.lastBrightness = pct
                     }
-                    root.lastBrightness = pct
                 }
             }
         }
