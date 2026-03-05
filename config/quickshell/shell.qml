@@ -1,3 +1,4 @@
+//@ pragma UseQApplication
 // shell.qml — Quickshell master loader
 //
 // This file is the single entrypoint executed by Quickshell on startup:

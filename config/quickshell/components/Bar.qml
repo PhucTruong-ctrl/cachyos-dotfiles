@@ -342,12 +342,19 @@ Scope {
                                     anchors.fill: parent
                                     cursorShape: Qt.PointingHandCursor
                                     acceptedButtons: Qt.LeftButton | Qt.RightButton
+                                    function showNativeMenu(mouse) {
+                                        const menuPos = mapToItem(barWindow.contentItem ?? parent, mouse.x, mouse.y)
+                                        modelData.display(barWindow, menuPos.x, menuPos.y)
+                                    }
                                     onClicked: (mouse) => {
                                         if (mouse.button === Qt.RightButton) {
-                                            modelData.display(barWindow, mouse.x, mouse.y);
+                                            if (modelData.hasMenu)
+                                                showNativeMenu(mouse);
+                                            else
+                                                modelData.secondaryActivate();
                                         } else {
-                                            if (modelData.onlyMenu)
-                                                modelData.display(barWindow, mouse.x, mouse.y);
+                                            if (modelData.onlyMenu && modelData.hasMenu)
+                                                showNativeMenu(mouse);
                                             else
                                                 modelData.activate();
                                         }
