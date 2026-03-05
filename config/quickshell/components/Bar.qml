@@ -165,6 +165,7 @@ Scope {
                                 color: wsPill.modelData.focused ? GlobalState.matugenOnPrimary : GlobalState.matugenOnSurface
                                 font.pixelSize: 11
                                 font.bold: wsPill.modelData.focused
+                                font.family: "JetBrainsMonoNL Nerd Font"
                             }
 
                             Rectangle {
@@ -227,7 +228,7 @@ Scope {
                         Text {
                             text: "󰻠"
                             color: GlobalState.matugenPrimary
-                            font.family: "monospace"
+                            font.family: "JetBrainsMonoNL Nerd Font"
                             font.pixelSize: 14
                             anchors.verticalCenter: parent.verticalCenter
                         }
@@ -235,7 +236,7 @@ Scope {
                         Text {
                             text: Performance.cpuUsage.toFixed(1) + "%"
                             color: GlobalState.matugenOnSurface
-                            font.family: "monospace"
+                            font.family: "JetBrainsMonoNL Nerd Font"
                             font.pixelSize: 13
                             anchors.verticalCenter: parent.verticalCenter
                         }
@@ -249,7 +250,7 @@ Scope {
                         Text {
                             text: "󰍛"
                             color: GlobalState.blue
-                            font.family: "monospace"
+                            font.family: "JetBrainsMonoNL Nerd Font"
                             font.pixelSize: 14
                             anchors.verticalCenter: parent.verticalCenter
                         }
@@ -257,7 +258,7 @@ Scope {
                         Text {
                             text: Performance.ramUsage.toFixed(1) + "%"
                             color: GlobalState.matugenOnSurface
-                            font.family: "monospace"
+                            font.family: "JetBrainsMonoNL Nerd Font"
                             font.pixelSize: 13
                             anchors.verticalCenter: parent.verticalCenter
                         }
@@ -271,7 +272,7 @@ Scope {
                         Text {
                             text: "󰔏"
                             color: GlobalState.matugenError
-                            font.family: "monospace"
+                            font.family: "JetBrainsMonoNL Nerd Font"
                             font.pixelSize: 14
                             anchors.verticalCenter: parent.verticalCenter
                         }
@@ -279,7 +280,7 @@ Scope {
                         Text {
                             text: Performance.cpuTemp.toFixed(1) + "°C"
                             color: GlobalState.matugenOnSurface
-                            font.family: "monospace"
+                            font.family: "JetBrainsMonoNL Nerd Font"
                             font.pixelSize: 13
                             anchors.verticalCenter: parent.verticalCenter
                         }
@@ -316,7 +317,7 @@ Scope {
 
                                 Image {
                                     anchors.centerIn: parent
-                                    source: modelData.icon
+                                    source: modelData.icon || ""
                                     sourceSize.width: 16
                                     sourceSize.height: 16
                                 }

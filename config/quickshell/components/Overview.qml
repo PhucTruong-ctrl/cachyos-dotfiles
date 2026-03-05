@@ -449,6 +449,8 @@ Scope {
                                                                     IconImage {
                                                                         anchors.fill: parent
                                                                         source: Quickshell.iconPath(modelData.icon, true)
+                                                                        backer.sourceSize.width: 28
+                                                                        backer.sourceSize.height: 28
                                                                         visible: modelData.icon !== ""
                                                                     }
 

@@ -253,6 +253,8 @@ Scope {
                                 source: Quickshell.iconPath(
                                     card.modelData.appIcon ?? "", true
                                 )
+                                backer.sourceSize.width: 22
+                                backer.sourceSize.height: 22
                                 visible: (card.modelData.appIcon ?? "") !== ""
                             }
 

@@ -146,6 +146,8 @@ Rectangle {
                             IconImage {
                                 anchors.fill: parent
                                 source: Quickshell.iconPath(model.appIcon ?? "", true)
+                                backer.sourceSize.width: 16
+                                backer.sourceSize.height: 16
                                 visible: (model.appIcon ?? "") !== ""
                             }
 

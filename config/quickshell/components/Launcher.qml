@@ -141,7 +141,7 @@ Scope {
     // ──────────────────────────────────────────────────────────────────────────
     function launchApp(entry) {
         console.log("[Launcher] launching app: name=" + (entry.name ?? "(unknown)") +
-            " exec=" + (entry.exec ?? "(unknown)"));
+            " exec=" + (entry.execString || ((entry.command ?? []).join(" ")) || "(unknown)"));
         entry.execute();
         PopupStateService.closeAll();
     }
@@ -521,6 +521,8 @@ Scope {
                                     source: Quickshell.iconPath(
                                         (delegateRoot.modelData.icon ?? ""), true
                                     )
+                                    backer.sourceSize.width: 28
+                                    backer.sourceSize.height: 28
                                     visible: (delegateRoot.modelData.icon ?? "") !== ""
                                 }
 
