@@ -95,7 +95,7 @@ run fc-cache -fv
 log "Done! Reboot recommended to apply boot parameters."
 echo ""
 echo "Post-install checklist:"
-echo "  - Reboot to apply kernel boot params (nmi_watchdog=0, intel_pstate=passive)"
+echo "  - Reboot to apply kernel boot params (nmi_watchdog=0, intel_pstate=active)"
 echo "  - Run 'gh auth login' if GitHub CLI not authenticated"
 echo "  - Run 'tailscale up' to connect to Tailscale network"
 echo "  - Run 'fcitx5 -r -d' to reload input method"

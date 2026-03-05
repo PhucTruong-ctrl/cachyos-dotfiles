@@ -45,3 +45,11 @@ export PATH=/home/phuctruong/.local/bin:/home/phuctruong/.opencode/bin:/home/phu
 
 # bun completions
 [ -s "/home/phuctruong/.bun/_bun" ] && source "/home/phuctruong/.bun/_bun"
+
+# pnpm
+export PNPM_HOME="/home/phuctruong/.local/share/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end
