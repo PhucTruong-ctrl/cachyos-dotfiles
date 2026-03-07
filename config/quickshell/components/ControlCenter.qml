@@ -335,13 +335,16 @@ PanelWindow {
         property string iconText:  ""
         property string labelText: ""
         property bool   active:    false
+        property color activeColor: GlobalState.matugenPrimary
+        property color activeBorderColor: GlobalState.lavender
+        property color activeForegroundColor: GlobalState.matugenOnPrimary
         signal clicked()
 
         Layout.fillWidth:       true
         Layout.preferredHeight: 64
         radius:       8
-        color:        active ? GlobalState.matugenPrimary : GlobalState.surface0
-        border.color: active ? GlobalState.lavender       : "transparent"
+        color:        active ? activeColor : GlobalState.surface0
+        border.color: active ? activeBorderColor : "transparent"
         border.width: 1
 
         Behavior on color { ColorAnimation { duration: Appearance.popupFade } }
@@ -352,14 +355,14 @@ PanelWindow {
 
             Text {
                 text:             btn.iconText
-                color:            btn.active ? GlobalState.matugenOnPrimary : GlobalState.text
+                color:            btn.active ? btn.activeForegroundColor : GlobalState.text
                 font.pixelSize:   18
                 font.family:      "monospace"
                 Layout.alignment: Qt.AlignHCenter
             }
             Text {
                 text:             btn.labelText
-                color:            btn.active ? GlobalState.matugenOnPrimary : GlobalState.subtext1
+                color:            btn.active ? btn.activeForegroundColor : GlobalState.subtext1
                 font.pixelSize:   11
                 Layout.alignment: Qt.AlignHCenter
                 wrapMode:         Text.NoWrap
@@ -605,6 +608,25 @@ PanelWindow {
                             hypridleKill.running = true
                         }
                         GlobalState.caffeineActive = !GlobalState.caffeineActive
+                    }
+                }
+
+                ToggleButton {
+                    iconText:  "󰓅"
+                    labelText: "High Performance"
+                    active:    GlobalState.highPerformanceActive
+                    activeColor: GlobalState.warning
+                    activeBorderColor: GlobalState.warning
+                    activeForegroundColor: GlobalState.base
+                    onClicked: {
+                        if (GlobalState.highPerformanceActive) {
+                            performanceModeOff.running = false
+                            performanceModeOff.running = true
+                        } else {
+                            performanceModeOn.running = false
+                            performanceModeOn.running = true
+                        }
+                        GlobalState.highPerformanceActive = !GlobalState.highPerformanceActive
                     }
                 }
 
