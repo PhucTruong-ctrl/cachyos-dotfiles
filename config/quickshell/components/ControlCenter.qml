@@ -56,6 +56,7 @@ PanelWindow {
             // Reset content to off-screen starting position before revealing
             contentRect.y = PopupAnchorService.barY - contentRect.height - 12
             visible = true
+            refreshPerformanceModeStatus()
             slideInAnim.restart()
         } else {
             // Stop any in-progress slide-in before closing
@@ -111,6 +112,12 @@ PanelWindow {
     // ── Sub-panel expansion state ─────────────────────────────────────────────
     property bool wifiExpanded: false
     property bool btExpanded:   false
+
+    function refreshPerformanceModeStatus() {
+        performanceModeStatus.receivedStatus = false
+        performanceModeStatus.running = false
+        performanceModeStatus.running = true
+    }
 
     // ── Volume state ──────────────────────────────────────────────────────────
     property int  currentVolume: 0
@@ -238,6 +245,40 @@ PanelWindow {
         onExited: caffeineCheck.running = true
     }
 
+    // ── High Performance processes ────────────────────────────────────────────
+    Process {
+        id:      performanceModeStatus
+        property bool receivedStatus: false
+        property string commandText: "sudo /usr/local/bin/performance-mode status"
+        command: commandText.split(" ")
+        running: true
+        stdout: SplitParser {
+            onRead: data => {
+                performanceModeStatus.receivedStatus = true
+                GlobalState.highPerformanceActive = (data.trim() === "PERFORMANCE_MODE=on")
+            }
+        }
+        onExited: code => {
+            if (code !== 0 || !receivedStatus) {
+                GlobalState.highPerformanceActive = false
+            }
+        }
+    }
+
+    Process {
+        id:      performanceModeOn
+        property string commandText: "sudo /usr/local/bin/performance-mode on"
+        command: commandText.split(" ")
+        onExited: refreshPerformanceModeStatus()
+    }
+
+    Process {
+        id:      performanceModeOff
+        property string commandText: "sudo /usr/local/bin/performance-mode off"
+        command: commandText.split(" ")
+        onExited: refreshPerformanceModeStatus()
+    }
+
     // ── Polling timer (runs only while panel is open) ─────────────────────────
     Timer {
         interval: 2000
@@ -249,6 +290,7 @@ PanelWindow {
             brightnessGet.running    = true
             wlsunsetCheck.running    = true
             caffeineCheck.running    = true
+            refreshPerformanceModeStatus()
         }
     }
 

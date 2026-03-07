@@ -60,6 +60,7 @@ QtObject {
     property bool caffeineActive: false
     property bool nightModeActive: false
     property bool dndActive: false
+    property bool highPerformanceActive: false
 
     // System Status — forwarding aliases to BatteryService singleton
     // batteryLevel: canonical name for downstream tasks / Task 11 lock screen
