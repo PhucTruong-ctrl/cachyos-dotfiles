@@ -29,6 +29,13 @@ run bash "$SCRIPT_DIR/scripts/install-packages.sh"
 
 # --- 2. Copy system configs ---
 log "Installing system configs..."
+run sudo mkdir -p /usr/local/bin
+run sudo cp "$SCRIPT_DIR/scripts/performance-mode.sh" /usr/local/bin/performance-mode
+run sudo chmod 0755 /usr/local/bin/performance-mode
+run sudo mkdir -p /etc/sudoers.d
+run sudo cp "$SCRIPT_DIR/etc/sudoers.d/quickshell-performance-mode" /etc/sudoers.d/quickshell-performance-mode
+run sudo chmod 0440 /etc/sudoers.d/quickshell-performance-mode
+run sudo visudo -cf /etc/sudoers.d/quickshell-performance-mode
 run sudo cp "$SCRIPT_DIR/etc/tlp.conf" /etc/tlp.conf
 run sudo cp "$SCRIPT_DIR/etc/intel-undervolt.conf" /etc/intel-undervolt.conf
 run sudo cp "$SCRIPT_DIR/etc/sysctl.d/99-performance.conf" /etc/sysctl.d/99-performance.conf
