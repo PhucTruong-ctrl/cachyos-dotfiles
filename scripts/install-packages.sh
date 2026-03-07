@@ -7,7 +7,10 @@ PKG_DIR="$SCRIPT_DIR/../packages"
 
 echo "=== Installing official packages ==="
 if [ -f "$PKG_DIR/official.txt" ]; then
-    sudo pacman -S --needed --noconfirm $(grep -v '^#' "$PKG_DIR/official.txt" | grep -v '^$' | tr '\n' ' ')
+    mapfile -t official_packages < <(grep -v '^#' "$PKG_DIR/official.txt" | grep -v '^$')
+    if [ "${#official_packages[@]}" -gt 0 ]; then
+        sudo pacman -S --needed --noconfirm "${official_packages[@]}"
+    fi
 else
     echo "WARNING: official.txt not found"
 fi
