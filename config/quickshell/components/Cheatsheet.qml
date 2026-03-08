@@ -10,7 +10,6 @@ Scope {
     id: root
 
     property var groupedSections: groupKeybindsBySection(KeybindsService.keybinds)
-
     function groupKeybindsBySection(keybinds) {
         const sections = [];
         const sectionIndexes = {};
@@ -32,22 +31,24 @@ Scope {
         return sections;
     }
 
-    function formatBinding(keybind) {
-        const parts = [];
+    function bindingTokens(keybind) {
+        const tokens = [];
 
         if (keybind.submap && keybind.submap.length > 0) {
-            parts.push("[" + keybind.submap + "]");
+            tokens.push("[" + keybind.submap + "]");
         }
 
         if (keybind.mods && keybind.mods.length > 0) {
-            parts.push(keybind.mods.join(" + "));
+            for (let i = 0; i < keybind.mods.length; i++) {
+                tokens.push(keybind.mods[i]);
+            }
         }
 
         if (keybind.key && keybind.key.length > 0) {
-            parts.push(keybind.key);
+            tokens.push(keybind.key);
         }
 
-        return parts.join(" + ");
+        return tokens;
     }
 
     function close() {
@@ -110,7 +111,7 @@ Scope {
 
                 Rectangle {
                     anchors.fill: parent
-                    color: Qt.rgba(0, 0, 0, 0.78)
+                    color: Qt.rgba(0, 0, 0, 0.50)
                 }
             }
 
@@ -121,7 +122,7 @@ Scope {
                 height: Math.min(parent.height - 96, 820)
                 radius: Appearance.panelRadius + 4
                 color: Qt.rgba(GlobalState.base.r, GlobalState.base.g, GlobalState.base.b, Appearance.panelOpacity)
-                border.color: GlobalState.matugenPrimary
+                border.color: GlobalState.surface0
                 border.width: 1
 
                 MouseArea {
@@ -133,7 +134,7 @@ Scope {
                 ColumnLayout {
                     anchors.fill: parent
                     anchors.margins: 20
-                    spacing: 16
+                    spacing: 20
 
                     RowLayout {
                         Layout.fillWidth: true
@@ -141,7 +142,7 @@ Scope {
 
                         Text {
                             text: "Keyboard shortcuts"
-                            color: GlobalState.matugenPrimary
+                            color: GlobalState.text
                             font.pixelSize: 24
                             font.bold: true
                         }
@@ -162,12 +163,6 @@ Scope {
                                 font.pixelSize: 12
                             }
                         }
-                    }
-
-                    Rectangle {
-                        Layout.fillWidth: true
-                        height: 1
-                        color: GlobalState.surface0
                     }
 
                     Text {
@@ -191,7 +186,7 @@ Scope {
                         ColumnLayout {
                             id: sectionsColumn
                             width: cheatsheetFlickable.width
-                            spacing: 12
+                            spacing: 18
 
                             Repeater {
                                 model: root.groupedSections
@@ -201,8 +196,8 @@ Scope {
 
                                     Layout.fillWidth: true
                                     implicitHeight: sectionLayout.implicitHeight + 28
-                                    radius: 12
-                                    color: Qt.rgba(GlobalState.mantle.r, GlobalState.mantle.g, GlobalState.mantle.b, 0.82)
+                                    radius: 14
+                                    color: Qt.rgba(GlobalState.mantle.r, GlobalState.mantle.g, GlobalState.mantle.b, 0.50)
                                     border.color: GlobalState.surface0
                                     border.width: 1
 
@@ -210,7 +205,7 @@ Scope {
                                         id: sectionLayout
                                         anchors.fill: parent
                                         anchors.margins: 14
-                                        spacing: 10
+                                        spacing: 14
 
                                         RowLayout {
                                             Layout.fillWidth: true
@@ -218,8 +213,8 @@ Scope {
                                             Text {
                                                 text: modelData.section
                                                 color: GlobalState.text
-                                                font.pixelSize: 18
-                                                font.bold: true
+                                                font.pixelSize: 20
+                                                font.weight: Font.DemiBold
                                                 Layout.fillWidth: true
                                             }
 
@@ -230,15 +225,9 @@ Scope {
                                             }
                                         }
 
-                                        Rectangle {
-                                            Layout.fillWidth: true
-                                            height: 1
-                                            color: GlobalState.surface1
-                                        }
-
                                         ColumnLayout {
                                             Layout.fillWidth: true
-                                            spacing: 8
+                                            spacing: 10
 
                                             Repeater {
                                                 model: modelData.keybinds
@@ -247,11 +236,11 @@ Scope {
                                                     required property var modelData
 
                                                     Layout.fillWidth: true
-                                                    radius: 10
-                                                    color: bindingArea.containsMouse ? GlobalState.surface0 : GlobalState.base
-                                                    border.color: bindingArea.containsMouse ? GlobalState.matugenPrimary : GlobalState.surface1
+                                                    radius: 12
+                                                    color: bindingArea.containsMouse ? Qt.rgba(GlobalState.surface0.r, GlobalState.surface0.g, GlobalState.surface0.b, 0.62) : Qt.rgba(GlobalState.base.r, GlobalState.base.g, GlobalState.base.b, 0.72)
+                                                    border.color: bindingArea.containsMouse ? GlobalState.surface1 : GlobalState.surface0
                                                     border.width: 1
-                                                    implicitHeight: bindingRow.implicitHeight + 18
+                                                    implicitHeight: bindingGrid.implicitHeight + 18
 
                                                     Behavior on color {
                                                         ColorAnimation { duration: Appearance.popupFade }
@@ -261,32 +250,67 @@ Scope {
                                                         ColorAnimation { duration: Appearance.popupFade }
                                                     }
 
-                                                    RowLayout {
-                                                        id: bindingRow
+                                                    GridLayout {
+                                                        id: bindingGrid
                                                         anchors.fill: parent
                                                         anchors.margins: 9
-                                                        spacing: 12
+                                                        columns: 2
+                                                        columnSpacing: 14
+                                                        rowSpacing: 8
 
-                                                        Rectangle {
+                                                        Item {
                                                             Layout.alignment: Qt.AlignTop
-                                                            Layout.maximumWidth: Math.max(180, bindingRow.width * 0.42)
-                                                            radius: 8
-                                                            color: GlobalState.surface0
-                                                            border.color: GlobalState.surface1
-                                                            border.width: 1
-                                                            implicitWidth: Math.min(bindingKeyLabel.implicitWidth + 18, Math.max(180, bindingRow.width * 0.42))
-                                                            implicitHeight: bindingKeyLabel.implicitHeight + 10
+                                                            Layout.maximumWidth: Math.max(180, bindingGrid.width * 0.42)
+                                                            Layout.minimumWidth: 0
+                                                            implicitWidth: Math.min(bindingFlow.implicitWidth, Math.max(180, bindingGrid.width * 0.42))
+                                                            implicitHeight: bindingFlow.implicitHeight
 
-                                                            Text {
-                                                                id: bindingKeyLabel
-                                                                anchors.centerIn: parent
-                                                                width: parent.width - 18
-                                                                text: root.formatBinding(modelData)
-                                                                color: GlobalState.matugenPrimary
-                                                                font.pixelSize: 12
-                                                                font.bold: true
-                                                                wrapMode: Text.WrapAnywhere
-                                                                horizontalAlignment: Text.AlignHCenter
+                                                            Flow {
+                                                                id: bindingFlow
+                                                                width: parent.width
+                                                                spacing: 6
+
+                                                                Repeater {
+                                                                    model: root.bindingTokens(modelData)
+
+                                                                    Rectangle {
+                                                                        required property string modelData
+
+                                                                        readonly property int extraBottomBorderWidth: 2
+                                                                        radius: 6
+                                                                        color: GlobalState.surface1
+                                                                        implicitWidth: keycapLabel.implicitWidth + 18
+                                                                        implicitHeight: keycapLabel.implicitHeight + 10 + extraBottomBorderWidth
+
+                                                                        Rectangle {
+                                                                            anchors {
+                                                                                top: parent.top
+                                                                                left: parent.left
+                                                                                right: parent.right
+                                                                                bottom: parent.bottom
+                                                                                leftMargin: 1
+                                                                                rightMargin: 1
+                                                                                topMargin: 1
+                                                                                bottomMargin: 1 + parent.extraBottomBorderWidth
+                                                                            }
+                                                                            radius: parent.radius - 1
+                                                                            color: Qt.rgba(GlobalState.base.r, GlobalState.base.g, GlobalState.base.b, 0.94)
+
+                                                                            Text {
+                                                                                id: keycapLabel
+                                                                                anchors.centerIn: parent
+                                                                                text: modelData
+                                                                                color: GlobalState.text
+                                                                                font.family: "monospace"
+                                                                                font.pixelSize: 12
+                                                                                font.bold: true
+                                                                                wrapMode: Text.WrapAnywhere
+                                                                                horizontalAlignment: Text.AlignHCenter
+                                                                                renderType: Text.NativeRendering
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
                                                             }
                                                         }
 
@@ -300,7 +324,8 @@ Scope {
                                                                 Layout.minimumWidth: 0
                                                                 text: modelData.description
                                                                 color: GlobalState.text
-                                                                font.pixelSize: 13
+                                                                font.pixelSize: 12
+                                                                renderType: Text.NativeRendering
                                                                 wrapMode: Text.Wrap
                                                             }
 
