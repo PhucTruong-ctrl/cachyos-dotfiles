@@ -44,7 +44,12 @@ setopt appendhistory
 export PATH=/home/phuctruong/.local/bin:/home/phuctruong/.opencode/bin:/home/phuctruong/.bun/bin:$PATH
 
 # Suppress noisy non-actionable Qt warnings from Quickshell runtime
-export QT_LOGGING_RULES="quickshell.dbus.properties.warning=false;qt.svg.warning=false"
+export QT_LOGGING_RULES="quickshell.dbus.properties.warning=false;quickshell.service.notifications.warning=false;qt.svg.warning=false"
+
+# Ensure manual `quickshell ...` runs also inherit the warning filter
+quickshell() {
+  QT_LOGGING_RULES="$QT_LOGGING_RULES" command quickshell "$@"
+}
 
 # bun completions
 [ -s "/home/phuctruong/.bun/_bun" ] && source "/home/phuctruong/.bun/_bun"
