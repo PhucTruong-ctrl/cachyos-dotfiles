@@ -31,8 +31,8 @@ GridView {
     }
 
     function encodePathSegment(segment) {
-        return encodeURIComponent(segment).replace(/[!'()*]/g, function(char) {
-            return "%" + char.charCodeAt(0).toString(16).toUpperCase();
+        return encodeURIComponent(segment).replace(/[!'()*]/g, function(ch) {
+            return "%" + ch.charCodeAt(0).toString(16).toUpperCase();
         });
     }
 

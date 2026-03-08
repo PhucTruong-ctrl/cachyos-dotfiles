@@ -141,83 +141,6 @@ Scope {
 
                 // ── Left section: live workspace pills ────────────────────────
                 Row {
-                    id: workspacesRow
-
-                    spacing: 6
-                    Layout.alignment: Qt.AlignVCenter
-
-                    Repeater {
-                        model: Hyprland.workspaces.values
-
-                        delegate: Rectangle {
-                            id: wsPill
-
-                            required property var modelData // HyprlandWorkspace
-
-                            width: 22
-                            height: 22
-                            radius: 4
-                            color: modelData.focused ? GlobalState.matugenPrimary : GlobalState.matugenSurface
-
-                            Text {
-                                anchors.centerIn: parent
-                                text: modelData.id > 0 ? modelData.id : modelData.name
-                                color: wsPill.modelData.focused ? GlobalState.matugenOnPrimary : GlobalState.matugenOnSurface
-                                font.pixelSize: 11
-                                font.bold: wsPill.modelData.focused
-                                font.family: "JetBrainsMonoNL Nerd Font"
-                            }
-
-                            Rectangle {
-                                visible: wsPill.modelData.urgent
-                                width: 6
-                                height: 6
-                                radius: 3
-                                color: GlobalState.matugenError
-
-                                anchors {
-                                    top: parent.top
-                                    right: parent.right
-                                    topMargin: 2
-                                    rightMargin: 2
-                                }
-
-                            }
-
-                            MouseArea {
-                                anchors.fill: parent
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    wsPill.modelData.activate();
-                                }
-                            }
-
-                            Behavior on color {
-                                ColorAnimation {
-                                    duration: Appearance.popupFade
-                                }
-
-                            }
-
-                        }
-
-                    }
-
-                }
-
-                // Media Widget: always-visible compact MPRIS controls
-                // Shows "No media" when no player, mini visualizer + controls when active.
-                MediaWidget {
-                    Layout.alignment: Qt.AlignVCenter
-                }
-
-                // ── Left spacer ───────────────────────────────────────────────
-                Item {
-                    Layout.fillWidth: true
-                }
-
-                // ── Middle section: System Monitor ────────────────────────────
-                Row {
                     Layout.alignment: Qt.AlignVCenter
                     spacing: 16
 
@@ -289,6 +212,83 @@ Scope {
 
                 }
 
+                // Media Widget: always-visible compact MPRIS controls
+                // Shows "No media" when no player, mini visualizer + controls when active.
+                MediaWidget {
+                    Layout.alignment: Qt.AlignVCenter
+                }
+
+                // ── Left spacer ───────────────────────────────────────────────
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                // ── Middle section: System Monitor ────────────────────────────
+                Row {
+                    id: workspacesRow
+
+                    spacing: 6
+                    Layout.alignment: Qt.AlignVCenter
+
+                    Repeater {
+                        model: Hyprland.workspaces.values
+
+                        delegate: Rectangle {
+                            id: wsPill
+
+                            required property var modelData // HyprlandWorkspace
+
+                            width: 22
+                            height: 22
+                            radius: 4
+                            color: modelData.focused ? GlobalState.matugenPrimary : GlobalState.matugenSurface
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: modelData.id > 0 ? modelData.id : modelData.name
+                                color: wsPill.modelData.focused ? GlobalState.matugenOnPrimary : GlobalState.matugenOnSurface
+                                font.pixelSize: 11
+                                font.bold: wsPill.modelData.focused
+                                font.family: "JetBrainsMonoNL Nerd Font"
+                            }
+
+                            Rectangle {
+                                visible: wsPill.modelData.urgent
+                                width: 6
+                                height: 6
+                                radius: 3
+                                color: GlobalState.matugenError
+
+                                anchors {
+                                    top: parent.top
+                                    right: parent.right
+                                    topMargin: 2
+                                    rightMargin: 2
+                                }
+
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    wsPill.modelData.activate();
+                                }
+                            }
+
+                            Behavior on color {
+                                ColorAnimation {
+                                    duration: Appearance.popupFade
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
                 // ── Right spacer ──────────────────────────────────────────────
                 Item {
                     Layout.fillWidth: true
@@ -339,13 +339,14 @@ Scope {
                                 }
 
                                 MouseArea {
+                                    function showNativeMenu(mouse) {
+                                        const menuPos = mapToItem(barWindow.contentItem ?? parent, mouse.x, mouse.y);
+                                        modelData.display(barWindow, menuPos.x, menuPos.y);
+                                    }
+
                                     anchors.fill: parent
                                     cursorShape: Qt.PointingHandCursor
                                     acceptedButtons: Qt.LeftButton | Qt.RightButton
-                                    function showNativeMenu(mouse) {
-                                        const menuPos = mapToItem(barWindow.contentItem ?? parent, mouse.x, mouse.y)
-                                        modelData.display(barWindow, menuPos.x, menuPos.y)
-                                    }
                                     onClicked: (mouse) => {
                                         if (mouse.button === Qt.RightButton) {
                                             if (modelData.hasMenu)
