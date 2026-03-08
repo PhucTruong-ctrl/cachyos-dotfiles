@@ -12,9 +12,10 @@ GridView {
     id: root
 
     property string activeWallpaperPath: ""
+    property string wallpapersDirectoryPath: Quickshell.env("HOME") + "/Wallpapers"
 
     function ensureBackgroundThumbnails() {
-        if (thumbnailBatchProcess.running) {
+        if (thumbnailBatchProcess.running || root.count === 0) {
             return;
         }
 
@@ -22,7 +23,7 @@ GridView {
             "bash",
             root.normalizeWallpaperPath(Qt.resolvedUrl("../scripts/wallpaper-thumbnail.sh")),
             "--directory",
-            Quickshell.env("HOME") + "/Wallpapers",
+            root.wallpapersDirectoryPath,
             "--size",
             "large"
         ];
@@ -67,10 +68,8 @@ GridView {
         return "file://" + encodedPath;
     }
 
-    // NOTE: Replace with the actual home directory path
     model: FolderListModel {
-        // Evaluate the home directory dynamically or use an explicit path
-        folder: "file://" + Quickshell.env("HOME") + "/Wallpapers"
+        folder: "file://" + root.wallpapersDirectoryPath
         nameFilters: ["*.jpg", "*.jpeg", "*.png", "*.webp"]
         showDirs: false
     }
