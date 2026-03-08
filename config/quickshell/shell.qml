@@ -187,6 +187,15 @@ ShellRoot {
     Overview {}
 
     // ------------------------------------------------------------------
+    // Load Cheatsheet here
+    //
+    // Cheatsheet.qml is a fullscreen keyboard shortcuts overlay sourced
+    // from Hyprland bindd descriptions via KeybindsService.
+    // Toggle via: qs ipc call toggle-cheatsheet toggle
+    // ------------------------------------------------------------------
+    Cheatsheet {}
+
+    // ------------------------------------------------------------------
     // Wallpaper restore on startup
     //
     // Reads the persisted wallpaper path from

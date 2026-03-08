@@ -23,6 +23,7 @@
 //   "theme"          — ThemePane.qml
 //   "dashboard"      — Dashboard.qml
 //   "launcher"       — Launcher.qml (optional, fullscreen)
+//   "cheatsheet"     — Cheatsheet.qml (fullscreen)
 
 pragma Singleton
 import QtQuick

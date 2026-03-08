@@ -4,6 +4,8 @@ set -euo pipefail
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "$script_dir/../.." && pwd)"
 parser_script="$repo_root/config/quickshell/scripts/hyprland/get_keybinds.py"
+service_qml="$repo_root/config/quickshell/services/KeybindsService.qml"
+services_qmldir="$repo_root/config/quickshell/services/qmldir"
 
 tmp_dir="$(mktemp -d)"
 cleanup() {
@@ -34,7 +36,6 @@ json_output="$(python "$parser_script" --path "$fixture_path")"
 JSON_OUTPUT="$json_output" python - <<'PY'
 import json
 import os
-import sys
 
 items = json.loads(os.environ["JSON_OUTPUT"])
 
@@ -102,4 +103,25 @@ assert by_description["Ends window resizing mode"] == {
     "section": "Window Actions",
     "submap": "resize",
 }
+PY
+
+SERVICE_QML="$service_qml" SERVICES_QMLDIR="$services_qmldir" python - <<'PY'
+from pathlib import Path
+import os
+import re
+
+service_text = Path(os.environ["SERVICE_QML"]).read_text(encoding="utf-8")
+qmldir_text = Path(os.environ["SERVICES_QMLDIR"]).read_text(encoding="utf-8")
+
+assert "pragma Singleton" in service_text, "KeybindsService must be a singleton"
+assert re.search(r"property\s+var\s+keybinds\s*:\s*\[\]", service_text), "KeybindsService must expose property var keybinds: []"
+assert "Process {" in service_text, "KeybindsService must define a Process"
+assert "python" in service_text, "KeybindsService process should invoke python"
+assert "get_keybinds.py" in service_text, "KeybindsService must call get_keybinds.py"
+assert "onRead:" in service_text and "JSON.parse" in service_text, "KeybindsService must parse JSON in onRead"
+assert "root.keybinds = []" in service_text, "KeybindsService must fall back to an empty array"
+assert "import Quickshell.Hyprland" in service_text, "KeybindsService must import Quickshell.Hyprland for reactive reloads"
+assert "Connections {" in service_text and "onRawEvent" in service_text, "KeybindsService must react to Hyprland events"
+assert "configreloaded" in service_text, "KeybindsService must reload on Hyprland config reload"
+assert "singleton KeybindsService 1.0 KeybindsService.qml" in qmldir_text, "qmldir must register KeybindsService"
 PY
