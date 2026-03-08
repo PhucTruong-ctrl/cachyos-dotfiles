@@ -9,6 +9,8 @@ warn() {
     printf 'WARNING: %s\n' "$1" >&2
 }
 
+STATE_FILE="${PERFORMANCE_MODE_STATE_FILE:-/run/performance-mode.state}"
+
 probe_backend_status() {
     local backend="$1"
     local output
@@ -60,23 +62,46 @@ set_internal_mode() {
     local mode="$1"
     local max_perf_file="$INTEL_PSTATE_DIR/max_perf_pct"
     local no_turbo_file="$INTEL_PSTATE_DIR/no_turbo"
+    local hwp_boost_file="$INTEL_PSTATE_DIR/hwp_dynamic_boost"
 
     case "$mode" in
         on)
+            # Stop TLP while high performance mode is active; otherwise TLP can
+            # immediately re-apply low-heat caps on AC/BAT events.
+            if command -v systemctl >/dev/null 2>&1 && systemctl is-active --quiet tlp 2>/dev/null; then
+                systemctl stop tlp || warn "failed to stop tlp; performance caps may be reverted"
+            fi
+
             write_cpu_value "$max_perf_file" 100
             write_cpu_value "$no_turbo_file" 0
+            write_cpu_value "$hwp_boost_file" 1
 
             if [[ -x "$NVIDIA_SMI" ]]; then
-                "$NVIDIA_SMI" --reset-gpu-clocks
+                "$NVIDIA_SMI" --reset-gpu-clocks 2>/dev/null || warn "failed to reset NVIDIA clocks"
             fi
+
+            mkdir -p "$(dirname "$STATE_FILE")" 2>/dev/null || true
+            printf 'on\n' > "$STATE_FILE" || warn "failed to persist state file: $STATE_FILE"
             ;;
         off)
             write_cpu_value "$max_perf_file" 80
             write_cpu_value "$no_turbo_file" 1
+            write_cpu_value "$hwp_boost_file" 0
 
             if [[ -x "$NVIDIA_SMI" ]]; then
-                "$NVIDIA_SMI" --lock-gpu-clocks=0,1101
+                "$NVIDIA_SMI" --lock-gpu-clocks=0,1101 2>/dev/null || warn "failed to lock NVIDIA clocks"
             fi
+
+            # Restore TLP-managed low-heat baseline on OFF.
+            if command -v systemctl >/dev/null 2>&1 && systemctl is-enabled --quiet tlp 2>/dev/null; then
+                systemctl start tlp || warn "failed to start tlp"
+                if command -v tlp >/dev/null 2>&1; then
+                    tlp start >/dev/null 2>&1 || warn "failed to apply tlp baseline"
+                fi
+            fi
+
+            mkdir -p "$(dirname "$STATE_FILE")" 2>/dev/null || true
+            printf 'off\n' > "$STATE_FILE" || warn "failed to persist state file: $STATE_FILE"
             ;;
     esac
 }
@@ -96,11 +121,21 @@ print_internal_status() {
         warn "intel_pstate file unavailable: $no_turbo_file"
     fi
 
+    if [[ -e "$STATE_FILE" ]]; then
+        case "$(<"$STATE_FILE")" in
+            on|off)
+                mode="$(<"$STATE_FILE")"
+                printf 'PERFORMANCE_MODE=%s\n' "$mode"
+                return
+                ;;
+        esac
+    fi
+
     if [[ -e "$max_perf_file" && -e "$no_turbo_file" ]]; then
         max_perf="$(<"$max_perf_file")"
         no_turbo="$(<"$no_turbo_file")"
 
-        if [[ "$max_perf" == "100" && "$no_turbo" == "0" ]]; then
+        if [[ "$no_turbo" == "0" && "$max_perf" -ge 95 ]]; then
             mode="on"
         fi
     fi

@@ -249,8 +249,8 @@ PanelWindow {
     Process {
         id:      performanceModeStatus
         property bool receivedStatus: false
-        property string commandText: "sudo /usr/local/bin/performance-mode status"
-        command: commandText.split(" ")
+        // Status must be non-privileged to avoid password prompts during polling.
+        command: ["/usr/local/bin/performance-mode", "status"]
         running: true
         stdout: SplitParser {
             onRead: data => {
@@ -267,16 +267,27 @@ PanelWindow {
 
     Process {
         id:      performanceModeOn
-        property string commandText: "sudo /usr/local/bin/performance-mode on"
-        command: commandText.split(" ")
-        onExited: refreshPerformanceModeStatus()
+        // Use non-interactive sudo so UI never blocks on password prompt.
+        // If sudoers is not configured yet, command exits non-zero and status
+        // refresh will reconcile state back to OFF.
+        command: ["sudo", "-n", "/usr/local/bin/performance-mode", "on"]
+        onExited: code => {
+            if (code !== 0) {
+                console.warn("ControlCenter: High Performance ON failed (sudoers/helper missing?)")
+            }
+            refreshPerformanceModeStatus()
+        }
     }
 
     Process {
         id:      performanceModeOff
-        property string commandText: "sudo /usr/local/bin/performance-mode off"
-        command: commandText.split(" ")
-        onExited: refreshPerformanceModeStatus()
+        command: ["sudo", "-n", "/usr/local/bin/performance-mode", "off"]
+        onExited: code => {
+            if (code !== 0) {
+                console.warn("ControlCenter: High Performance OFF failed (sudoers/helper missing?)")
+            }
+            refreshPerformanceModeStatus()
+        }
     }
 
     // ── Polling timer (runs only while panel is open) ─────────────────────────
