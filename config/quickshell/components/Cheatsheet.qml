@@ -200,12 +200,14 @@ Scope {
                                     required property var modelData
 
                                     Layout.fillWidth: true
+                                    implicitHeight: sectionLayout.implicitHeight + 28
                                     radius: 12
                                     color: Qt.rgba(GlobalState.mantle.r, GlobalState.mantle.g, GlobalState.mantle.b, 0.82)
                                     border.color: GlobalState.surface0
                                     border.width: 1
 
                                     ColumnLayout {
+                                        id: sectionLayout
                                         anchors.fill: parent
                                         anchors.margins: 14
                                         spacing: 10
