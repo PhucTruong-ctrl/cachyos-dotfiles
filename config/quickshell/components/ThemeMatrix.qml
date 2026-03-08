@@ -13,6 +13,22 @@ GridView {
 
     property string activeWallpaperPath: ""
 
+    function ensureBackgroundThumbnails() {
+        if (thumbnailBatchProcess.running) {
+            return;
+        }
+
+        thumbnailBatchProcess.command = [
+            "bash",
+            root.normalizeWallpaperPath(Qt.resolvedUrl("../scripts/wallpaper-thumbnail.sh")),
+            "--directory",
+            Quickshell.env("HOME") + "/Wallpapers",
+            "--size",
+            "large"
+        ];
+        thumbnailBatchProcess.running = true;
+    }
+
     function encodePathSegment(segment) {
         return encodeURIComponent(segment).replace(/[!'()*]/g, function(char) {
             return "%" + char.charCodeAt(0).toString(16).toUpperCase();
@@ -159,6 +175,24 @@ GridView {
                 console.log("[ThemeMatrix] wallpaper-engine.sh completed successfully. Triggering color reload directly.");
                 // Ambxst approach: Direct invocation, no IPC needed.
                 GlobalState.reloadColors();
+            }
+        }
+    }
+
+    Process {
+        id: thumbnailBatchProcess
+
+        stdout: SplitParser {
+            onRead: data => console.log("[ThemeMatrix] thumbnail stdout:", data)
+        }
+
+        stderr: SplitParser {
+            onRead: data => console.warn("[ThemeMatrix] thumbnail stderr:", data)
+        }
+
+        onExited: (exitCode, exitStatus) => {
+            if (exitCode !== 0) {
+                console.warn("[ThemeMatrix] wallpaper-thumbnail.sh failed with exit code:", exitCode);
             }
         }
     }
