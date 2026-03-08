@@ -4,6 +4,7 @@ set -euo pipefail
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "$script_dir/../.." && pwd)"
 thumbnail_script="$repo_root/config/quickshell/scripts/wallpaper-thumbnail.sh"
+theme_matrix="$repo_root/config/quickshell/components/ThemeMatrix.qml"
 
 tmp_dir="$(mktemp -d)"
 cleanup() {
@@ -69,3 +70,12 @@ expected_normal_path="$HOME/.cache/thumbnails/normal/$expected_normal_md5.png"
 
 normal_dimensions="$(magick identify -format '%w %h' "$expected_normal_path")"
 [[ "$normal_dimensions" == "128 64" ]]
+
+grep -q 'property string activeWallpaperPath' "$theme_matrix"
+grep -q 'function normalizeWallpaperPath' "$theme_matrix"
+grep -q 'property string normalizedFilePath: root.normalizeWallpaperPath(fileUrl)' "$theme_matrix"
+grep -q 'property bool isActiveWallpaper: normalizedFilePath.length > 0 && normalizedFilePath === root.activeWallpaperPath' "$theme_matrix"
+grep -q 'current_wallpaper' "$theme_matrix"
+grep -q 'activeWallpaperPath = normalizedFilePath' "$theme_matrix"
+grep -q 'border.color: isActiveWallpaper ? GlobalState.matugenPrimary : (hoverArea.containsMouse ? Qt.alpha(GlobalState.matugenPrimary, 0.45) : "transparent")' "$theme_matrix"
+grep -q 'border.width: isActiveWallpaper ? 3 : 1' "$theme_matrix"

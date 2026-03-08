@@ -11,6 +11,46 @@ import "../services"
 GridView {
     id: root
 
+    property string activeWallpaperPath: ""
+
+    function encodePathSegment(segment) {
+        return encodeURIComponent(segment).replace(/[!'()*]/g, function(char) {
+            return "%" + char.charCodeAt(0).toString(16).toUpperCase();
+        });
+    }
+
+    function normalizeWallpaperPath(wallpaperSource) {
+        if (wallpaperSource === undefined || wallpaperSource === null) {
+            return "";
+        }
+
+        var normalizedPath = wallpaperSource.toString().trim();
+
+        if (normalizedPath.startsWith("file://")) {
+            normalizedPath = decodeURIComponent(normalizedPath.replace(/^file:\/\//, ""));
+        }
+
+        return normalizedPath;
+    }
+
+    function canonicalThumbnailUri(wallpaperUrl) {
+        var absolutePath = normalizeWallpaperPath(wallpaperUrl);
+        var encodedPath = absolutePath.split("/").map(function(segment) {
+            return encodePathSegment(segment);
+        }).join("/");
+
+        return "file://" + encodedPath;
+    }
+
+    function thumbnailCacheSource(thumbnailHash) {
+        var thumbnailPath = Quickshell.env("HOME") + "/.cache/thumbnails/large/" + thumbnailHash + ".png";
+        var encodedPath = thumbnailPath.split("/").map(function(segment) {
+            return encodePathSegment(segment);
+        }).join("/");
+
+        return "file://" + encodedPath;
+    }
+
     // NOTE: Replace with the actual home directory path
     model: FolderListModel {
         // Evaluate the home directory dynamically or use an explicit path
@@ -21,10 +61,22 @@ GridView {
 
     cellWidth: 160
     cellHeight: 120
+    cacheBuffer: cellHeight * 4
+
+    Component.onCompleted: {
+        activeWallpaperReader.running = true;
+    }
 
     delegate: Item {
         required property url fileUrl
         required property string filePath
+        property string normalizedFilePath: root.normalizeWallpaperPath(fileUrl)
+        property bool thumbnailFailed: false
+        property string thumbnailHash: Qt.md5(canonicalThumbnailUri(fileUrl))
+        property string thumbnailSource: thumbnailCacheSource(thumbnailHash)
+        property bool isActiveWallpaper: normalizedFilePath.length > 0 && normalizedFilePath === root.activeWallpaperPath
+
+        onFileUrlChanged: thumbnailFailed = false
 
         width:  GridView.view.cellWidth
         height: GridView.view.cellHeight
@@ -35,16 +87,26 @@ GridView {
             anchors.margins: 4
             color: GlobalState.base
             radius: 8
-            border.color: hoverArea.containsMouse ? GlobalState.mauve : "transparent"
-            border.width: 1
+            border.color: isActiveWallpaper ? GlobalState.matugenPrimary : (hoverArea.containsMouse ? Qt.alpha(GlobalState.matugenPrimary, 0.45) : "transparent")
+            border.width: isActiveWallpaper ? 3 : 1
             clip: true
 
             Image {
+                id: preview
+
                 anchors.fill: parent
-                source: fileUrl
+                source: thumbnailFailed ? fileUrl : thumbnailSource
                 fillMode: Image.PreserveAspectCrop
                 asynchronous: true
-                opacity: hoverArea.containsMouse ? 0.8 : 1.0
+                sourceSize.width: Math.max(1, Math.round(width))
+                sourceSize.height: Math.max(1, Math.round(height))
+                opacity: status === Image.Ready ? (hoverArea.containsMouse ? 0.8 : 1.0) : 0.0
+
+                onStatusChanged: {
+                    if (!thumbnailFailed && (status === Image.Error || status === Image.Null)) {
+                        thumbnailFailed = true;
+                    }
+                }
 
                 Behavior on opacity {
                     NumberAnimation { duration: Appearance.popupFade }
@@ -57,15 +119,25 @@ GridView {
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
-                    // Derive absolute path from fileUrl (known-good) instead of filePath
-                    var wallpaperPath = fileUrl.toString().replace("file://", "");
-                    var scriptPath = Qt.resolvedUrl("../scripts/wallpaper-engine.sh").toString().replace("file://", "");
+                    var wallpaperPath = normalizedFilePath;
+                    var scriptPath = root.normalizeWallpaperPath(Qt.resolvedUrl("../scripts/wallpaper-engine.sh"));
+                    root.activeWallpaperPath = normalizedFilePath;
                     console.log("[ThemeMatrix] wallpaperPath:", wallpaperPath);
                     console.log("[ThemeMatrix] scriptPath:", scriptPath);
                     wpProcess.command = ["bash", scriptPath, wallpaperPath];
                     wpProcess.running = true;
                 }
             }
+        }
+    }
+
+    Process {
+        id: activeWallpaperReader
+        command: ["cat", Quickshell.env("HOME") + "/.cache/quickshell/current_wallpaper"]
+        running: false
+
+        stdout: SplitParser {
+            onRead: data => root.activeWallpaperPath = root.normalizeWallpaperPath(data.trim())
         }
     }
 
