@@ -267,29 +267,35 @@ Scope {
 
                                                         Rectangle {
                                                             Layout.alignment: Qt.AlignTop
+                                                            Layout.maximumWidth: Math.max(180, bindingRow.width * 0.42)
                                                             radius: 8
                                                             color: GlobalState.surface0
                                                             border.color: GlobalState.surface1
                                                             border.width: 1
-                                                            implicitWidth: bindingKeyLabel.implicitWidth + 18
+                                                            implicitWidth: Math.min(bindingKeyLabel.implicitWidth + 18, Math.max(180, bindingRow.width * 0.42))
                                                             implicitHeight: bindingKeyLabel.implicitHeight + 10
 
                                                             Text {
                                                                 id: bindingKeyLabel
                                                                 anchors.centerIn: parent
+                                                                width: parent.width - 18
                                                                 text: root.formatBinding(modelData)
                                                                 color: GlobalState.matugenPrimary
                                                                 font.pixelSize: 12
                                                                 font.bold: true
+                                                                wrapMode: Text.WrapAnywhere
+                                                                horizontalAlignment: Text.AlignHCenter
                                                             }
                                                         }
 
                                                         ColumnLayout {
                                                             Layout.fillWidth: true
+                                                            Layout.minimumWidth: 0
                                                             spacing: 4
 
                                                             Text {
                                                                 Layout.fillWidth: true
+                                                                Layout.minimumWidth: 0
                                                                 text: modelData.description
                                                                 color: GlobalState.text
                                                                 font.pixelSize: 13
@@ -298,10 +304,12 @@ Scope {
 
                                                             Text {
                                                                 Layout.fillWidth: true
+                                                                Layout.minimumWidth: 0
                                                                 visible: modelData.submap && modelData.submap.length > 0
                                                                 text: "Submap: " + modelData.submap
                                                                 color: GlobalState.overlay1
                                                                 font.pixelSize: 11
+                                                                wrapMode: Text.Wrap
                                                             }
                                                         }
                                                     }
