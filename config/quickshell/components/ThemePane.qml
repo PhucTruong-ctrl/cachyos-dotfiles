@@ -29,6 +29,9 @@ PanelWindow {
         target: PopupStateService
         function onOpenPopupIdChanged() {
             root.visible = (PopupStateService.openPopupId === "theme")
+            if (PopupStateService.openPopupId === "theme") {
+                themeMatrix.ensureBackgroundThumbnails()
+            }
         }
     }
 
@@ -66,6 +69,7 @@ PanelWindow {
             border.width: 1
             
             ThemeMatrix {
+                id: themeMatrix
                 anchors.fill: parent
                 anchors.margins: 12
                 cellWidth: 194
