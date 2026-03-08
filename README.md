@@ -101,6 +101,7 @@ This is launched automatically via `exec-once` in `config/hypr/config/autostart.
 | `Bar.qml` | Top panel — live workspace pills (Catppuccin Mocha mauve) + clock. One `PanelWindow` per monitor, hotplug-aware via `Variants`. Uses `exclusiveZone: 40` so tiled windows never slide under the bar. |
 | `Launcher.qml` | Keyboard-driven app launcher. Reads `.desktop` files, fuzzy search. Toggled via `qs ipc call toggle-launcher toggle`. |
 | `Power.qml` | Fullscreen power overlay. Buttons: lock, suspend, logout, reboot, shutdown. Toggled via `qs ipc call toggle-power toggle`. |
+| `Cheatsheet.qml` | Fullscreen keybind cheatsheet overlay. Parses Hyprland `bindd` descriptions and toggles via `qs ipc call toggle-cheatsheet toggle`. |
 | `Notifs.qml` | Notification daemon — implements `org.freedesktop.Notifications` D-Bus interface. Replaces `mako`/`dunst`. Ephemeral popup cards in the top-right corner. |
 
 > **Design rule:** `shell.qml` is a pure loader — no layout logic lives there. Each component owns its own `IpcHandler` and visibility state.
@@ -133,7 +134,8 @@ This is launched automatically via `exec-once` in `config/hypr/config/autostart.
 | `Mod + Ctrl + 1–0` | Move window to workspace 1–10 (and follow) |
 | `Mod + Shift + 1–0` | Move window silently to workspace 1–10 |
 | `Mod + ,` / `Mod + .` | Cycle workspaces |
-| `Mod + /` | Jump to previous workspace |
+| `Mod + /` | Toggle **Keybind Cheatsheet** (Quickshell) |
+| `Mod + Shift + /` | Jump to previous workspace |
 | `Mod + -` / `Mod + =` | Move window to / toggle special (scratchpad) workspace |
 
 ### Screenshots
@@ -300,7 +302,7 @@ hyprctl clients | grep -E 'class|title'
 | Symptom | Fix |
 |---|---|
 | Bar not visible | Check `quickshell` is running: `pgrep -x quickshell`. Reload: `pkill quickshell && quickshell -p ~/.config/quickshell/shell.qml &` |
-| Launcher / Power menu doesn't open | Confirm IPC: `qs ipc call toggle-launcher toggle` |
+| Launcher / Power menu doesn't open | Confirm IPC: `qs ipc call toggle-launcher toggle`, `qs ipc call toggle-cheatsheet toggle` |
 | Notifications not appearing | Quickshell's `Notifs.qml` registers on D-Bus. Check: `busctl --user list \| grep freedesktop.Notifications` |
 | Hyprland config errors | `hyprctl configerrors` |
 | Stow conflicts | Remove conflicting dir: `rm -rf ~/.config/<dir>` then re-run stow |
