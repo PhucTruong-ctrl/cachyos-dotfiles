@@ -53,6 +53,7 @@ assert 'KeybindsService.keybinds' in cheatsheet_text, "Cheatsheet must read Keyb
 assert re.search(r'function\s+groupKeybindsBySection\s*\(', cheatsheet_text), "Cheatsheet must group keybinds by section"
 assert re.search(r'groupKeybindsBySection\s*\(\s*KeybindsService\.keybinds\s*\)', cheatsheet_text), "Cheatsheet must derive grouped sections from KeybindsService.keybinds"
 assert 'section' in cheatsheet_text, "Cheatsheet must render grouped sections"
+assert re.search(r'Rectangle\s*{\s*required property var modelData\s*\n\s*Layout\.fillWidth: true\s*\n\s*implicitHeight:\s*\w+\.implicitHeight\s*\+\s*\d+', cheatsheet_text, re.S), "Cheatsheet section cards must expose implicitHeight to stabilize layout sizing"
 assert 'Layout.minimumWidth: 0' in cheatsheet_text, "Cheatsheet binding description column must shrink to avoid overlap"
 assert 'wrapMode: Text.WrapAnywhere' in cheatsheet_text, "Cheatsheet shortcut labels must wrap long keybinds"
 assert 'Layout.maximumWidth:' in cheatsheet_text, "Cheatsheet shortcut badge width must be capped to avoid overlap"
