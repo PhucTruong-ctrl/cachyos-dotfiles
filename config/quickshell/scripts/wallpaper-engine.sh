@@ -52,6 +52,7 @@ log_info "Saved wallpaper path to $cache_dir/current_wallpaper"
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 sync_script="$script_dir/matugen-sync.sh"
+thumbnail_script="$script_dir/wallpaper-thumbnail.sh"
 
 if [[ -x "$sync_script" ]]; then
     log_info "Running matugen sync via: $sync_script"
@@ -60,6 +61,13 @@ if [[ -x "$sync_script" ]]; then
     fi
 else
     log_warn "matugen-sync.sh not found/executable; skipping color sync"
+fi
+
+if [[ -x "$thumbnail_script" ]]; then
+    log_info "Generating wallpaper thumbnail in background"
+    ("$thumbnail_script" --file "$wallpaper" > /dev/null 2>&1 || true) &
+else
+    log_warn "wallpaper-thumbnail.sh not found/executable; skipping thumbnail generation"
 fi
 
 log_info "Wallpaper engine complete"

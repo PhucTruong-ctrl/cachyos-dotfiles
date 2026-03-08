@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+repo_root="$(cd "$script_dir/../.." && pwd)"
+thumbnail_script="$repo_root/config/quickshell/scripts/wallpaper-thumbnail.sh"
+
+tmp_dir="$(mktemp -d)"
+cleanup() {
+    rm -rf "$tmp_dir"
+}
+trap cleanup EXIT
+
+export HOME="$tmp_dir/home"
+mkdir -p "$HOME"
+
+image_dir="$tmp_dir/images"
+mkdir -p "$image_dir"
+image_path="$image_dir/wall paper #1.png"
+directory_image_path="$image_dir/second-wallpaper.jpg"
+
+magick -size 640x480 xc:'#89b4fa' "$image_path"
+magick -size 720x360 xc:'#f38ba8' "$directory_image_path"
+
+bash "$thumbnail_script" --file "$image_path"
+
+expected_md5="$({ IMAGE_PATH="$image_path" python - <<'PY'
+from pathlib import Path
+from urllib.parse import quote
+import hashlib
+import os
+
+path = str(Path(os.environ["IMAGE_PATH"]).resolve())
+canonical_uri = "file://" + quote(path, safe='/-._~')
+print(hashlib.md5(canonical_uri.encode()).hexdigest())
+PY
+} )"
+
+expected_path="$HOME/.cache/thumbnails/large/$expected_md5.png"
+
+[[ -f "$expected_path" ]]
+
+large_dimensions="$(magick identify -format '%w %h' "$expected_path")"
+[[ "$large_dimensions" == "256 192" ]]
+
+before_mtime="$(stat -c %Y "$expected_path")"
+sleep 1
+bash "$thumbnail_script" --file "$image_path"
+after_mtime="$(stat -c %Y "$expected_path")"
+[[ "$before_mtime" == "$after_mtime" ]]
+
+bash "$thumbnail_script" --directory "$image_dir" --size normal
+
+expected_normal_md5="$({ IMAGE_PATH="$directory_image_path" python - <<'PY'
+from pathlib import Path
+from urllib.parse import quote
+import hashlib
+import os
+
+path = str(Path(os.environ["IMAGE_PATH"]).resolve())
+canonical_uri = "file://" + quote(path, safe='/-._~')
+print(hashlib.md5(canonical_uri.encode()).hexdigest())
+PY
+} )"
+
+expected_normal_path="$HOME/.cache/thumbnails/normal/$expected_normal_md5.png"
+
+[[ -f "$expected_normal_path" ]]
+
+normal_dimensions="$(magick identify -format '%w %h' "$expected_normal_path")"
+[[ "$normal_dimensions" == "128 64" ]]
