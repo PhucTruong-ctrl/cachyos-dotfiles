@@ -36,6 +36,9 @@ Scope {
     property bool draggingWindow: false
     /// The workspace id currently hovered during a drag (-1 = none).
     property int  hoveredWorkspaceId: -1
+    /// Address/workspace of the card currently being dragged.
+    property string draggedWindowAddress: ""
+    property int draggedFromWorkspaceId: -1
 
     // ──────────────────────────────────────────────────────────────────────────
     // Post-drop refresh — triggered by HyprlandService.windowMoved signal.
@@ -379,11 +382,15 @@ Scope {
                                             // ── Window cards ─────────────────
                                             // Use a Flickable so cards can scroll vertically
                                             Flickable {
+                                                id: cardsFlickable
                                                 Layout.fillWidth:  true
                                                 Layout.fillHeight: true
                                                 contentHeight:     cardsColumn.implicitHeight
                                                 clip:              true
                                                 boundsBehavior:    Flickable.StopAtBounds
+                                                // Important for drag-and-drop: don't let Flickable steal drags
+                                                // while moving a card between workspace columns.
+                                                interactive:       !root.draggingWindow
 
                                                 Column {
                                                     id: cardsColumn
@@ -398,6 +405,7 @@ Scope {
                                                             id: windowCard
                                                             required property var modelData
                                                             required property int index
+                                                            property bool wasDragged: false
 
                                                             width:  parent.width
                                                             // Proportional height: clamp to 60–100px
@@ -426,9 +434,10 @@ Scope {
                                                             }
 
                                                             // ── Drag attached properties ──
-                                                            // Binding Drag.active to handler makes Qt
-                                                            // pick up this item for DropArea hit-testing.
-                                                            Drag.active:   cardDragHandler.active
+                                                            // Use MouseArea drag state (end-4-style) so DropArea
+                                                            // reliably receives drag enter/exit/drop events.
+                                                            Drag.active:   cardArea.drag.active
+                                                            Drag.source:   windowCard
                                                             Drag.hotSpot.x: width  / 2
                                                             Drag.hotSpot.y: height / 2
 
@@ -498,13 +507,47 @@ Scope {
                                                                 id: cardArea
                                                                 anchors.fill: parent
                                                                 hoverEnabled: true
+                                                                acceptedButtons: Qt.LeftButton
+                                                                preventStealing: true
+                                                                drag.target: windowCard
                                                                 cursorShape: cardDragHandler.active
                                                                              ? Qt.ClosedHandCursor
                                                                              : Qt.PointingHandCursor
 
+                                                                onPressed: {
+                                                                    windowCard.wasDragged = false;
+                                                                    root.draggingWindow = true;
+                                                                    root.draggedWindowAddress = modelData.address;
+                                                                    root.draggedFromWorkspaceId = modelData.workspaceId;
+                                                                }
+
+                                                                onPositionChanged: {
+                                                                    if (drag.active)
+                                                                        windowCard.wasDragged = true;
+                                                                }
+
+                                                                onReleased: {
+                                                                    const targetWs = root.hoveredWorkspaceId;
+                                                                    const srcWs = root.draggedFromWorkspaceId;
+                                                                    const addr = root.draggedWindowAddress;
+                                                                    if (addr !== "" && targetWs !== -1 && targetWs !== srcWs) {
+                                                                        console.log("[Overview] drag-drop(mouse-release): move " + addr + " → ws " + targetWs);
+                                                                        HyprlandService.moveWindowToWorkspace(addr, targetWs);
+                                                                    }
+
+                                                                    // Return card visual position back to its layout slot.
+                                                                    windowCard.x = 0;
+                                                                    windowCard.y = 0;
+
+                                                                    root.draggingWindow = false;
+                                                                    root.hoveredWorkspaceId = -1;
+                                                                    root.draggedWindowAddress = "";
+                                                                    root.draggedFromWorkspaceId = -1;
+                                                                }
+
                                                                 onClicked: {
                                                                     // Ignore release that ends a drag gesture
-                                                                    if (cardDragHandler.active) return;
+                                                                    if (windowCard.wasDragged || cardDragHandler.active) return;
                                                                     console.log("[Overview] window card clicked: " + modelData.address);
                                                                     HyprlandService.focusWindow(modelData.address);
                                                                     root.close();
@@ -521,20 +564,9 @@ Scope {
 
                                                                 onActiveChanged: {
                                                                     if (active) {
-                                                                        root.draggingWindow = true;
+                                                                        // State is set by MouseArea.onPressed.
                                                                     } else {
-                                                                        // Drag ended — read captured target before clearing
-                                                                        const targetWs = root.hoveredWorkspaceId;
-                                                                        const srcWs    = windowCard.modelData.workspaceId;
-                                                                        root.draggingWindow     = false;
-                                                                        root.hoveredWorkspaceId = -1;
-                                                                        if (targetWs !== -1 && targetWs !== srcWs) {
-                                                                            const addr = windowCard.modelData.address;
-                                                                            console.log("[Overview] drag-drop: move " + addr + " → ws " + targetWs);
-                                                                            // Dispatch move; HyprlandService.windowMoved signal
-                                                                            // triggers dragDropRefreshTimer via Connections.
-                                                                            HyprlandService.moveWindowToWorkspace(addr, targetWs);
-                                                                        }
+                                                                        // State reset is handled by MouseArea.onReleased.
                                                                     }
                                                                 }
                                                             }
@@ -550,6 +582,18 @@ Scope {
                                             anchors.fill: parent
                                             // Only active while a window is being dragged
                                             enabled: root.draggingWindow
+
+                                            onDropped: drop => {
+                                                const targetWs = modelData.id;
+                                                const srcWs = root.draggedFromWorkspaceId;
+                                                const addr = root.draggedWindowAddress;
+                                                if (addr !== "" && targetWs !== -1 && targetWs !== srcWs) {
+                                                    console.log("[Overview] drag-drop(onDropped): move " + addr + " → ws " + targetWs);
+                                                    // Dispatch move; HyprlandService.windowMoved signal
+                                                    // triggers dragDropRefreshTimer via Connections.
+                                                    HyprlandService.moveWindowToWorkspace(addr, targetWs);
+                                                }
+                                            }
 
                                             onEntered: drag => {
                                                 root.hoveredWorkspaceId = modelData.id;
