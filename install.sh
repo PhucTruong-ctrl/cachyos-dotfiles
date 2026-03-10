@@ -73,6 +73,8 @@ if ! command -v stow >/dev/null 2>&1; then
     run sudo pacman -S --needed --noconfirm stow
 fi
 run mkdir -p "$HOME/.config"
+run rm -f "$HOME/.config/mako" "$HOME/.config/waybar" "$HOME/.config/wlogout" "$HOME/.config/wofi"
+run rm -f "$HOME/.config/gtk-3.0/gtk.css" "$HOME/.config/gtk-4.0/gtk.css"
 run stow --target="$HOME/.config" --restow config
 run ln -sf "$SCRIPT_DIR/config/zsh/.zshrc" "$HOME/.zshrc"
 run ln -sf "$SCRIPT_DIR/config/git/config" "$HOME/.gitconfig"

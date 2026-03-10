@@ -14,6 +14,20 @@ plugins=(
 
 source $ZSH/oh-my-zsh.sh
 
+# Matugen dynamic shell colors (generated on wallpaper changes)
+[[ -f "$HOME/.cache/matugen/zsh-colors.zsh" ]] && source "$HOME/.cache/matugen/zsh-colors.zsh"
+
+# Prefer Matugen-generated Starship config when available
+if [[ -f "$HOME/.cache/matugen/starship.toml" ]]; then
+  export STARSHIP_CONFIG="$HOME/.cache/matugen/starship.toml"
+else
+  export STARSHIP_CONFIG="$HOME/.config/starship.toml"
+fi
+
+if command -v starship >/dev/null 2>&1; then
+  eval "$(starship init zsh)"
+fi
+
 # Check archlinux plugin commands here
 # https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/archlinux
 
