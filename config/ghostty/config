@@ -5,7 +5,7 @@ bold-is-bright = false
 confirm-close-surface = false
 cursor-style = bar
 font-family = JetBrainsMono Nerd Font
-font-size = 12
+font-size = 11
 gtk-single-instance = true
 mouse-hide-while-typing = true
 quick-terminal-position = center
@@ -21,6 +21,20 @@ window-height = 32
 window-save-state = always
 window-theme = dark
 window-width = 110
+window-padding-x = 22
+window-padding-y = 22
+
+# End-4-like QoL keybinds (Ghostty equivalents)
+keybind = ctrl+shift+c=copy_to_clipboard
+keybind = ctrl+plus=increase_font_size:1
+keybind = ctrl+equal=increase_font_size:1
+keybind = ctrl+kp_add=increase_font_size:1
+keybind = ctrl+minus=decrease_font_size:1
+keybind = ctrl+kp_subtract=decrease_font_size:1
+keybind = ctrl+0=set_font_size:11
+keybind = ctrl+kp_0=set_font_size:11
+keybind = page_up=scroll_page_up
+keybind = page_down=scroll_page_down
 
 # Theme switching (optional): managed by your theme changer (symlink or generated file).
 config-file = ?~/.config/ghostty/theme.conf

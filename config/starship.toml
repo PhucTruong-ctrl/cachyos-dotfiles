@@ -1,51 +1,75 @@
-# Starship prompt config for CachyOS
-# https://starship.rs/config/
+# End-4 inspired fallback prompt for when Matugen cache isn't available.
+# Dynamic prompt is generated at ~/.cache/matugen/starship.toml by matugen-sync.sh.
+
+add_newline = false
+palette = "fallback"
 
 format = """
-$username\
-$hostname\
-$directory\
-$git_branch\
-$git_status\
-$nodejs\
-$python\
-$rust\
-$docker_context\
-$cmd_duration\
-$line_break\
+$cmd_duration 󰜥 $directory $git_branch\
 $character"""
 
 [character]
-success_symbol = "[❯](bold green)"
-error_symbol = "[❯](bold red)"
+success_symbol = "[   ](bold fg:blue)"
+error_symbol = "[   ](bold fg:red)"
 
-[directory]
-truncation_length = 3
-truncate_to_repo = true
+[package]
+disabled = true
 
 [git_branch]
-symbol = " "
-format = "on [$symbol$branch]($style) "
+style = "bg: cyan"
+symbol = "󰘬"
+truncation_length = 12
+truncation_symbol = ""
+format = "󰜥 [](bold fg:cyan)[$symbol $branch(:$remote_branch)](fg:black bg:cyan)[ ](bold fg:cyan)"
 
 [git_status]
-format = '([$all_status$ahead_behind]($style) )'
+conflicted = " 🏳 "
+ahead = " 🏎💨 "
+behind = " 😰 "
+diverged = " 😵 "
+untracked = " 🤷 ‍"
+stashed = " 📦 "
+modified = " 📝 "
+staged = '[++($count)](green)'
+renamed = " ✍️ "
+deleted = " 🗑 "
 
-[nodejs]
-symbol = " "
-format = "via [$symbol($version )]($style)"
+[hostname]
+ssh_only = false
+format =  "[•$hostname](bg:cyan bold fg:black)[](bold fg:cyan)"
+disabled = false
 
-[python]
-symbol = " "
-format = 'via [${symbol}${pyenv_prefix}(${version} )(\($virtualenv\) )]($style)'
+[line_break]
+disabled = false
 
-[rust]
-symbol = " "
-format = "via [$symbol($version )]($style)"
+[username]
+style_user = "bold bg:cyan fg:black"
+style_root = "red bold"
+format = "[](bold fg:cyan)[$user]($style)"
+disabled = false
+show_always = true
 
-[docker_context]
-symbol = " "
-format = "via [$symbol$context]($style) "
+[directory]
+home_symbol = "  "
+read_only = "  "
+style = "bg:green fg:black"
+truncation_length = 6
+truncation_symbol = " ••/"
+format = '[](bold fg:green)[󰉋 $path]($style)[](bold fg:green)'
+
+[directory.substitutions]
+"Desktop" = "  "
+"Documents" = "  "
+"Downloads" = "  "
+"Music" = " 󰎈 "
+"Pictures" = "  "
+"Videos" = "  "
+"GitHub" = " 󰊤 "
 
 [cmd_duration]
-min_time = 2_000
-format = "took [$duration]($style) "
+min_time = 0
+format = '[](bold fg:yellow)[󰪢 $duration](bold bg:yellow fg:black)[](bold fg:yellow)'
+
+[palettes.fallback]
+blue = "#89b4fa"
+red = "#f38ba8"
