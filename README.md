@@ -21,7 +21,7 @@ The shell UI (bar, launcher, power menu, notifications) is a single custom **Qui
 | Screenshot | Grimblast |
 | Theming | Catppuccin Mocha throughout |
 
-> **What was removed:** Waybar, Mako, Wlogout, Wofi, and Swaylock were fully replaced by the Quickshell UI stack. JaKooLit and Ambxst config trees are gone.
+> **What was removed:** Waybar, Mako, Wlogout, and Wofi were fully replaced by the Quickshell UI stack. JaKooLit and Ambxst config trees are gone.
 
 ---
 
@@ -52,6 +52,7 @@ cachyos-dotfiles/
 │   │       ├── variables.conf
 │   │       └── windowrules.conf
 │   ├── Kvantum/                    # Qt/KvantumManager theme
+│   ├── matugen/                    # Color palette generation (wallpaper-derived themes)
 │   ├── qt5ct/ qt6ct/               # Qt color palette settings
 │   ├── quickshell/                 # Custom shell UI (QML)
 │   │   ├── shell.qml               # Entrypoint — loads all components
@@ -61,7 +62,9 @@ cachyos-dotfiles/
 │   │       ├── Notifs.qml          # Notification daemon (replaces mako/dunst)
 │   │       └── Power.qml           # Power menu overlay
 │   ├── starship.toml               # Shell prompt theme
+│   ├── swaylock/                   # Screen lock appearance
 │   ├── tmux/                       # Tmux settings
+│   ├── zellij/                     # Terminal multiplexer config
 │   └── zsh/                        # Zsh config (.zshrc)
 ├── etc/                            # System-level configs → deployed via sudo cp
 │   ├── default/limine              # Bootloader kernel parameters
@@ -212,6 +215,8 @@ for item in hypr quickshell ghostty; do
 done
 ```
 
+> `config/AGENTS.md` is excluded via `config/.stow-local-ignore` and is not linked into `~/.config`.
+
 ---
 
 ## Package Manifests
@@ -244,7 +249,7 @@ These files require root to deploy and are managed by `install.sh`:
 | `etc/systemd/system/nvidia-clock-cap.service` | NVIDIA GPU clock cap on boot |
 | `etc/systemd/system/tailscale-autoheal.{service,timer}` | Auto-reconnect Tailscale on network changes |
 | `etc/udev/rules.d/99-via-keyboard.rules` | VIA keyboard firmware flashing permissions |
-| `etc/modprobe.d/` | Kernel module options |
+| `etc/modprobe.d/nvidia.conf` | NVIDIA kernel module options (DRM modeset, FBDEV) |
 
 ---
 
