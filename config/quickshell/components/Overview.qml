@@ -7,7 +7,9 @@
 //
 // Design:
 //   - Full-screen PanelWindow on the Overlay layer, no exclusion zone.
-//   - Horizontal row of workspace columns, each showing window cards.
+//   - Adaptive workspace layout:
+//       * 1-6 workspaces: horizontal row of columns
+//       * 7+ workspaces: compact grid (end-4-like density)
 //   - Window cards: app class icon + truncated title, proportionally sized.
 //   - Click a card  → focus window, close overview.
 //   - Drag a card   → drag it across workspace columns; drop to move window.
@@ -39,6 +41,67 @@ Scope {
     /// Address/workspace of the card currently being dragged.
     property string draggedWindowAddress: ""
     property int draggedFromWorkspaceId: -1
+    /// Layout tuning for many workspaces.
+    property bool useGridLayout: HyprlandService.workspaceModel.count >= 7
+    property int workspaceSpacing: 14
+
+    // End-4-like matrix controls
+    property int gridRows: 2
+    property int gridCols: 4
+    readonly property int workspacesPerPage: gridRows * gridCols
+    property int workspacePage: 0
+
+    function maxWorkspacePage() {
+        const total = HyprlandService.workspaceModel.count;
+        if (total <= 0) return 0;
+        return Math.max(0, Math.ceil(total / workspacesPerPage) - 1);
+    }
+
+    function workspaceInCurrentPage(wsId) {
+        const start = workspacePage * workspacesPerPage + 1;
+        const end = start + workspacesPerPage - 1;
+        return wsId >= start && wsId <= end;
+    }
+
+    function syncWorkspacePageToActive() {
+        const activeWs = Math.max(1, HyprlandService.activeWorkspaceId);
+        const targetPage = Math.floor((activeWs - 1) / workspacesPerPage);
+        const bounded = Math.max(0, Math.min(maxWorkspacePage(), targetPage));
+        if (workspacePage !== bounded)
+            workspacePage = bounded;
+    }
+
+    function pageLabel() {
+        const start = workspacePage * workspacesPerPage + 1;
+        const end = Math.min(HyprlandService.workspaceModel.count, start + workspacesPerPage - 1);
+        return start + "–" + end;
+    }
+
+    function goPrevPage() {
+        workspacePage = Math.max(0, workspacePage - 1);
+    }
+
+    function goNextPage() {
+        workspacePage = Math.min(maxWorkspacePage(), workspacePage + 1);
+    }
+
+    Connections {
+        target: HyprlandService
+        function onActiveWorkspaceIdChanged() {
+            if (root.useGridLayout)
+                root.syncWorkspacePageToActive();
+        }
+    }
+
+    Connections {
+        target: HyprlandService.workspaceModel
+        function onCountChanged() {
+            if (root.workspacePage > root.maxWorkspacePage())
+                root.workspacePage = root.maxWorkspacePage();
+            if (root.useGridLayout)
+                root.syncWorkspacePageToActive();
+        }
+    }
 
     // ──────────────────────────────────────────────────────────────────────────
     // Post-drop refresh — triggered by HyprlandService.windowMoved signal.
@@ -156,6 +219,17 @@ Scope {
             Keys.onEscapePressed: {
                 console.log("[Overview] Escape — closing");
                 root.close();
+            }
+
+            Keys.onPressed: event => {
+                if (!root.useGridLayout) return;
+                if (event.key === Qt.Key_Left) {
+                    root.goPrevPage();
+                    event.accepted = true;
+                } else if (event.key === Qt.Key_Right) {
+                    root.goNextPage();
+                    event.accepted = true;
+                }
             }
 
             // ── Dim backdrop ──────────────────────────────────────────────────
@@ -276,13 +350,15 @@ Scope {
                             color:  GlobalState.surface0
                         }
 
-                        // ── Workspace columns ─────────────────────────────────
-                        // ScrollView so it can handle many workspaces
+                        // ── Workspace columns / grid ──────────────────────────
+                        // 1-6 workspaces: horizontal row
+                        // 7+ workspaces: compact 2-row grid
                         ScrollView {
+                            id: workspaceScroll
                             Layout.fillWidth:  true
                             Layout.fillHeight: true
                             clip: true
-                            ScrollBar.horizontal.policy: ScrollBar.AsNeeded
+                            ScrollBar.horizontal.policy: root.useGridLayout ? ScrollBar.AlwaysOff : ScrollBar.AsNeeded
                             ScrollBar.vertical.policy:   ScrollBar.AlwaysOff
 
                             // Empty state
@@ -294,9 +370,19 @@ Scope {
                                 visible: HyprlandService.workspaceModel.count === 0
                             }
 
-                            Row {
-                                spacing: 14
-                                height: parent.height
+                            Flow {
+                                id: workspaceFlow
+                                spacing: root.workspaceSpacing
+                                width: root.useGridLayout ? workspaceScroll.width : implicitWidth
+                                height: root.useGridLayout ? implicitHeight : workspaceScroll.height
+                                flow: Flow.LeftToRight
+
+                                // Aim for 2-4 columns in grid mode depending on panel width.
+                                property int columnsForGrid: Math.max(2, Math.min(4,
+                                    Math.floor((workspaceScroll.width + root.workspaceSpacing) / (240 + root.workspaceSpacing))))
+                                // Two visible rows gives a compact but readable overview.
+                                property int gridTileHeight: Math.max(250,
+                                    Math.floor((workspaceScroll.height - root.workspaceSpacing) / 2))
 
                                 Repeater {
                                     model: HyprlandService.workspaceModel
@@ -305,6 +391,8 @@ Scope {
                                     Rectangle {
                                         required property var  modelData
                                         required property int  index
+
+                                        visible: !root.useGridLayout || root.workspaceInCurrentPage(modelData.id)
 
                                         // workspaceClients is refreshed when search changes
                                         // or model changes.
@@ -327,8 +415,10 @@ Scope {
                                             }
                                         }
 
-                                        width:  220
-                                        height: parent.height
+                                        width: root.useGridLayout
+                                               ? Math.max(180, Math.floor((workspaceFlow.width - (root.gridCols - 1) * root.workspaceSpacing) / root.gridCols))
+                                               : 220
+                                        height: root.useGridLayout ? workspaceFlow.gridTileHeight : workspaceScroll.height
                                         radius: 10
                                         color: isDragTarget
                                                ? Qt.rgba(GlobalState.matugenPrimary.r, GlobalState.matugenPrimary.g, GlobalState.matugenPrimary.b, 0.15)
@@ -629,6 +719,66 @@ Scope {
                         } // ScrollView
 
                         // ── Bottom hint bar ───────────────────────────────────
+                        RowLayout {
+                            Layout.fillWidth: true
+                            visible: root.useGridLayout
+                            spacing: 8
+
+                            Rectangle {
+                                width: 30
+                                height: 24
+                                radius: 6
+                                color: GlobalState.surface0
+                                border.color: GlobalState.surface1
+                                border.width: 1
+                                opacity: root.workspacePage > 0 ? 1 : 0.45
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "‹"
+                                    color: GlobalState.text
+                                    font.pixelSize: 14
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    enabled: root.workspacePage > 0
+                                    onClicked: root.goPrevPage()
+                                }
+                            }
+
+                            Text {
+                                text: "Workspaces " + root.pageLabel()
+                                color: GlobalState.overlay1
+                                font.pixelSize: 11
+                            }
+
+                            Rectangle {
+                                width: 30
+                                height: 24
+                                radius: 6
+                                color: GlobalState.surface0
+                                border.color: GlobalState.surface1
+                                border.width: 1
+                                opacity: root.workspacePage < root.maxWorkspacePage() ? 1 : 0.45
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "›"
+                                    color: GlobalState.text
+                                    font.pixelSize: 14
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    enabled: root.workspacePage < root.maxWorkspacePage()
+                                    onClicked: root.goNextPage()
+                                }
+                            }
+
+                            Item { Layout.fillWidth: true }
+                        }
+
                         RowLayout {
                             Layout.fillWidth: true
                             spacing: 14

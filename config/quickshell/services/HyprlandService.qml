@@ -33,6 +33,9 @@ QtObject {
     /// Each element: { id, name, windows }
     property ListModel workspaceModel: ListModel {}
 
+    /// Focused workspace id from `hyprctl workspaces -j`.
+    property int activeWorkspaceId: 1
+
     // ── Signals ───────────────────────────────────────────────────────────────
     /// Emitted after moveWindowToWorkspace dispatch exits successfully.
     /// Consumers (e.g. Overview) should use this to refresh state rather than
@@ -118,6 +121,8 @@ QtObject {
                 workspaces.sort((a, b) => a.id - b.id);
                 for (let i = 0; i < workspaces.length; i++) {
                     const w = workspaces[i];
+                    if (w.focused === true)
+                        root.activeWorkspaceId = w.id || 1;
                     root.workspaceModel.append({
                         "id":      w.id      || 0,
                         "name":    w.name    || String(w.id),
