@@ -32,8 +32,12 @@ assert re.search(r'\bproperty\s+bool\s+lastMuted\s*:\s*false\b', osd_text), "OSD
 assert re.search(r"\bif\s*\(\s*data\.includes\(\"Event 'change' on sink\"\)\s*\)", osd_text), "OSD pactl watcher must only react to sink change events"
 assert re.search(r'\bif\s*\(\s*!isNaN\(vol\)\s*&&\s*vol\s*!==\s*root\.lastVolume\s*\)', osd_text), "OSD must only show volume when value changes"
 assert re.search(r'\bif\s*\(\s*isMuted\s*!==\s*root\.lastMuted\s*\)', osd_text), "OSD must only show mute icon when mute state changes"
+assert re.search(r'parseInt\(data\.trim\(\),\s*10\)', osd_text), "OSD must parse volume with explicit base-10 radix"
+assert re.search(r'parseInt\(parts\[0\],\s*10\)', osd_text), "OSD brightness parser must parse current value with base-10 radix"
+assert re.search(r'parseInt\(parts\[1\],\s*10\)', osd_text), "OSD brightness parser must parse max value with base-10 radix"
 
 assert re.search(r'\bproperty\s+int\s+maxRestartAttempts\s*:\s*\d+', cava_service_text), "CavaService must define max restart attempts"
 assert re.search(r'\bif\s*\(\s*root\._failCount\s*<=\s*root\.maxRestartAttempts\s*\)', cava_service_text), "CavaService restart guard must use maxRestartAttempts"
 assert re.search(r'\belse\s*{[^}]*root\._bars\s*=\s*\[\][^}]*}', cava_service_text, re.S), "CavaService must reset bars when restart guard is exhausted"
+assert not re.search(r'_failCount\s*<=\s*5', cava_service_text), "CavaService must not retain hardcoded restart guard literals"
 PY

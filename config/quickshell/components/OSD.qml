@@ -83,7 +83,7 @@ PanelWindow {
         command: ["pamixer", "--get-volume"]
         stdout: SplitParser {
             onRead: data => {
-                const vol = parseInt(data.trim())
+                const vol = parseInt(data.trim(), 10)
                 if (!isNaN(vol) && vol !== root.lastVolume) {
                     root.lastVolume = vol
                     root.show("volume", vol, "󰕾")
@@ -137,8 +137,8 @@ PanelWindow {
             onRead: data => {
                 const parts = data.trim().split(" ")
                 if (parts.length === 2) {
-                    const cur = parseInt(parts[0])
-                    const max = parseInt(parts[1])
+                    const cur = parseInt(parts[0], 10)
+                    const max = parseInt(parts[1], 10)
                     if (!isNaN(cur) && !isNaN(max) && max > 0) {
                         const pct = Math.round((cur / max) * 100)
                         if (pct !== root.lastBrightness && root.lastBrightness !== -1) {

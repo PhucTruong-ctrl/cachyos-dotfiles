@@ -12,7 +12,7 @@
 //   bars = 20, raw ASCII output to stdout, semicolon delimiter (ASCII 59),
 //   values in range 0–100 (normalized to 0.0–1.0 here).
 //
-// Automatically restarts cava 3 s after unexpected exit (up to 5 consecutive
+// Automatically restarts cava 3 s after unexpected exit (up to maxRestartAttempts consecutive
 // failures without producing any data). If cava is unavailable or repeatedly
 // crashes before outputting data, restarting stops to prevent an infinite loop.
 // The guard resets each time cava successfully delivers at least one frame.
@@ -33,7 +33,7 @@ QtObject {
     property var  _bars:      []
     property bool _active:    false
     // Counts consecutive exits that happened before any valid frame was parsed.
-    // Resets to 0 whenever a good frame arrives. Capped restart attempts at 5.
+    // Resets to 0 whenever a good frame arrives. Capped by maxRestartAttempts.
     property int  _failCount: 0
     property int maxRestartAttempts: 8
 
@@ -77,14 +77,14 @@ QtObject {
         onExited: (exitCode) => {
             root._active = false;
             root._failCount++;
-            // Guard: stop restarting after 5 consecutive exits with no valid data.
+            // Guard: stop restarting after maxRestartAttempts exits with no valid data.
             // This prevents an infinite loop when cava is not installed or always crashes.
             if (root._failCount <= root.maxRestartAttempts) {
                 cavaRestartTimer.start();
             } else {
                 root._bars = [];
             }
-            // If _failCount > 5, give up silently. CavaService.active remains false,
+            // If _failCount exceeds maxRestartAttempts, give up silently. CavaService.active remains false,
             // so consumers (MediaWidget, MediaPane) will display their paused/dim fallbacks.
         }
     }
