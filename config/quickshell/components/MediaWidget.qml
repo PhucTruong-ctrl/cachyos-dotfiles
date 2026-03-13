@@ -18,9 +18,13 @@ import Quickshell.Io
 Item {
     id: root
 
+    property int maxWidgetWidth: 260
+    property int visualizerBars: 5
+    property int visualizerBarWidth: 3
+
     // Always on the bar — width adapts between "no media" and "active" states
     // Extra padding (16 vs 8) gives the hover pill comfortable breathing room
-    width: contentRow.implicitWidth + 16
+    width: Math.min(contentRow.implicitWidth + 16, root.maxWidgetWidth)
     height: 40
 
     // ── Hover pill background ─────────────────────────────────────────────────
@@ -235,10 +239,10 @@ Item {
 
                 Repeater {
                     // Use every 2nd cava bar (stride=2) to sample 8 bars from 20
-                    model: 8
+                    model: root.visualizerBars
 
                     delegate: Item {
-                        width: 16
+                        width: root.visualizerBarWidth
                         height: 16
                         anchors.verticalCenter: parent.verticalCenter
 

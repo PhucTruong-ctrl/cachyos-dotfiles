@@ -38,6 +38,8 @@ PanelWindow {
     property string icon: "󰕾"
     property int value: 0
     property string type: "volume" // "volume" or "brightness"
+    property int lastVolume: -1
+    property bool lastMuted: false
 
     // ── OSD Visibility Controller ───────────────────────────────────────────
     property bool active: false
@@ -66,9 +68,11 @@ PanelWindow {
         running: true
         stdout: SplitParser {
             onRead: data => {
-                if (data.includes("sink")) {
+                if (data.includes("Event 'change' on sink")) {
                     volumeFetcher.running = false
                     volumeFetcher.running = true
+                    muteFetcher.running = false
+                    muteFetcher.running = true
                 }
             }
         }
@@ -80,7 +84,8 @@ PanelWindow {
         stdout: SplitParser {
             onRead: data => {
                 const vol = parseInt(data.trim())
-                if (!isNaN(vol)) {
+                if (!isNaN(vol) && vol !== root.lastVolume) {
+                    root.lastVolume = vol
                     root.show("volume", vol, "󰕾")
                 }
             }
@@ -94,7 +99,10 @@ PanelWindow {
         stdout: SplitParser {
             onRead: data => {
                 const isMuted = data.trim() === "true"
-                root.show("volume", root.value, isMuted ? "󰖁" : "󰕾")
+                if (isMuted !== root.lastMuted) {
+                    root.lastMuted = isMuted
+                    root.show("volume", root.lastVolume >= 0 ? root.lastVolume : root.value, isMuted ? "󰖁" : "󰕾")
+                }
             }
         }
     }

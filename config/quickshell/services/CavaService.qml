@@ -35,6 +35,7 @@ QtObject {
     // Counts consecutive exits that happened before any valid frame was parsed.
     // Resets to 0 whenever a good frame arrives. Capped restart attempts at 5.
     property int  _failCount: 0
+    property int maxRestartAttempts: 8
 
     // ── Cava subprocess ───────────────────────────────────────────────────────
     // Writes minimal cava config to /tmp/qs-cava.conf then starts cava.
@@ -78,8 +79,10 @@ QtObject {
             root._failCount++;
             // Guard: stop restarting after 5 consecutive exits with no valid data.
             // This prevents an infinite loop when cava is not installed or always crashes.
-            if (root._failCount <= 5) {
+            if (root._failCount <= root.maxRestartAttempts) {
                 cavaRestartTimer.start();
+            } else {
+                root._bars = [];
             }
             // If _failCount > 5, give up silently. CavaService.active remains false,
             // so consumers (MediaWidget, MediaPane) will display their paused/dim fallbacks.
