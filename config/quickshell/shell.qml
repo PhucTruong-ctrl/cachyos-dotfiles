@@ -22,7 +22,7 @@
 //   BluetoothService.qml   — bluetoothctl wrapper
 //   NotifStore.qml         — Notification persistence
 //   Performance.qml        — CPU/RAM/Temp polling
-//   MediaService.qml       — MPRIS playerctl backend (title, artist, controls)
+//   MediaService.qml       — Native MPRIS backend (title, artist, controls)
 //   PopupAnchorService.qml — Stores trigger geometry (anchorX/anchorWidth/barY) for
 //                            icon-anchored popup positioning; exposes popupXFor().
 //   PopupStateService.qml  — Single-open popup coordination; openExclusive() /

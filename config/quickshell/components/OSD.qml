@@ -7,6 +7,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
+import Quickshell.Services.Pipewire
 import "../services"
 
 PanelWindow {
@@ -40,6 +41,7 @@ PanelWindow {
     property string type: "volume" // "volume" or "brightness"
     property int lastVolume: -1
     property bool lastMuted: false
+    readonly property var audioSink: Pipewire.defaultAudioSink
 
     // ── OSD Visibility Controller ───────────────────────────────────────────
     property bool active: false
@@ -61,51 +63,48 @@ PanelWindow {
 
     // ── Data Fetching ───────────────────────────────────────────────────────
 
-    // Volume Detection (Event-driven via pactl subscribe)
-    Process {
-        id: volumeEventSource
-        command: ["pactl", "subscribe"]
-        running: true
-        stdout: SplitParser {
-            onRead: data => {
-                if (data.includes("Event 'change' on sink")) {
-                    volumeFetcher.running = false
-                    volumeFetcher.running = true
-                    muteFetcher.running = false
-                    muteFetcher.running = true
-                }
+    function sinkVolumePercent(): int {
+        if (!root.audioSink || !root.audioSink.audio)
+            return root.lastVolume >= 0 ? root.lastVolume : root.value;
+        const vol = Math.round(root.audioSink.audio.volume * 100)
+        return isNaN(vol) ? (root.lastVolume >= 0 ? root.lastVolume : root.value) : vol
+    }
+
+    function syncSinkState(): void {
+        if (!root.audioSink || !root.audioSink.audio)
+            return;
+        root.lastVolume = root.sinkVolumePercent()
+        root.lastMuted = root.audioSink.audio.muted
+    }
+
+    Connections {
+        target: root.audioSink?.audio ?? null
+
+        function onVolumeChanged() {
+            const vol = root.sinkVolumePercent()
+            if (!isNaN(vol) && vol !== root.lastVolume) {
+                root.lastVolume = vol
+                root.show("volume", vol, root.lastMuted ? "󰖁" : "󰕾")
+            }
+        }
+
+        function onMutedChanged() {
+            const isMuted = root.audioSink && root.audioSink.audio ? root.audioSink.audio.muted : false
+            if (isMuted !== root.lastMuted) {
+                root.lastMuted = isMuted
+                root.show("volume", root.sinkVolumePercent(), isMuted ? "󰖁" : "󰕾")
             }
         }
     }
 
-    Process {
-        id: volumeFetcher
-        command: ["pamixer", "--get-volume"]
-        stdout: SplitParser {
-            onRead: data => {
-                const vol = parseInt(data.trim(), 10)
-                if (!isNaN(vol) && vol !== root.lastVolume) {
-                    root.lastVolume = vol
-                    root.show("volume", vol, "󰕾")
-                }
-            }
+    Connections {
+        target: Pipewire
+        function onDefaultAudioSinkChanged() {
+            root.syncSinkState()
         }
     }
 
-    // Mute detection
-    Process {
-        id: muteFetcher
-        command: ["pamixer", "--get-mute"]
-        stdout: SplitParser {
-            onRead: data => {
-                const isMuted = data.trim() === "true"
-                if (isMuted !== root.lastMuted) {
-                    root.lastMuted = isMuted
-                    root.show("volume", root.lastVolume >= 0 ? root.lastVolume : root.value, isMuted ? "󰖁" : "󰕾")
-                }
-            }
-        }
-    }
+    Component.onCompleted: syncSinkState()
 
     // Brightness Detection — event-driven watcher (no inotifywait; uses a
     // long-running bash loop that reads the sysfs brightness file and only
