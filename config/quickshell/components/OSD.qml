@@ -39,6 +39,8 @@ PanelWindow {
     property string type: "volume"
     property string label: ""
     property var eventSource: GlobalState
+    property bool isMedia: root.type === "media"
+    property string displayText: root.isMedia && root.label.length > 0 ? root.label : root.value + "%"
 
     // ── OSD Visibility Controller ───────────────────────────────────────────
     property bool active: false
@@ -137,13 +139,14 @@ PanelWindow {
             }
 
             Text {
-                text: root.value + "%"
+                text: root.displayText
                 font.pixelSize: Appearance.osdValueSize
                 font.bold: true
                 color: GlobalState.osdText
-                Layout.preferredWidth: 40
+                Layout.preferredWidth: root.isMedia ? 180 : 40
                 horizontalAlignment: Text.AlignRight
                 Layout.alignment: Qt.AlignVCenter
+                elide: Text.ElideRight
             }
         }
     }
