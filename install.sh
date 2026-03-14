@@ -83,7 +83,9 @@ run rm -f "$HOME/.config/qt6ct/qt6ct.conf"
 run stow --target="$HOME/.config" --restow config
 run systemctl --user daemon-reload
 run systemctl --user enable quickshell.service
-run systemctl --user restart quickshell.service
+if ! run systemctl --user restart quickshell.service; then
+    run systemctl --user start quickshell.service
+fi
 # ~/.zshrc and ~/.gitconfig live in $HOME, not ~/.config, so stow's --target cannot place them;
 # manual symlinks are required to keep them tracked in the repo.
 run ln -sf "$SCRIPT_DIR/config/zsh/.zshrc" "$HOME/.zshrc"
