@@ -108,6 +108,24 @@ PanelWindow {
 
     Component.onCompleted: syncSinkState()
 
+    Timer {
+        id: volumeFallbackWatcher
+        interval: 750
+        repeat: true
+        running: true
+        onTriggered: {
+            const vol = root.sinkVolumePercent()
+            const isMuted = root.audioSink && root.audioSink.audio ? root.audioSink.audio.muted : false
+            const volumeChanged = !isNaN(vol) && vol !== root.lastVolume
+            const muteChanged = isMuted !== root.lastMuted
+            if (volumeChanged || muteChanged) {
+                root.lastVolume = vol
+                root.lastMuted = isMuted
+                root.show("volume", vol, isMuted ? "󰖁" : "󰕾")
+            }
+        }
+    }
+
     // Brightness Detection — event-driven watcher (no inotifywait; uses a
     // long-running bash loop that reads the sysfs brightness file and only
     // emits a line when the value changes).  This replaces the previous
