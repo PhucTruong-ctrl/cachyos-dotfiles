@@ -7,7 +7,6 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
-import Quickshell.Services.Pipewire
 import "../services"
 
 PanelWindow {
@@ -39,10 +38,6 @@ PanelWindow {
     property string icon: "󰕾"
     property int value: 0
     property string type: "volume" // "volume" or "brightness"
-    property int lastVolume: -1
-    property bool lastMuted: false
-    readonly property var audioSink: Pipewire.defaultAudioSink
-    readonly property bool audioReady: !!(root.audioSink && root.audioSink.audio)
 
     // ── OSD Visibility Controller ───────────────────────────────────────────
     property bool active: false
@@ -62,74 +57,11 @@ PanelWindow {
         hideTimer.restart()
     }
 
-    // ── Data Fetching ───────────────────────────────────────────────────────
-
-    function sinkVolumePercent(): int {
-        if (!root.audioSink || !root.audioSink.audio)
-            return root.lastVolume >= 0 ? root.lastVolume : root.value;
-        const vol = Math.round(root.audioSink.audio.volume * 100)
-        return isNaN(vol) ? (root.lastVolume >= 0 ? root.lastVolume : root.value) : vol
-    }
-
-    function syncSinkState(): void {
-        if (!root.audioSink || !root.audioSink.audio)
-            return;
-        root.lastVolume = root.sinkVolumePercent()
-        root.lastMuted = root.audioSink.audio.muted
-    }
-
     Connections {
-        target: root.audioSink?.audio ?? null
+        target: OSDEventBus
 
-        function onVolumeChanged() {
-            if (!root.audioReady)
-                return;
-            const vol = root.sinkVolumePercent()
-            const isMuted = root.audioSink && root.audioSink.audio ? root.audioSink.audio.muted : false
-            root.lastMuted = isMuted
-            if (!isNaN(vol) && vol !== root.lastVolume) {
-                root.lastVolume = vol
-                root.show("volume", vol, isMuted ? "󰖁" : "󰕾")
-            }
-        }
-
-        function onMutedChanged() {
-            if (!root.audioReady)
-                return;
-            const isMuted = root.audioSink && root.audioSink.audio ? root.audioSink.audio.muted : false
-            if (isMuted !== root.lastMuted) {
-                root.lastMuted = isMuted
-                root.show("volume", root.sinkVolumePercent(), isMuted ? "󰖁" : "󰕾")
-            }
-        }
-    }
-
-    Connections {
-        target: Pipewire
-        function onDefaultAudioSinkChanged() {
-            root.syncSinkState()
-        }
-    }
-
-    Component.onCompleted: syncSinkState()
-
-    Timer {
-        id: volumeFallbackWatcher
-        interval: 750
-        repeat: true
-        running: true
-        onTriggered: {
-            if (!root.audioReady)
-                return;
-            const vol = root.sinkVolumePercent()
-            const isMuted = root.audioSink && root.audioSink.audio ? root.audioSink.audio.muted : false
-            const volumeChanged = !isNaN(vol) && vol !== root.lastVolume
-            const muteChanged = isMuted !== root.lastMuted
-            if (volumeChanged || muteChanged) {
-                root.lastVolume = vol
-                root.lastMuted = isMuted
-                root.show("volume", vol, isMuted ? "󰖁" : "󰕾")
-            }
+        function onShowRequested(kind, eventValue, eventIcon, _label, _metadata, _timestamp) {
+            root.show(kind, eventValue, eventIcon)
         }
     }
 
