@@ -6,7 +6,6 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Io
 import Quickshell.Services.Pipewire
 import "../services"
 
@@ -41,6 +40,7 @@ PanelWindow {
     property string type: "volume" // "volume" or "brightness"
     property int lastVolume: -1
     property bool lastMuted: false
+    readonly property var brightnessService: OSDBrightnessService
     readonly property var audioSink: Pipewire.defaultAudioSink
     readonly property bool audioReady: !!(root.audioSink && root.audioSink.audio)
 
@@ -133,47 +133,19 @@ PanelWindow {
         }
     }
 
-    // Brightness Detection — event-driven watcher (no inotifywait; uses a
-    // long-running bash loop that reads the sysfs brightness file and only
-    // emits a line when the value changes).  This replaces the previous
-    // 500 ms polling timer + two forked brightnessctl processes that ran
-    // unconditionally 24/7 even while the OSD was hidden.
-    //
-    // Output format: "<current_raw> <max_raw>" on each brightness change.
-    property int lastBrightness: -1
+    property Connections osdEventConnections: Connections {
+        target: OSDEventBus
 
-    Process {
-        id: brightnessWatcher
-        command: [
-            "bash", "-c",
-            "BDEV=/sys/class/backlight/$(ls /sys/class/backlight | head -n1);" +
-            "MAX=$(cat \"$BDEV/max_brightness\");" +
-            "PREV=-1;" +
-            "while true; do" +
-            "  CUR=$(cat \"$BDEV/brightness\");" +
-            "  if [ \"$CUR\" != \"$PREV\" ]; then" +
-            "    echo \"$CUR $MAX\";" +
-            "    PREV=$CUR;" +
-            "  fi;" +
-            "  sleep 0.25;" +
-            "done"
-        ]
-        running: true
-        stdout: SplitParser {
-            onRead: data => {
-                const parts = data.trim().split(" ")
-                if (parts.length === 2) {
-                    const cur = parseInt(parts[0], 10)
-                    const max = parseInt(parts[1], 10)
-                    if (!isNaN(cur) && !isNaN(max) && max > 0) {
-                        const pct = Math.round((cur / max) * 100)
-                        if (pct !== root.lastBrightness && root.lastBrightness !== -1) {
-                            root.show("brightness", pct, "󰃠")
-                        }
-                        root.lastBrightness = pct
-                    }
-                }
-            }
+        function onEventPublished(event) {
+            if (!event || typeof event.kind !== "string")
+                return;
+            if (event.kind !== "volume" && event.kind !== "brightness")
+                return;
+            const nextValue = parseInt(event.value, 10)
+            if (isNaN(nextValue))
+                return;
+            const nextIcon = typeof event.icon === "string" && event.icon.length > 0 ? event.icon : (event.kind === "brightness" ? "󰃠" : "󰕾")
+            root.show(event.kind, nextValue, nextIcon)
         }
     }
 

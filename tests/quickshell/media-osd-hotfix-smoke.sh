@@ -7,10 +7,14 @@ repo_root="$(cd "$script_dir/../.." && pwd)"
 media_widget_qml="$repo_root/config/quickshell/components/MediaWidget.qml"
 osd_qml="$repo_root/config/quickshell/components/OSD.qml"
 cava_service_qml="$repo_root/config/quickshell/services/CavaService.qml"
+osd_event_bus_qml="$repo_root/config/quickshell/services/OSDEventBus.qml"
+osd_brightness_service_qml="$repo_root/config/quickshell/services/OSDBrightnessService.qml"
 
 MEDIA_WIDGET_QML="$media_widget_qml" \
 OSD_QML="$osd_qml" \
 CAVA_SERVICE_QML="$cava_service_qml" \
+OSD_EVENT_BUS_QML="$osd_event_bus_qml" \
+OSD_BRIGHTNESS_SERVICE_QML="$osd_brightness_service_qml" \
 python - <<'PY'
 from pathlib import Path
 import os
@@ -19,6 +23,8 @@ import re
 media_widget_text = Path(os.environ["MEDIA_WIDGET_QML"]).read_text(encoding="utf-8")
 osd_text = Path(os.environ["OSD_QML"]).read_text(encoding="utf-8")
 cava_service_text = Path(os.environ["CAVA_SERVICE_QML"]).read_text(encoding="utf-8")
+osd_event_bus_text = Path(os.environ["OSD_EVENT_BUS_QML"]).read_text(encoding="utf-8")
+osd_brightness_service_text = Path(os.environ["OSD_BRIGHTNESS_SERVICE_QML"]).read_text(encoding="utf-8")
 
 assert re.search(r'\bproperty\s+int\s+maxWidgetWidth\s*:', media_widget_text), "MediaWidget must define a maxWidgetWidth cap"
 assert re.search(r'\bwidth\s*:\s*Math\.min\s*\(', media_widget_text), "MediaWidget width must clamp to prevent title overlap"
@@ -47,8 +53,23 @@ assert re.search(r'function\s+onVolumeChanged\s*\(\)\s*{(?:(?!function\s+onMuted
 assert re.search(r'\bif\s*\(\s*!isNaN\(vol\)\s*&&\s*vol\s*!==\s*root\.lastVolume\s*\)', osd_text), "OSD must only show volume when value changes"
 assert re.search(r'\bif\s*\(\s*isMuted\s*!==\s*root\.lastMuted\s*\)', osd_text), "OSD must only show mute icon when mute state changes"
 assert re.search(r'\bMath\.round\(root\.audioSink\.audio\.volume\s*\*\s*100\)', osd_text), "OSD must derive volume percent reactively from Pipewire sink"
-assert re.search(r'parseInt\(parts\[0\],\s*10\)', osd_text), "OSD brightness parser must parse current value with base-10 radix"
-assert re.search(r'parseInt\(parts\[1\],\s*10\)', osd_text), "OSD brightness parser must parse max value with base-10 radix"
+assert not re.search(r'\bid\s*:\s*brightnessWatcher\b', osd_text), "OSD must not keep legacy brightness watcher in presentation layer"
+assert re.search(r'\btarget\s*:\s*OSDEventBus\b', osd_text), "OSD must consume normalized events via OSDEventBus"
+assert re.search(r'\bonEventPublished\s*\(', osd_text), "OSD must react to published event bus updates"
+
+assert re.search(r'^\s*pragma\s+Singleton\b', osd_event_bus_text, re.M), "OSDEventBus must be a singleton"
+assert re.search(r'\bsignal\s+eventPublished\s*\(', osd_event_bus_text), "OSDEventBus must expose eventPublished signal"
+assert re.search(r'\bfunction\s+publishBrightness\s*\(', osd_event_bus_text), "OSDEventBus must provide brightness publish helper"
+
+assert re.search(r'^\s*pragma\s+Singleton\b', osd_brightness_service_text, re.M), "OSDBrightnessService must be a singleton"
+assert re.search(r'\bproperty\s+int\s+ddcDebounceMs\s*:\s*300\b', osd_brightness_service_text), "OSDBrightnessService must debounce DDC brightness updates"
+assert re.search(r'\binterval\s*:\s*root\.pendingIsDdc\s*\?\s*root\.ddcDebounceMs\s*:\s*0\b', osd_brightness_service_text), "OSDBrightnessService must delay DDC but keep backlight immediate"
+assert re.search(r'parseInt\(parts\[2\],\s*10\)', osd_brightness_service_text), "OSDBrightnessService must parse current brightness with base-10 radix"
+assert re.search(r'parseInt\(parts\[3\],\s*10\)', osd_brightness_service_text), "OSDBrightnessService must parse max brightness with base-10 radix"
+assert re.search(r'\bif\s*\(\s*parts\.length\s*<\s*4\s*\)\s*return;', osd_brightness_service_text), "OSDBrightnessService must guard malformed brightnessctl lines"
+assert re.search(r'\bif\s*\(\s*isNaN\(cur\)\s*\|\|\s*isNaN\(max\)\s*\|\|\s*max\s*<=\s*0\s*\)\s*return;', osd_brightness_service_text), "OSDBrightnessService must guard invalid numeric brightness readings"
+assert re.search(r'\bif\s*\(\s*deviceKey\s*!==\s*root\.lastDeviceKey\s*\)', osd_brightness_service_text), "OSDBrightnessService must reset dedupe state on device transitions"
+assert re.search(r'\bOSDEventBus\.publishBrightness\s*\(', osd_brightness_service_text), "OSDBrightnessService must publish normalized brightness events"
 assert not re.search(r'\bpactl\b', osd_text), "OSD must not shell out to pactl subscribe for volume events"
 assert not re.search(r'\bpamixer\b', osd_text), "OSD must not shell out to pamixer for volume events"
 

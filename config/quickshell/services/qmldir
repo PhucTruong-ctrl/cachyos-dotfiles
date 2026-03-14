@@ -13,3 +13,5 @@ singleton NotifStore 1.0 NotifStore.qml
 singleton Performance 1.0 Performance.qml
 singleton PopupAnchorService 1.0 PopupAnchorService.qml
 singleton PopupStateService 1.0 PopupStateService.qml
+singleton OSDEventBus 1.0 OSDEventBus.qml
+singleton OSDBrightnessService 1.0 OSDBrightnessService.qml
