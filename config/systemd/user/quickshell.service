@@ -1,0 +1,16 @@
+[Unit]
+Description=Quickshell Session UI
+After=graphical-session.target
+Wants=graphical-session.target
+
+[Service]
+Type=simple
+Environment=QT_LOGGING_RULES=quickshell.dbus.properties.warning=false;quickshell.service.notifications.warning=false;qt.svg.warning=false
+ExecStart=quickshell -p %h/.config/quickshell/shell.qml
+Restart=on-failure
+RestartSec=2
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

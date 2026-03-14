@@ -81,6 +81,8 @@ run rm -f "$HOME/.config/mako" "$HOME/.config/waybar" "$HOME/.config/wlogout" "$
 run rm -f "$HOME/.config/gtk-3.0/gtk.css" "$HOME/.config/gtk-4.0/gtk.css"
 run rm -f "$HOME/.config/qt6ct/qt6ct.conf"
 run stow --target="$HOME/.config" --restow config
+run systemctl --user daemon-reload
+run systemctl --user enable quickshell.service
 # ~/.zshrc and ~/.gitconfig live in $HOME, not ~/.config, so stow's --target cannot place them;
 # manual symlinks are required to keep them tracked in the repo.
 run ln -sf "$SCRIPT_DIR/config/zsh/.zshrc" "$HOME/.zshrc"
