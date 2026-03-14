@@ -34,6 +34,7 @@ assert re.search(r'\breadonly\s+property\s+var\s+audioSink\s*:\s*Pipewire\.defau
 assert re.search(r'\btarget\s*:\s*root\.audioSink\?\.audio\s*\?\?\s*null\b', osd_text), "OSD must react to Pipewire sink audio changes"
 assert re.search(r'\bfunction\s+onVolumeChanged\s*\(', osd_text), "OSD must handle reactive volume changes"
 assert re.search(r'\bfunction\s+onMutedChanged\s*\(', osd_text), "OSD must handle reactive mute changes"
+assert re.search(r'function\s+onVolumeChanged\s*\(\)\s*{(?:(?!function\s+onMutedChanged)[\s\S])*const\s+isMuted\s*=\s*root\.audioSink\s*&&\s*root\.audioSink\.audio\s*\?\s*root\.audioSink\.audio\.muted\s*:\s*false', osd_text), "OSD volume updates must read current sink mute state to avoid rebind races"
 assert re.search(r'\bif\s*\(\s*!isNaN\(vol\)\s*&&\s*vol\s*!==\s*root\.lastVolume\s*\)', osd_text), "OSD must only show volume when value changes"
 assert re.search(r'\bif\s*\(\s*isMuted\s*!==\s*root\.lastMuted\s*\)', osd_text), "OSD must only show mute icon when mute state changes"
 assert re.search(r'\bMath\.round\(root\.audioSink\.audio\.volume\s*\*\s*100\)', osd_text), "OSD must derive volume percent reactively from Pipewire sink"

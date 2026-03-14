@@ -82,9 +82,11 @@ PanelWindow {
 
         function onVolumeChanged() {
             const vol = root.sinkVolumePercent()
+            const isMuted = root.audioSink && root.audioSink.audio ? root.audioSink.audio.muted : false
+            root.lastMuted = isMuted
             if (!isNaN(vol) && vol !== root.lastVolume) {
                 root.lastVolume = vol
-                root.show("volume", vol, root.lastMuted ? "󰖁" : "󰕾")
+                root.show("volume", vol, isMuted ? "󰖁" : "󰕾")
             }
         }
 
