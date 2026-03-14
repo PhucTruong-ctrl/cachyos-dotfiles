@@ -39,6 +39,12 @@ PanelWindow {
     property string type: "volume"
     property string label: ""
     property var eventSource: GlobalState
+    // Force OSD producers to initialize so they can publish into OSDEventBus.
+    // Without these references, singleton producers may stay unloaded and
+    // volume/brightness changes won't emit OSD events.
+    readonly property var _audioService: OSDAudioService
+    readonly property var _brightnessService: OSDBrightnessService
+    readonly property var _mediaService: OSDMediaService
     property bool isMedia: root.type === "media"
     property string displayText: root.isMedia && root.label.length > 0 ? root.label : root.value + "%"
 

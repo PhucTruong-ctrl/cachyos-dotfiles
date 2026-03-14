@@ -120,44 +120,56 @@ test_status_contract_internal() {
 }
 
 test_on_runtime_changes() {
-    local temp_dir pstate_dir nvidia_path nvidia_log
+    local temp_dir pstate_dir cpufreq_dir policy_dir nvidia_path nvidia_log
 
     temp_dir="$(mktemp -d)"
     pstate_dir="$temp_dir/intel_pstate"
+    cpufreq_dir="$temp_dir/cpufreq"
+    policy_dir="$cpufreq_dir/policy0"
     nvidia_path="$temp_dir/nvidia-smi"
     nvidia_log="$temp_dir/nvidia.log"
     mkdir -p "$pstate_dir"
+    mkdir -p "$policy_dir"
     printf '80\n' >"$pstate_dir/max_perf_pct"
     printf '1\n' >"$pstate_dir/no_turbo"
+    printf '1000000\n' >"$policy_dir/scaling_max_freq"
+    printf '3400000\n' >"$policy_dir/cpuinfo_max_freq"
     make_fake_nvidia_smi "$nvidia_path" "$nvidia_log"
 
-    run_cmd env PERFORMANCE_MODE_INTEL_PSTATE_DIR="$pstate_dir" PERFORMANCE_MODE_NVIDIA_SMI="$nvidia_path" PERFORMANCE_MODE_BACKENDS="" bash "$TARGET" on
+    run_cmd env PERFORMANCE_MODE_INTEL_PSTATE_DIR="$pstate_dir" PERFORMANCE_MODE_CPUFREQ_DIR="$cpufreq_dir" PERFORMANCE_MODE_NVIDIA_SMI="$nvidia_path" PERFORMANCE_MODE_BACKENDS="" bash "$TARGET" on
 
     assert_eq 0 "$RUN_STATUS" "on should succeed"
     assert_file_value "$pstate_dir/max_perf_pct" "100" "on should set max perf to 100"
     assert_file_value "$pstate_dir/no_turbo" "0" "on should enable turbo"
+    assert_file_value "$policy_dir/scaling_max_freq" "3400000" "on should remove explicit cpufreq cap"
     assert_file_value "$nvidia_log" "--reset-gpu-clocks" "on should reset gpu clocks"
 
     rm -rf "$temp_dir"
 }
 
 test_off_runtime_changes() {
-    local temp_dir pstate_dir nvidia_path nvidia_log
+    local temp_dir pstate_dir cpufreq_dir policy_dir nvidia_path nvidia_log
 
     temp_dir="$(mktemp -d)"
     pstate_dir="$temp_dir/intel_pstate"
+    cpufreq_dir="$temp_dir/cpufreq"
+    policy_dir="$cpufreq_dir/policy0"
     nvidia_path="$temp_dir/nvidia-smi"
     nvidia_log="$temp_dir/nvidia.log"
     mkdir -p "$pstate_dir"
+    mkdir -p "$policy_dir"
     printf '100\n' >"$pstate_dir/max_perf_pct"
     printf '0\n' >"$pstate_dir/no_turbo"
+    printf '3400000\n' >"$policy_dir/scaling_max_freq"
+    printf '3400000\n' >"$policy_dir/cpuinfo_max_freq"
     make_fake_nvidia_smi "$nvidia_path" "$nvidia_log"
 
-    run_cmd env PERFORMANCE_MODE_INTEL_PSTATE_DIR="$pstate_dir" PERFORMANCE_MODE_NVIDIA_SMI="$nvidia_path" PERFORMANCE_MODE_BACKENDS="" bash "$TARGET" off
+    run_cmd env PERFORMANCE_MODE_INTEL_PSTATE_DIR="$pstate_dir" PERFORMANCE_MODE_CPUFREQ_DIR="$cpufreq_dir" PERFORMANCE_MODE_NVIDIA_SMI="$nvidia_path" PERFORMANCE_MODE_BACKENDS="" bash "$TARGET" off
 
     assert_eq 0 "$RUN_STATUS" "off should succeed"
     assert_file_value "$pstate_dir/max_perf_pct" "80" "off should restore max perf to 80"
     assert_file_value "$pstate_dir/no_turbo" "1" "off should disable turbo"
+    assert_file_value "$policy_dir/scaling_max_freq" "1000000" "off should cap cpufreq to 1000000 kHz"
     assert_file_value "$nvidia_log" "--lock-gpu-clocks=0,1101" "off should restore gpu clock cap"
 
     rm -rf "$temp_dir"
