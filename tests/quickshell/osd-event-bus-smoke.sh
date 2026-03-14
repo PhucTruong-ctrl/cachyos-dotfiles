@@ -84,6 +84,9 @@ assert re.search(r"\bproperty\s+var\s+eventSource\s*:\s*GlobalState\b", osd_text
 assert re.search(r"\bfunction\s+normalizeEvent\s*\(", osd_text), "OSD must normalize bus payloads"
 assert re.search(r"\bevent\.kind\b", osd_text), "OSD event normalization must support kind payload"
 assert re.search(r"\bfunction\s+showFromEvent\s*\(", osd_text), "OSD must route display through normalized event handler"
+assert re.search(r"\bproperty\s+bool\s+isMedia\s*:\s*root\.type\s*===\s*\"media\"", osd_text), "OSD must identify media events for final presentation polish"
+assert re.search(r"\bproperty\s+string\s+displayText\s*:\s*root\.isMedia\s*&&\s*root\.label\.length\s*>\s*0\s*\?\s*root\.label\s*:\s*root\.value\s*\+\s*\"%\"", osd_text), "OSD must render media label text instead of numeric percent"
+assert re.search(r"\belide\s*:\s*Text\.ElideRight", osd_text), "OSD media label text must elide to avoid overflow"
 assert not re.search(r"\bvolumeFallbackWatcher\b", osd_text), "OSD component must not keep legacy volume fallback watcher"
 assert not re.search(r"\bbrightnessWatcher\b", osd_text), "OSD component must not keep legacy brightness watcher"
 
