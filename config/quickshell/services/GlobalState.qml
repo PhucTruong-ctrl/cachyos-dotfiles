@@ -62,6 +62,19 @@ QtObject {
     property bool dndActive: false
     property bool highPerformanceActive: false
 
+    property var osdEvent: ({
+        "type": "",
+        "value": 0,
+        "icon": "",
+        "label": ""
+    })
+
+    readonly property color osdBackground: Qt.rgba(surface0.r, surface0.g, surface0.b, Appearance.panelOpacity + Appearance.osdBackgroundBoost)
+    readonly property color osdTrack: surface1
+    readonly property color osdFill: matugenPrimary
+    readonly property color osdText: text
+    readonly property color osdIcon: matugenPrimary
+
     // System Status — forwarding aliases to BatteryService singleton
     // batteryLevel: canonical name for downstream tasks / Task 11 lock screen
     readonly property int  batteryLevel:      BatteryService.percentage

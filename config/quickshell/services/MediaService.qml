@@ -6,6 +6,8 @@ import Quickshell.Services.Mpris
 QtObject {
     id: root
 
+    signal mediaStateChanged()
+
     property var activePlayer: null
 
     readonly property bool hasPlayer: activePlayer !== null
@@ -47,6 +49,7 @@ QtObject {
         const players = Mpris.players.values;
         if (!players || players.length === 0) {
             activePlayer = null;
+            root.mediaStateChanged();
             return;
         }
 
@@ -63,6 +66,7 @@ QtObject {
         }
 
         activePlayer = best;
+        root.mediaStateChanged();
     }
 
     function playPause(): void {
@@ -92,17 +96,23 @@ QtObject {
 
             function onPlaybackStateChanged() {
                 root.pickActivePlayer();
+                root.mediaStateChanged();
             }
 
             function onTrackChanged() {
                 root.pickActivePlayer();
+                root.mediaStateChanged();
             }
 
             function onPostTrackChanged() {
                 root.pickActivePlayer();
+                root.mediaStateChanged();
             }
         }
     }
 
-    Component.onCompleted: pickActivePlayer()
+    Component.onCompleted: {
+        pickActivePlayer()
+        root.mediaStateChanged()
+    }
 }

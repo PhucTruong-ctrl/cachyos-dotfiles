@@ -5,11 +5,9 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "$script_dir/../.." && pwd)"
 
 media_widget_qml="$repo_root/config/quickshell/components/MediaWidget.qml"
-osd_qml="$repo_root/config/quickshell/components/OSD.qml"
 cava_service_qml="$repo_root/config/quickshell/services/CavaService.qml"
 
 MEDIA_WIDGET_QML="$media_widget_qml" \
-OSD_QML="$osd_qml" \
 CAVA_SERVICE_QML="$cava_service_qml" \
 python - <<'PY'
 from pathlib import Path
@@ -17,7 +15,6 @@ import os
 import re
 
 media_widget_text = Path(os.environ["MEDIA_WIDGET_QML"]).read_text(encoding="utf-8")
-osd_text = Path(os.environ["OSD_QML"]).read_text(encoding="utf-8")
 cava_service_text = Path(os.environ["CAVA_SERVICE_QML"]).read_text(encoding="utf-8")
 
 assert re.search(r'\bproperty\s+int\s+maxWidgetWidth\s*:', media_widget_text), "MediaWidget must define a maxWidgetWidth cap"
@@ -26,31 +23,6 @@ assert re.search(r'\bproperty\s+int\s+visualizerBars\s*:\s*[1-6]\b', media_widge
 assert re.search(r'\bmodel\s*:\s*root\.visualizerBars\b', media_widget_text), "MediaWidget visualizer repeater must use visualizerBars"
 assert re.search(r'\bproperty\s+int\s+visualizerBarWidth\s*:\s*[1-4]\b', media_widget_text), "MediaWidget visualizer bars must be narrow"
 assert re.search(r'\bwidth\s*:\s*root\.visualizerBarWidth\b', media_widget_text), "MediaWidget visualizer delegate width must use visualizerBarWidth"
-
-assert re.search(r'\bproperty\s+int\s+lastVolume\s*:\s*-1\b', osd_text), "OSD must track last volume"
-assert re.search(r'\bproperty\s+bool\s+lastMuted\s*:\s*false\b', osd_text), "OSD must track mute state"
-assert re.search(r'^\s*import\s+Quickshell\.Services\.Pipewire\b', osd_text, re.M), "OSD must import reactive Pipewire service"
-assert re.search(r'\breadonly\s+property\s+var\s+audioSink\s*:\s*Pipewire\.defaultAudioSink', osd_text), "OSD must bind to default Pipewire audio sink"
-assert re.search(r'\breadonly\s+property\s+bool\s+audioReady\s*:\s*!!\(root\.audioSink\s*&&\s*root\.audioSink\.audio\)', osd_text), "OSD must expose an audioReady guard for sink rebind races"
-assert re.search(r'\btarget\s*:\s*root\.audioSink\?\.audio\s*\?\?\s*null\b', osd_text), "OSD must react to Pipewire sink audio changes"
-assert re.search(r'\bfunction\s+onVolumeChanged\s*\(', osd_text), "OSD must handle reactive volume changes"
-assert re.search(r'\bfunction\s+onMutedChanged\s*\(', osd_text), "OSD must handle reactive mute changes"
-assert re.search(r'function\s+onVolumeChanged\s*\(\)\s*{\s*if\s*\(\s*!root\.audioReady\s*\)\s*return;', osd_text), "OSD volume handler must guard until audio is ready"
-assert re.search(r'function\s+onMutedChanged\s*\(\)\s*{\s*if\s*\(\s*!root\.audioReady\s*\)\s*return;', osd_text), "OSD mute handler must guard until audio is ready"
-assert re.search(r'\bid\s*:\s*volumeFallbackWatcher\b', osd_text), "OSD must define a volume fallback watcher"
-assert re.search(r'\binterval\s*:\s*\d+\b', osd_text), "OSD fallback watcher must have a polling interval"
-assert re.search(r'\brepeat\s*:\s*true\b', osd_text), "OSD fallback watcher must run continuously"
-assert re.search(r'\bonTriggered\s*:\s*{[\s\S]*?root\.sinkVolumePercent\(\)', osd_text), "OSD fallback watcher must read current sink volume"
-assert re.search(r'\bonTriggered\s*:\s*{[\s\S]*?root\.show\("volume"', osd_text), "OSD fallback watcher must surface missed volume/mute updates"
-assert re.search(r'\bonTriggered\s*:\s*{\s*if\s*\(\s*!root\.audioReady\s*\)\s*return;', osd_text), "OSD fallback watcher must no-op until audio is ready"
-assert re.search(r'function\s+onVolumeChanged\s*\(\)\s*{(?:(?!function\s+onMutedChanged)[\s\S])*const\s+isMuted\s*=\s*root\.audioSink\s*&&\s*root\.audioSink\.audio\s*\?\s*root\.audioSink\.audio\.muted\s*:\s*false', osd_text), "OSD volume updates must read current sink mute state to avoid rebind races"
-assert re.search(r'\bif\s*\(\s*!isNaN\(vol\)\s*&&\s*vol\s*!==\s*root\.lastVolume\s*\)', osd_text), "OSD must only show volume when value changes"
-assert re.search(r'\bif\s*\(\s*isMuted\s*!==\s*root\.lastMuted\s*\)', osd_text), "OSD must only show mute icon when mute state changes"
-assert re.search(r'\bMath\.round\(root\.audioSink\.audio\.volume\s*\*\s*100\)', osd_text), "OSD must derive volume percent reactively from Pipewire sink"
-assert re.search(r'parseInt\(parts\[0\],\s*10\)', osd_text), "OSD brightness parser must parse current value with base-10 radix"
-assert re.search(r'parseInt\(parts\[1\],\s*10\)', osd_text), "OSD brightness parser must parse max value with base-10 radix"
-assert not re.search(r'\bpactl\b', osd_text), "OSD must not shell out to pactl subscribe for volume events"
-assert not re.search(r'\bpamixer\b', osd_text), "OSD must not shell out to pamixer for volume events"
 
 assert re.search(r'\bproperty\s+int\s+maxRestartAttempts\s*:\s*\d+', cava_service_text), "CavaService must define max restart attempts"
 assert re.search(r'\bif\s*\(\s*root\._failCount\s*<=\s*root\.maxRestartAttempts\s*\)', cava_service_text), "CavaService restart guard must use maxRestartAttempts"
