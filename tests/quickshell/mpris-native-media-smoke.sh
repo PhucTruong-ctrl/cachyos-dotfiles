@@ -22,4 +22,6 @@ assert re.search(r'\bfunction\s+playPause\s*\(', text), "MediaService must expos
 assert re.search(r'\bfunction\s+next\s*\(', text), "MediaService must expose next control"
 assert re.search(r'\bfunction\s+previous\s*\(', text), "MediaService must expose previous control"
 assert re.search(r'\bMprisPlaybackState\.(Playing|Paused|Stopped)\b', text), "MediaService must map MprisPlaybackState to status text"
+assert re.search(r'\bsignal\s+mediaStateChanged\s*\(\)', text), "MediaService must expose mediaStateChanged signal for OSD media bus consumers"
+assert re.search(r'\bmediaStateChanged\s*\(\)', text), "MediaService must emit mediaStateChanged when media state updates"
 PY
