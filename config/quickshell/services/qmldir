@@ -8,6 +8,8 @@ singleton GlobalState 1.0 GlobalState.qml
 singleton HyprlandService 1.0 HyprlandService.qml
 singleton KeybindsService 1.0 KeybindsService.qml
 singleton MediaService 1.0 MediaService.qml
+singleton OSDEventBus 1.0 OSDEventBus.qml
+singleton OSDMediaService 1.0 OSDMediaService.qml
 singleton NetworkService 1.0 NetworkService.qml
 singleton NotifStore 1.0 NotifStore.qml
 singleton Performance 1.0 Performance.qml

@@ -39,6 +39,8 @@ PanelWindow {
     property string icon: "󰕾"
     property int value: 0
     property string type: "volume" // "volume" or "brightness"
+    property string mediaTitle: ""
+    property string mediaSource: ""
     property int lastVolume: -1
     property bool lastMuted: false
     readonly property var audioSink: Pipewire.defaultAudioSink
@@ -60,6 +62,22 @@ PanelWindow {
         root.icon = newIcon
         root.active = true
         hideTimer.restart()
+    }
+
+    readonly property var _mediaPipelineBootstrap: OSDMediaService
+
+    Connections {
+        target: OSDEventBus
+
+        function onEventPublished(evt) {
+            if (!evt)
+                return;
+            if (evt.kind === "media") {
+                root.mediaTitle = evt.label || ""
+                root.mediaSource = evt.metadata && evt.metadata.source ? evt.metadata.source : ""
+                root.show("media", typeof evt.value === "number" ? evt.value : 0, evt.icon || "󰎇")
+            }
+        }
     }
 
     // ── Data Fetching ───────────────────────────────────────────────────────
@@ -222,7 +240,19 @@ PanelWindow {
                 font.pixelSize: 14
                 font.bold: true
                 color: GlobalState.text
-                Layout.preferredWidth: 40
+                Layout.preferredWidth: root.type === "media" ? -1 : 40
+                horizontalAlignment: Text.AlignRight
+                Layout.alignment: Qt.AlignVCenter
+                visible: root.type !== "media"
+            }
+
+            Text {
+                visible: root.type === "media"
+                text: root.mediaSource ? (root.mediaTitle + " • " + root.mediaSource) : root.mediaTitle
+                font.pixelSize: 13
+                color: GlobalState.text
+                elide: Text.ElideRight
+                Layout.preferredWidth: 132
                 horizontalAlignment: Text.AlignRight
                 Layout.alignment: Qt.AlignVCenter
             }
