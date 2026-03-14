@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell.Services.Pipewire
 import "."
+
 QtObject {
     id: root
 
