@@ -1,12 +1,11 @@
-// OSD.qml — Volume/brightness on-screen display spawned by hardware key events.
-// Uses hardware listeners + timers to show transient overlays near the bar.
-// Colors + blur align with GlobalState and Appearance.
+// OSD.qml — presentation-only OSD surface for normalized service events.
+// Event production lives in OSD service singletons + OSDEventBus.
+// Styling/timing come from GlobalState and Appearance.
 
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Io
 import "../services"
 
 PanelWindow {
@@ -18,8 +17,8 @@ PanelWindow {
     exclusionMode: ExclusionMode.Ignore
 
     // Center-bottom positioning
-    implicitWidth: 320
-    implicitHeight: 64
+    implicitWidth: Appearance.osdWidth
+    implicitHeight: Appearance.osdHeight
 
     anchors {
         bottom: true
@@ -28,16 +27,18 @@ PanelWindow {
     }
 
     margins {
-        bottom: 80
-        left: Math.round((Screen.width - 320) / 2)
-        right: Math.round((Screen.width - 320) / 2)
+        bottom: Appearance.osdBottomMargin
+        left: Math.round((Screen.width - Appearance.osdWidth) / 2)
+        right: Math.round((Screen.width - Appearance.osdWidth) / 2)
     }
 
     color: "transparent"
 
     property string icon: "󰕾"
     property int value: 0
-    property string type: "volume" // "volume" or "brightness"
+    property string type: "volume"
+    property string label: ""
+    property var eventSource: GlobalState
 
     // ── OSD Visibility Controller ───────────────────────────────────────────
     property bool active: false
@@ -45,7 +46,7 @@ PanelWindow {
 
     Timer {
         id: hideTimer
-        interval: 1500
+        interval: Appearance.osdHideDelay
         onTriggered: root.active = false
     }
 
@@ -57,103 +58,89 @@ PanelWindow {
         hideTimer.restart()
     }
 
-    Connections {
-        target: OSDEventBus
+    function normalizeEvent(event) {
+        if (!event || typeof event !== "object")
+            return null
 
-        function onShowRequested(kind, eventValue, eventIcon, _label, _metadata, _timestamp) {
-            root.show(kind, eventValue, eventIcon)
+        const eventType = typeof event.type === "string" && event.type.length > 0 ? event.type : typeof event.kind === "string" ? event.kind : ""
+        if (eventType.length === 0)
+            return null
+
+        if (typeof event.value !== "number" || isNaN(event.value))
+            return null
+
+        const clampedValue = Math.round(Math.max(0, Math.min(100, event.value)))
+        const eventIcon = typeof event.icon === "string" && event.icon.length > 0 ? event.icon : root.icon
+        const eventLabel = typeof event.label === "string" ? event.label : ""
+
+        return {
+            "type": eventType,
+            "value": clampedValue,
+            "icon": eventIcon,
+            "label": eventLabel
         }
     }
 
-    // Brightness Detection — event-driven watcher (no inotifywait; uses a
-    // long-running bash loop that reads the sysfs brightness file and only
-    // emits a line when the value changes).  This replaces the previous
-    // 500 ms polling timer + two forked brightnessctl processes that ran
-    // unconditionally 24/7 even while the OSD was hidden.
-    //
-    // Output format: "<current_raw> <max_raw>" on each brightness change.
-    property int lastBrightness: -1
+    function showFromEvent(event) {
+        const normalized = root.normalizeEvent(event)
+        if (!normalized)
+            return
 
-    Process {
-        id: brightnessWatcher
-        command: [
-            "bash", "-c",
-            "BDEV=/sys/class/backlight/$(ls /sys/class/backlight | head -n1);" +
-            "MAX=$(cat \"$BDEV/max_brightness\");" +
-            "PREV=-1;" +
-            "while true; do" +
-            "  CUR=$(cat \"$BDEV/brightness\");" +
-            "  if [ \"$CUR\" != \"$PREV\" ]; then" +
-            "    echo \"$CUR $MAX\";" +
-            "    PREV=$CUR;" +
-            "  fi;" +
-            "  sleep 0.25;" +
-            "done"
-        ]
-        running: true
-        stdout: SplitParser {
-            onRead: data => {
-                const parts = data.trim().split(" ")
-                if (parts.length === 2) {
-                    const cur = parseInt(parts[0], 10)
-                    const max = parseInt(parts[1], 10)
-                    if (!isNaN(cur) && !isNaN(max) && max > 0) {
-                        const pct = Math.round((cur / max) * 100)
-                        if (pct !== root.lastBrightness && root.lastBrightness !== -1) {
-                            root.show("brightness", pct, "󰃠")
-                        }
-                        root.lastBrightness = pct
-                    }
-                }
-            }
+        root.label = normalized.label
+        root.show(normalized.type, normalized.value, normalized.icon)
+    }
+
+    Connections {
+        target: root.eventSource
+
+        function onOsdEventChanged() {
+            if (!root.eventSource)
+                return;
+            const event = root.eventSource.osdEvent
+            root.showFromEvent(event)
         }
     }
 
     // ── UI Layout ───────────────────────────────────────────────────────────
     Rectangle {
         anchors.fill: parent
-        radius: Appearance.panelRadius + 4   // OSD uses slightly larger radius (16 vs 12)
-        color: Qt.rgba(
-            GlobalState.surface0.r,
-            GlobalState.surface0.g,
-            GlobalState.surface0.b,
-            Appearance.panelOpacity + 0.05   // 0.90 — slightly more opaque for readability
-        )
+        radius: Appearance.osdRadius
+        color: GlobalState.osdBackground
 
         RowLayout {
             anchors.fill: parent
-            anchors.margins: 16
-            spacing: 12
+            anchors.margins: Appearance.osdContentMargin
+            spacing: Appearance.osdContentSpacing
 
             Text {
                 text: root.icon
-                font.pixelSize: 24
+                font.pixelSize: Appearance.osdIconSize
                 font.family: "monospace"
-                color: GlobalState.matugenPrimary
+                color: GlobalState.osdIcon
                 Layout.alignment: Qt.AlignVCenter
             }
 
             // Progress bar
             Rectangle {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 8
-                color: GlobalState.surface1
-                radius: 4
+                Layout.preferredHeight: Appearance.osdBarHeight
+                color: GlobalState.osdTrack
+                radius: Appearance.osdBarRadius
                 Layout.alignment: Qt.AlignVCenter
 
                 Rectangle {
                     width: (root.value / 100) * parent.width
                     height: parent.height
-                    color: GlobalState.matugenPrimary
-                    radius: 4
+                    color: GlobalState.osdFill
+                    radius: Appearance.osdBarRadius
                 }
             }
 
             Text {
                 text: root.value + "%"
-                font.pixelSize: 14
+                font.pixelSize: Appearance.osdValueSize
                 font.bold: true
-                color: GlobalState.text
+                color: GlobalState.osdText
                 Layout.preferredWidth: 40
                 horizontalAlignment: Text.AlignRight
                 Layout.alignment: Qt.AlignVCenter
