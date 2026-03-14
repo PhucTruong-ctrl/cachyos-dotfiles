@@ -42,6 +42,7 @@ PanelWindow {
     property int lastVolume: -1
     property bool lastMuted: false
     readonly property var audioSink: Pipewire.defaultAudioSink
+    readonly property bool audioReady: !!(root.audioSink && root.audioSink.audio)
 
     // ── OSD Visibility Controller ───────────────────────────────────────────
     property bool active: false
@@ -81,6 +82,8 @@ PanelWindow {
         target: root.audioSink?.audio ?? null
 
         function onVolumeChanged() {
+            if (!root.audioReady)
+                return;
             const vol = root.sinkVolumePercent()
             const isMuted = root.audioSink && root.audioSink.audio ? root.audioSink.audio.muted : false
             root.lastMuted = isMuted
@@ -91,6 +94,8 @@ PanelWindow {
         }
 
         function onMutedChanged() {
+            if (!root.audioReady)
+                return;
             const isMuted = root.audioSink && root.audioSink.audio ? root.audioSink.audio.muted : false
             if (isMuted !== root.lastMuted) {
                 root.lastMuted = isMuted
@@ -114,6 +119,8 @@ PanelWindow {
         repeat: true
         running: true
         onTriggered: {
+            if (!root.audioReady)
+                return;
             const vol = root.sinkVolumePercent()
             const isMuted = root.audioSink && root.audioSink.audio ? root.audioSink.audio.muted : false
             const volumeChanged = !isNaN(vol) && vol !== root.lastVolume
