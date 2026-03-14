@@ -17,6 +17,14 @@ QtObject {
         })
     }
 
+    function publishAudio(value, icon, label, metadata): void {
+        root.publish("volume", value, icon, label, metadata)
+    }
+
+    function publishBrightness(value, icon, metadata): void {
+        root.publish("brightness", value, icon, "", metadata)
+    }
+
     function publishMedia(icon, title, source, progress): void {
         root.publish("media", progress, icon, title, {
             source: source,

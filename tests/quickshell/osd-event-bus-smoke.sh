@@ -11,6 +11,7 @@ media_service_qml="$repo_root/config/quickshell/services/OSDMediaService.qml"
 qmldir_file="$repo_root/config/quickshell/services/qmldir"
 osd_qml="$repo_root/config/quickshell/components/OSD.qml"
 core_media_service_qml="$repo_root/config/quickshell/services/MediaService.qml"
+global_state_qml="$repo_root/config/quickshell/services/GlobalState.qml"
 
 OSD_EVENT_BUS_QML="$event_bus_qml" \
 OSD_AUDIO_SERVICE_QML="$audio_service_qml" \
@@ -19,6 +20,7 @@ OSD_MEDIA_SERVICE_QML="$media_service_qml" \
 SERVICES_QMLDIR="$qmldir_file" \
 OSD_QML="$osd_qml" \
 MEDIA_SERVICE_QML="$core_media_service_qml" \
+GLOBAL_STATE_QML="$global_state_qml" \
 python - <<'PY'
 from pathlib import Path
 import os
@@ -31,6 +33,7 @@ media_service_text = Path(os.environ["OSD_MEDIA_SERVICE_QML"]).read_text(encodin
 qmldir_text = Path(os.environ["SERVICES_QMLDIR"]).read_text(encoding="utf-8")
 osd_text = Path(os.environ["OSD_QML"]).read_text(encoding="utf-8")
 core_media_service_text = Path(os.environ["MEDIA_SERVICE_QML"]).read_text(encoding="utf-8")
+global_state_text = Path(os.environ["GLOBAL_STATE_QML"]).read_text(encoding="utf-8")
 
 for name, text in [
     ("OSDEventBus", event_bus_text),
@@ -42,6 +45,8 @@ for name, text in [
 
 assert re.search(r"\bsignal\s+eventPublished\s*\(\s*var\s+event\s*\)", event_bus_text), "OSDEventBus must expose published event signal"
 assert re.search(r"\bfunction\s+publish\s*\(\s*kind\s*,\s*value\s*,\s*icon\s*,\s*label\s*,\s*metadata\s*\)", event_bus_text), "OSDEventBus must expose normalized publish API"
+assert re.search(r"\bfunction\s+publishAudio\s*\(\s*value\s*,\s*icon\s*,\s*label\s*,\s*metadata\s*\)", event_bus_text), "OSDEventBus must expose audio publish helper"
+assert re.search(r"\bfunction\s+publishBrightness\s*\(\s*value\s*,\s*icon\s*,\s*metadata\s*\)", event_bus_text), "OSDEventBus must expose brightness publish helper"
 assert re.search(r"\bkind\s*:\s*kind\b", event_bus_text), "OSDEventBus publish payload must include kind"
 assert re.search(r"\bvalue\s*:\s*value\b", event_bus_text), "OSDEventBus publish payload must include value"
 assert re.search(r"\bicon\s*:\s*icon\b", event_bus_text), "OSDEventBus publish payload must include icon"
@@ -85,4 +90,8 @@ assert not re.search(r"\bbrightnessWatcher\b", osd_text), "OSD component must no
 assert re.search(r"\bsignal\s+mediaStateChanged\s*\(\)", core_media_service_text), "MediaService must expose mediaStateChanged signal for event-bus media flow"
 assert re.search(r"\bmediaStateChanged\s*\(\)", core_media_service_text), "MediaService must emit mediaStateChanged updates"
 assert not re.search(r"\bplayerctl\b", core_media_service_text), "MediaService path must remain native MPRIS without playerctl polling"
+
+assert re.search(r"\btarget\s*:\s*OSDEventBus\b", global_state_text), "GlobalState must subscribe to OSDEventBus runtime events"
+assert re.search(r"\bfunction\s+onEventPublished\s*\(\s*event\s*\)", global_state_text), "GlobalState must handle OSDEventBus eventPublished signal"
+assert re.search(r"\bosdEvent\s*=\s*event\b", global_state_text), "GlobalState must forward bus events into osdEvent state"
 PY
