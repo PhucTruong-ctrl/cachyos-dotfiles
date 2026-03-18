@@ -123,7 +123,7 @@ set_internal_mode() {
             write_cpu_value "$max_perf_file" 100
             write_cpu_value "$no_turbo_file" 0
             write_cpu_value "$hwp_boost_file" 1
-            reset_cpufreq_limit
+            write_cpufreq_limit "$ON_CPU_CAP_KHZ"
 
             if [[ -x "$NVIDIA_SMI" ]]; then
                 "$NVIDIA_SMI" --reset-gpu-clocks 2>/dev/null || warn "failed to reset NVIDIA clocks"
@@ -212,6 +212,7 @@ esac
 INTEL_PSTATE_DIR="${PERFORMANCE_MODE_INTEL_PSTATE_DIR:-/sys/devices/system/cpu/intel_pstate}"
 CPUFREQ_DIR="${PERFORMANCE_MODE_CPUFREQ_DIR:-/sys/devices/system/cpu/cpufreq}"
 OFF_CPU_CAP_KHZ="${PERFORMANCE_MODE_OFF_CAP_KHZ:-1000000}"
+ON_CPU_CAP_KHZ="${PERFORMANCE_MODE_ON_CAP_KHZ:-2600000}"
 NVIDIA_SMI="${PERFORMANCE_MODE_NVIDIA_SMI:-/usr/bin/nvidia-smi}"
 BACKENDS_RAW="${PERFORMANCE_MODE_BACKENDS:-/usr/local/bin/game-performance:/usr/local/bin/performance-backend}"
 BACKEND_CANDIDATES=()

@@ -141,7 +141,7 @@ test_on_runtime_changes() {
     assert_eq 0 "$RUN_STATUS" "on should succeed"
     assert_file_value "$pstate_dir/max_perf_pct" "100" "on should set max perf to 100"
     assert_file_value "$pstate_dir/no_turbo" "0" "on should enable turbo"
-    assert_file_value "$policy_dir/scaling_max_freq" "3400000" "on should remove explicit cpufreq cap"
+    assert_file_value "$policy_dir/scaling_max_freq" "2600000" "on should cap cpufreq to 2600000 kHz for sustained performance"
     assert_file_value "$nvidia_log" "--reset-gpu-clocks" "on should reset gpu clocks"
 
     rm -rf "$temp_dir"
