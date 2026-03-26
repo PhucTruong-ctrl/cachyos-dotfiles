@@ -60,7 +60,6 @@ QtObject {
     property bool caffeineActive: false
     property bool nightModeActive: false
     property bool dndActive: false
-    property bool highPerformanceActive: false
 
     readonly property color osdBackground: Qt.rgba(surface0.r, surface0.g, surface0.b, Appearance.panelOpacity + Appearance.osdBackgroundBoost)
     readonly property color osdTrack: surface1

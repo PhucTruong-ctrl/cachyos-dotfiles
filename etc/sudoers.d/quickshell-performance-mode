@@ -1,1 +1,0 @@
-%wheel ALL=(root) NOPASSWD: /usr/local/bin/performance-mode on, /usr/local/bin/performance-mode off, /usr/local/bin/performance-mode status, /usr/bin/systemctl stop tlp, /usr/bin/systemctl start tlp, /usr/bin/tlp start

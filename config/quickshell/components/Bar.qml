@@ -214,9 +214,9 @@ Scope {
 
                 // Media Widget: always-visible compact MPRIS controls
                 // Shows "No media" when no player, mini visualizer + controls when active.
-                MediaWidget {
-                    Layout.alignment: Qt.AlignVCenter
-                }
+                // MediaWidget {
+                //     Layout.alignment: Qt.AlignVCenter
+                // }
 
                 // ── Left spacer ───────────────────────────────────────────────
                 Item {

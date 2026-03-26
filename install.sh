@@ -29,15 +29,6 @@ run bash "$SCRIPT_DIR/scripts/install-packages.sh"
 
 # --- 2. Copy system configs ---
 log "Installing system configs..."
-run sudo mkdir -p /usr/local/bin
-run sudo cp "$SCRIPT_DIR/scripts/performance-mode.sh" /usr/local/bin/performance-mode
-run sudo chmod 0755 /usr/local/bin/performance-mode
-run sudo mkdir -p /etc/sudoers.d
-run sudo cp "$SCRIPT_DIR/etc/sudoers.d/quickshell-performance-mode" /etc/sudoers.d/quickshell-performance-mode
-run sudo chmod 0440 /etc/sudoers.d/quickshell-performance-mode
-run sudo visudo -cf /etc/sudoers.d/quickshell-performance-mode
-run sudo cp "$SCRIPT_DIR/etc/tlp.conf" /etc/tlp.conf
-run sudo cp "$SCRIPT_DIR/etc/intel-undervolt.conf" /etc/intel-undervolt.conf
 run sudo cp "$SCRIPT_DIR/etc/sysctl.d/99-performance.conf" /etc/sysctl.d/99-performance.conf
 run sudo cp "$SCRIPT_DIR/etc/udev/rules.d/99-via-keyboard.rules" /etc/udev/rules.d/99-via-keyboard.rules
 run sudo cp "$SCRIPT_DIR/etc/default/limine" /etc/default/limine
@@ -48,17 +39,11 @@ run sudo cp "$SCRIPT_DIR/etc/modprobe.d/nvidia.conf" /etc/modprobe.d/nvidia.conf
 log "Installing systemd services..."
 run sudo cp "$SCRIPT_DIR/etc/systemd/system/tailscale-autoheal.service" /etc/systemd/system/
 run sudo cp "$SCRIPT_DIR/etc/systemd/system/tailscale-autoheal.timer" /etc/systemd/system/
-run sudo cp "$SCRIPT_DIR/etc/systemd/system/nvidia-clock-cap.service" /etc/systemd/system/
 run sudo systemctl daemon-reload
 
 # --- 4. Enable services ---
 log "Enabling services..."
-run sudo systemctl enable --now tlp
-run sudo systemctl enable --now thermald
-run sudo systemctl enable intel-undervolt
-run sudo systemctl start intel-undervolt
 run sudo systemctl enable --now tailscale-autoheal.timer
-run sudo systemctl enable nvidia-clock-cap.service
 
 # --- 5. Install Oh My Zsh ---
 log "Installing Oh My Zsh..."
@@ -120,7 +105,6 @@ echo "  - Reboot to apply kernel boot params (nmi_watchdog=0, intel_pstate=activ
 echo "  - Run 'gh auth login' if GitHub CLI not authenticated"
 echo "  - Run 'tailscale up' to connect to Tailscale network"
 echo "  - Run 'fcitx5 -r -d' to reload input method"
-echo "  - Run 'sudo intel-undervolt read' to verify undervolt"
 echo "  - Open Spotify, then run 'spicetify backup apply' to activate Spicetify"
 echo "  - Install adblockify & hidePodcasts from Spicetify Marketplace inside Spotify"
 echo "  - Run 'betterdiscordctl install' to inject BetterDiscord"

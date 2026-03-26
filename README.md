@@ -68,13 +68,10 @@ cachyos-dotfiles/
 │   └── zsh/                        # Zsh config (.zshrc)
 ├── etc/                            # System-level configs → deployed via sudo cp
 │   ├── default/limine              # Bootloader kernel parameters
-│   ├── intel-undervolt.conf        # CPU undervolt offsets
 │   ├── modprobe.d/                 # Kernel module options
 │   ├── sysctl.d/99-performance.conf
-│   ├── tlp.conf                    # Power management (TLP)
 │   ├── udev/rules.d/               # Udev rules (e.g. VIA keyboard)
 │   └── systemd/system/
-│       ├── nvidia-clock-cap.service
 │       ├── tailscale-autoheal.service
 │       └── tailscale-autoheal.timer
 ├── packages/
@@ -242,11 +239,8 @@ These files require root to deploy and are managed by `install.sh`:
 
 | File | Purpose |
 |---|---|
-| `etc/intel-undervolt.conf` | CPU core/cache/uncore voltage offsets |
-| `etc/tlp.conf` | TLP power management (battery charge thresholds, USB autosuspend) |
 | `etc/sysctl.d/99-performance.conf` | Kernel tunables (`vm.swappiness`, `nmi_watchdog`, etc.) |
 | `etc/default/limine` | Bootloader kernel parameters (`intel_pstate=passive`, etc.) |
-| `etc/systemd/system/nvidia-clock-cap.service` | NVIDIA GPU clock cap on boot |
 | `etc/systemd/system/tailscale-autoheal.{service,timer}` | Auto-reconnect Tailscale on network changes |
 | `etc/udev/rules.d/99-via-keyboard.rules` | VIA keyboard firmware flashing permissions |
 | `etc/modprobe.d/nvidia.conf` | NVIDIA kernel module options (DRM modeset, FBDEV) |
@@ -323,7 +317,6 @@ hyprctl clients | grep -E 'class|title'
 [ ] gh auth login           — GitHub CLI authentication
 [ ] tailscale up            — connect to Tailscale
 [ ] fcitx5 -r -d            — reload input method
-[ ] sudo intel-undervolt read  — verify undervolt applied
 [ ] spicetify backup apply  — activate Spicetify (after Spotify first launch)
 [ ] betterdiscordctl install   — inject BetterDiscord
 ```

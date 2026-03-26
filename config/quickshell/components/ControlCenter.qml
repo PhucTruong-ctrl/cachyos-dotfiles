@@ -56,7 +56,6 @@ PanelWindow {
             // Reset content to off-screen starting position before revealing
             contentRect.y = PopupAnchorService.barY - contentRect.height - 12
             visible = true
-            refreshPerformanceModeStatus()
             slideInAnim.restart()
         } else {
             // Stop any in-progress slide-in before closing
@@ -112,12 +111,6 @@ PanelWindow {
     // ── Sub-panel expansion state ─────────────────────────────────────────────
     property bool wifiExpanded: false
     property bool btExpanded:   false
-
-    function refreshPerformanceModeStatus() {
-        performanceModeStatus.receivedStatus = false
-        performanceModeStatus.running = false
-        performanceModeStatus.running = true
-    }
 
     // ── Volume state ──────────────────────────────────────────────────────────
     property int  currentVolume: 0
@@ -245,51 +238,6 @@ PanelWindow {
         onExited: caffeineCheck.running = true
     }
 
-    // ── High Performance processes ────────────────────────────────────────────
-    Process {
-        id:      performanceModeStatus
-        property bool receivedStatus: false
-        // Status must be non-privileged to avoid password prompts during polling.
-        command: ["/usr/local/bin/performance-mode", "status"]
-        running: true
-        stdout: SplitParser {
-            onRead: data => {
-                performanceModeStatus.receivedStatus = true
-                GlobalState.highPerformanceActive = (data.trim() === "PERFORMANCE_MODE=on")
-            }
-        }
-        onExited: code => {
-            if (code !== 0 || !receivedStatus) {
-                GlobalState.highPerformanceActive = false
-            }
-        }
-    }
-
-    Process {
-        id:      performanceModeOn
-        // Use non-interactive sudo so UI never blocks on password prompt.
-        // If sudoers is not configured yet, command exits non-zero and status
-        // refresh will reconcile state back to OFF.
-        command: ["sudo", "-n", "/usr/local/bin/performance-mode", "on"]
-        onExited: code => {
-            if (code !== 0) {
-                console.warn("ControlCenter: High Performance ON failed (sudoers/helper missing?)")
-            }
-            refreshPerformanceModeStatus()
-        }
-    }
-
-    Process {
-        id:      performanceModeOff
-        command: ["sudo", "-n", "/usr/local/bin/performance-mode", "off"]
-        onExited: code => {
-            if (code !== 0) {
-                console.warn("ControlCenter: High Performance OFF failed (sudoers/helper missing?)")
-            }
-            refreshPerformanceModeStatus()
-        }
-    }
-
     // ── Polling timer (runs only while panel is open) ─────────────────────────
     Timer {
         interval: 2000
@@ -301,7 +249,6 @@ PanelWindow {
             brightnessGet.running    = true
             wlsunsetCheck.running    = true
             caffeineCheck.running    = true
-            refreshPerformanceModeStatus()
         }
     }
 
@@ -619,25 +566,6 @@ PanelWindow {
                             hypridleKill.running = true
                         }
                         GlobalState.caffeineActive = !GlobalState.caffeineActive
-                    }
-                }
-
-                ToggleButton {
-                    iconText:  "󰓅"
-                    labelText: "High Performance"
-                    active:    GlobalState.highPerformanceActive
-                    activeColor: GlobalState.warning
-                    activeBorderColor: GlobalState.warning
-                    activeForegroundColor: GlobalState.base
-                    onClicked: {
-                        if (GlobalState.highPerformanceActive) {
-                            performanceModeOff.running = false
-                            performanceModeOff.running = true
-                        } else {
-                            performanceModeOn.running = false
-                            performanceModeOn.running = true
-                        }
-                        GlobalState.highPerformanceActive = !GlobalState.highPerformanceActive
                     }
                 }
 
