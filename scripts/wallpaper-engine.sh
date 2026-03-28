@@ -29,9 +29,9 @@ fi
 
 log_info "Activating wallpaper: $WALLPAPER"
 
-if ! pgrep -x "swww-daemon" > /dev/null; then
-    log_info "swww-daemon not running; starting it"
-    swww-daemon &
+if ! pgrep -x "awww-daemon" > /dev/null; then
+    log_info "awww-daemon not running; starting it"
+    awww-daemon &
     sleep 1
 fi
 
@@ -41,9 +41,9 @@ if command -v hyprctl > /dev/null; then
 fi
 
 if [[ -n "$pos" ]]; then
-    swww img "$WALLPAPER" --transition-type grow --transition-pos "$pos" >> "$LOG_FILE" 2>&1
+    awww img "$WALLPAPER" --transition-type grow --transition-pos "$pos" >> "$LOG_FILE" 2>&1
 else
-    swww img "$WALLPAPER" --transition-type grow >> "$LOG_FILE" 2>&1
+    awww img "$WALLPAPER" --transition-type grow >> "$LOG_FILE" 2>&1
 fi
 
 sync_script="$HOME/.config/quickshell/scripts/matugen-sync.sh"

@@ -27,9 +27,9 @@ fi
 
 log_info "Activating wallpaper: $wallpaper"
 
-if ! pgrep -x "swww-daemon" > /dev/null; then
-    log_info "swww-daemon not running; starting it"
-    swww-daemon &
+if ! pgrep -x "awww-daemon" > /dev/null; then
+    log_info "awww-daemon not running; starting it"
+    awww-daemon &
     sleep 1
 fi
 
@@ -39,9 +39,9 @@ if command -v hyprctl > /dev/null; then
 fi
 
 if [[ -n "$pos" ]]; then
-    swww img "$wallpaper" --transition-type grow --transition-pos "$pos"
+    awww img "$wallpaper" --transition-type grow --transition-pos "$pos"
 else
-    swww img "$wallpaper" --transition-type grow
+    awww img "$wallpaper" --transition-type grow
 fi
 
 # Persist the wallpaper path so Quickshell can restore it on restart
